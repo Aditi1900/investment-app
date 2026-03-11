@@ -1,11 +1,14 @@
-from service import service as serv
-from visualizer import visualizer as vis
-from validator import validator
+from service import Service as serv
+from visualizer import Visualizer as vis
+from validator import Validator as validator
 
 
-class cli:
+class Cli:
+
     def __init__(self):
         self.userAccount = None
+
+
 
     def display_startup_menu(self):
         #welcome menu display goes here
@@ -25,6 +28,8 @@ class cli:
                 continue
 
             self.display_user_dashboard(self.userAccount)
+
+
 
     def display_account_credential_gatherer(self, isNew):  
         selection = 0

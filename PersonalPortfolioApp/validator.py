@@ -1,2 +1,2 @@
-class validator:
+class Validator:
     pass

@@ -1,4 +1,4 @@
 import sqlite3 as sqlite
 
-class database:
+class Database:
     pass

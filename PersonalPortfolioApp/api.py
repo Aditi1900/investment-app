@@ -1,4 +1,4 @@
 import yfinance as yf
 
-class api:
+class Api:
     pass

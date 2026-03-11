@@ -1,2 +1,2 @@
-class service:
+class Service:
     pass
