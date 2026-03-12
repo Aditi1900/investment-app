@@ -13,6 +13,7 @@ class Cli:
 
         while True:
             selection = 0
+            self.userAccount = None
             # TODO: Welcome menu display
             # TODO: Display selection options
             # TODO: Selection input receiver
