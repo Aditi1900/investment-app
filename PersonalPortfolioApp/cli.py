@@ -160,7 +160,7 @@ class Cli:
 
         while True:
             # TODO: Transaction menu display
-            # TODO: Stocks input receiver (ticker & quantity) 
+            # TODO: Stock input receiver (ticker & quantity) 
 
             stock = ticker, quantity
 
