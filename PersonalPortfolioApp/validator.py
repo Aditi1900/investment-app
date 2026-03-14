@@ -4,7 +4,7 @@ class Validator:
     def __init__(self, service):
         self.serv = service
     
-    def account_validator(credentials, isNew) -> bool:
+    def account_validator(self, credentials, isNew) -> bool:
         pass
 
     @staticmethod

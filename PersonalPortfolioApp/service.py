@@ -2,6 +2,7 @@ import sys
 from user import User
 from portfolio import Portfolio
 from stock import Stock
+import user
 
 class Service:
     
@@ -54,12 +55,12 @@ class Service:
         self.populate_portfolios(userAccount, userAccount.portfolios)
 
     def populate_portfolio(self, userAccount : User, portfolio : Portfolio) -> None:
-        #TODO: Pull portfolio data from db
+        #TODO: Pull portfolio data from db with context
         #TODO: Populate portfolio with data
         self.populate_stocks(userAccount, portfolio, portfolio.stocks)
 
     def populate_stock(self, userAccount : User, portfolio : Portfolio, stock : Stock) -> None:
-        #TODO: Pull stock data from db
+        #TODO: Pull stock data from db with context
         #TODO: Populate stock with data
         pass
 

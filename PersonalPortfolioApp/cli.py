@@ -7,7 +7,7 @@ class Cli:
         self.serv = service
         self.validator = validator
 
-    def run(self):
+    def execute(self):
         self.display_startup_menu()
 
     def display_startup_menu(self):
