@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5cd7ce3a-d338-4a3c-9c8c-c595f3d9e84a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>bootstrap.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,15 +23,30 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="domain_models\__init__.py" />
+    <Compile Include="integration_layer\api.py" />
     <Compile Include="bootstrap.py" />
-    <Compile Include="domain_models.py" />
-    <Compile Include="integration_layer.py" />
-    <Compile Include="interface_layer.py" />
-    <Compile Include="main.py" />
-    <Compile Include="persistence_layer.py" />
-    <Compile Include="service_layer.py" />
-    <Compile Include="validation_layer.py" />
-    <Compile Include="visualizer.py" />
+    <Compile Include="integration_layer\__init__.py" />
+    <Compile Include="interface_layer\cli.py" />
+    <Compile Include="interface_layer\__init__.py" />
+    <Compile Include="persistence_layer\database.py" />
+    <Compile Include="domain_models\portfolio.py" />
+    <Compile Include="persistence_layer\__init__.py" />
+    <Compile Include="service_layer\service.py" />
+    <Compile Include="domain_models\stock.py" />
+    <Compile Include="domain_models\user.py" />
+    <Compile Include="service_layer\__init__.py" />
+    <Compile Include="validation_layer\validator.py" />
+    <Compile Include="interface_layer\visualizer.py" />
+    <Compile Include="validation_layer\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="interface_layer\" />
+    <Folder Include="integration_layer\" />
+    <Folder Include="domain_models\" />
+    <Folder Include="validation_layer\" />
+    <Folder Include="service_layer\" />
+    <Folder Include="persistence_layer\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

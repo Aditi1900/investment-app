@@ -1,6 +1,3 @@
-from visualizer import Visualizer as vis
-
-
 # PURPOSE:
 class Cli:
 
@@ -8,10 +5,11 @@ class Cli:
     # OUTPUT:
     # PRECONDITION:
     # POSTCONDITION:
-    def __init__(self, service, validator):
+    def __init__(self, service, validator, visualizer):
         self.userAccount = None
         self.serv = service
         self.validator = validator
+        self.vis = visualizer
 
 
     # INPUT:
@@ -210,8 +208,7 @@ class Cli:
     # POSTCONDITION:
     def display_portfolio_contents(self, portfolio):
 
-        data = [{"ticker": s.ticker, "quantity": s.quantity} for s in portfolio.stocks.values()]
-        vis.display_pie_chart(data)
+        
 
         while True:
             selection = 0
@@ -219,6 +216,9 @@ class Cli:
             # TODO: Portfolio contents display
             # TODO: Display selection options
             # TODO: Selection input receiver
+            
+            data = [{"ticker": s.ticker, "quantity": s.quantity} for s in portfolio.stocks.values()]
+            self.vis.display_pie_chart(data)
 
             if selection == 1:
                 self.display_stock_transaction_menu(portfolio=portfolio, isPurchase=True)
