@@ -12,9 +12,8 @@ class Service:
     # OUTPUT:
     # PRECONDITION:
     # POSTCONDITION:
-    def create_account(self, credentials : tuple[str, str]) -> User:
+    def create_account(self, credentials : tuple[str, str]) -> None:
         # TODO: Add user to the db
-        # TODO: Create user
         pass
 
 
