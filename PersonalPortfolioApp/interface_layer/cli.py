@@ -36,7 +36,7 @@ class Cli:
             elif selection == 2:
                 self.display_account_credential_gatherer(new=False)
             elif selection == 3:
-                self.serv.exitApp()
+                self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
                 continue
@@ -121,7 +121,7 @@ class Cli:
             elif selection == numPortfolios + 4:
                 return
             elif selection == numPortfolios + 5:
-                self.serv.exitApp()
+                self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
                 pass  # Remove this once you implement
@@ -241,7 +241,7 @@ class Cli:
             elif selection == 4:
                 return "back"
             elif selection == 5:
-                self.serv.exitApp()
+                self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
                 pass  # Remove this once you implement

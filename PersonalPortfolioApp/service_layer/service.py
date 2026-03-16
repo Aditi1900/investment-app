@@ -178,5 +178,5 @@ class Service:
     # PRECONDITION:
     # POSTCONDITION:
     @staticmethod
-    def exitApp() -> None:
+    def exit_app() -> None:
         sys.exit(0)
