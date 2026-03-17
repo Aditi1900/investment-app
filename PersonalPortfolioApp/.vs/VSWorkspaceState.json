@@ -8,6 +8,6 @@
     "\\service_layer",
     "\\validation_layer"
   ],
-  "SelectedNode": "\\service_layer\\service.py",
+  "SelectedNode": "\\validation_layer\\validator.py",
   "PreviewInSolutionExplorer": false
 }

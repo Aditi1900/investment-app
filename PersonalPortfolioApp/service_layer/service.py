@@ -1,4 +1,3 @@
-from email.policy import default
 import sys
 from collections import defaultdict
 from domain_models import *
