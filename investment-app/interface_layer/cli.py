@@ -231,18 +231,14 @@ class Cli:
             # TODO: Display selection options
             # TODO: Selection input receiver
            
-
+            self.vis.close_chart()
             if selection == 1:
-                self.vis.close_chart()
                 self.display_stock_transaction_menu(portfolio, purchase=True)
             elif selection == 2:
-                self.vis.close_chart()
                 self.display_stock_transaction_menu(portfolio, purchase=False)
             elif selection == 3:
-                self.vis.close_chart()
                 return
             elif selection == 4:
-                self.vis.close_chart()
                 return "back"
             elif selection == 5:
                 self.serv.exit_app()
