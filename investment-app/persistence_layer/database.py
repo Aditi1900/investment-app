@@ -70,19 +70,18 @@ class Database:
     # PRECONDITION:
     # POSTCONDITION:
     def pull_user(self, login : str) -> tuple:
-        u_id = self.resolve_user_id(login)
 
         cursor = self.conn.cursor()
 
         pull_user = '''
-            SELECT id, login, password, balance
+            SELECT id, login, balance
             FROM users
-            WHERE id = ?
+            WHERE login = ?
         '''
 
         try:
 
-            cursor.execute(pull_user, (u_id,))
+            cursor.execute(pull_user, (login,))
 
         except SqliteError as e:
             self.conn.rollback()
@@ -305,28 +304,27 @@ class Database:
             self.conn.rollback()
             raise DatabaseError(f"update_funds failed: {e}") from e
 
+
     # INPUT:
     # OUTPUT:
     # PRECONDITION:
     # POSTCONDITION:
-    def resolve_user_id(self, login : str) -> int:
+    def resolve_credentials(self, credentials : tuple[str, str]):
         cursor = self.conn.cursor()
 
         resolve_id = '''
             SELECT id
             FROM users
-            WHERE login = ?
+            WHERE login = ? AND password = ?
         '''
-
-        key = (login,)
 
         try:
 
-            cursor.execute(resolve_id, key)
+            cursor.execute(resolve_id, credentials)
 
         except SqliteError as e:
             self.conn.rollback()
-            raise DatabaseError(f"resolve_user_id failed: {e}") from e
+            raise DatabaseError(f"resolve_credentials failed: {e}") from e
 
         user_info = cursor.fetchone()
 

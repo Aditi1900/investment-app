@@ -105,8 +105,8 @@ class Service:
     # OUTPUT:
     # PRECONDITION:
     # POSTCONDITION:
-    def user_exists_in_storage(self, login : str) -> bool:
-        u_id = self.db.resolve_user_id(login)
+    def credentials_match(self, credentials : tuple[str, str]) -> bool:
+        u_id = self.db.resolve_credentials(credentials)
         return u_id != None
 
 
@@ -156,7 +156,7 @@ class Service:
     def populate_user_account(self, user_account : User, login : str) -> None:
         stored_user, stored_portfolios, stored_stocks = self.retrieve_stored_data(login)
 
-        user_account.id, user_account.login, user_account.password, user_account.balance = stored_user
+        user_account.id, user_account.login, user_account.balance = stored_user
 
         self.populate_user_portfolios(user_account.portfolios, stored_portfolios, stored_stocks)
         

@@ -2,10 +2,9 @@ from .portfolio import Portfolio
 
 # PURPOSE:
 class User:
-    def __init__(self, id=None, *, login, password, balance, portfolios: dict[str, Portfolio] = None):
+    def __init__(self, id=None, *, login, balance, portfolios: dict[str, Portfolio] = None):
         self.id = id
         self.login = login
-        self.password = password
         self.balance = balance
         self.portfolios = portfolios if portfolios is not None else {}
 

@@ -12,7 +12,7 @@ class Validator:
     # PRECONDITION:
     # POSTCONDITION:
     def account_validator(self, credentials : tuple[str, str], new : bool) -> bool:
-        # TODO: Validate account exists in db using service method
+        # TODO: Validate account credentials using service method
         # TODO: Add any other validation you want, if you want to enforce certain additional constraints
         pass
 
