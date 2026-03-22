@@ -6,8 +6,8 @@ from interface_layer import *
 
 
 # PURPOSE: 
-#         -App provides initialization abstraction
-#         -Allows for clean dependency injection and easy swaps between test mode
+#     -App provides initialization abstraction
+#     -Allows for clean dependency injection and easy swaps between test mode
 class App:
     def __init__(self, testing=False):
         self.db = None
@@ -25,7 +25,7 @@ class App:
     #     -testing; is not None
     #     -App; all non static dependencies(db,serv,val,display,vis) are initialized to None
     # POSTCONDITION:
-    #     -db; Database object constructed with established path
+    #     -db; Database object constructed with established filepath
     #     -serv; Service object constructed with db injection
     #     -vis; Visualizer object constructed
     #     -val; Validator object constructed with serv injection
