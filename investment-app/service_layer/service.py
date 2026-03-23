@@ -133,7 +133,7 @@ class Service:
     #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
     # POSTCONDITION:
     #   -db; if portfolio already has the requested share see Database.update_stock(), else see Database.insert_stock() POSTCONDITION
-    #   -user_account; portfolio belonging to user is edited
+    #   -user_account; balance is decremented based on purchase cost
     #   -portfolio; stock with matching ticker is added with quantity or updated
     # RAISES:
     #   -ServiceError; database call fails
@@ -162,10 +162,21 @@ class Service:
             portfolio.stocks[ticker].id = s_id
         
 
-    # INPUT: User, Portfolio, tuple of string and int representing ticker, quantity
+    # INPUT: 
+    #   -user_account(User); current user account
+    #   -portfolio(Portfolio); some portfolio belonging to current user
+    #   -shares_requested(tuple[str,int]); requested stock ticker and quantity
     # OUTPUT: None
-    # PRECONDITION: user account and portfolio is properly populated in memory and the user has enough shares
-    # POSTCONDITION: an attempt to update or remove from the database is made if successful sell the shares in memory
+    # PRECONDITION:
+    #   -user_account; account info is up to date in memory
+    #   -portfolio; portfolio is up to date
+    #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    # POSTCONDITION:
+    #   -db; if portfolio already has the requested share see Database.update_stock(), else see Database.delete_stock() POSTCONDITION
+    #   -user_account; balance is incremented by sale value
+    #   -portfolio; stock with matching ticker is updated or removed
+    # RAISES:
+    #   -ServiceError; database call fails
     def execute_sell(self, user_account : User, portfolio : Portfolio, shares_requested : tuple[str, int]) -> None:
         # TODO: call api to get stock price
         # TODO: add funds to user account
@@ -187,10 +198,16 @@ class Service:
         portfolio.sell_shares(shares_requested)
 
 
-    # INPUT: tuple of two strings representing user credentials login, password
-    # OUTPUT: bool representing a valid credential match
-    # PRECONDITION: credentials provided pass basic validation
-    # POSTCONDITION: an attempt is made to resolve credentials
+    # INPUT:
+    #   -credentials(tuple[str,str]); user login and password
+    # OUTPUT:
+    #   -match(bool); do credentials match
+    # PRECONDITION:
+    #   -credentials; login and password are non empty
+    # POSTCONDITION:
+    #   -match; True if credentials exist in db, False otherwise
+    # RAISES:
+    #   -ServiceError; database call fails
     def credentials_match(self, credentials : tuple[str, str]) -> bool:
         try:
 
@@ -199,13 +216,19 @@ class Service:
         except DatabaseError as e:
             raise ServiceError("Failed to match credentials") from e
 
-        return u_id != None
+        match = u_id != None
+
+        return match 
 
 
-    # INPUT: Portfolio 
-    # OUTPUT: a list of dicts that have key string with value of either string or int representing ticker and quantity across entire portfolio
-    # PRECONDITION: portfolio is populated and up to date in memory
-    # POSTCONDITION: None
+    # INPUT:
+    #   -portfolio(Portfolio); a user portfolio
+    # OUTPUT:
+    #   -packaged_data(list[dict[str,str|int]]); explicit labeler for each stock pair "ticker", "quantity" labels  
+    # PRECONDITION: None
+    # POSTCONDITION:
+    #   -packaged_data; represents a labeled set of all stocks in portfolio
+    # RAISES: None
     def package_portfolio_data(self, portfolio : Portfolio) -> list[dict[str, str | int]]:
         packaged_data = []
 
@@ -215,12 +238,20 @@ class Service:
         return packaged_data
 
 
-    # INPUT: string representing a user login
-    # OUTPUT: a tuple that has tuple, list of tuples, list of tuples which represent all of the raw database data
-    # PRECONDITION: user login exists
-    # POSTCONDITION: an attempt to retrieve all database items related to user is made
+    # INPUT:
+    #   -login(str); user login
+    # OUTPUT:
+    #   -stored_user(tuple); user id, login, balance
+    #   -stored_portfolios(list[tuple]); all user portfolios listed as portfolio id, name
+    #   -stored_stocks(list[tuple]); all user stocks listed as portfolio id, stock id, ticker, quantity
+    # PRECONDITION:
+    #   -login; a user with this login exists in the database
+    # POSTCONDITION:
+    #   -stored_user; see Database.pull_user() POSTCONDITION
+    #   -stored_portfolios; see Database.pull_portfolios() POSTCONDITION
+    #   -stored_stocks; see Database.pull_stocks() POSTCONDITION
+    #RAISES: None
     def retrieve_stored_data(self, login : str) -> tuple[tuple, list[tuple], list[tuple]]:
-       
         stored_user = self.db.pull_user(login)
         stored_portfolios = self.db.pull_portfolios(stored_user[0])
         stored_stocks = self.db.pull_stocks(stored_user[0])
@@ -228,10 +259,15 @@ class Service:
         return stored_user, stored_portfolios, stored_stocks
 
 
-    # INPUT: list of tuples representing all users stocks
-    # OUTPUT: a dict keyed by an int with a list of tuples, with the key being the pid and the tuples being the portfolios stock data
-    # PRECONDITION: stored stocks contains all stock data related to user
-    # POSTCONDITION: None
+    # INPUT:
+    #   -stored_stocks(list[tuple]); all user stocks listed as portfolio id, stock id, ticker, quantity
+    # OUTPUT:
+    #   -portfolio_assignments(dict[int, list[tuple]]); list of stock data keyed to specific portfolio id
+    # PRECONDITION:
+    #   -stored_stocks; see Database.pull_stocks() POSTCONDITION
+    # POSTCONDITION:
+    #   -portfolio_assignments; every portfolio id is uniquely keyed to its stock list
+    # RAISES: None
     def assign_portfolio_allocations(self, stored_stocks : list[tuple]) -> dict[int, list[tuple]]:
         portfolio_assignments = defaultdict(list)
         for stock in stored_stocks:
@@ -241,10 +277,15 @@ class Service:
         return portfolio_assignments
 
 
-    # INPUT: User and string representing login
+    # INPUT:
+    #   -user_account(User); current user account
+    #   -login(str); user login
     # OUTPUT: None
-    # PRECONDITION: login exists in database
-    # POSTCONDITION: in memory user account is populated
+    # PRECONDITION:
+    #   -login; a user with this login exists in the database
+    # POSTCONDITION:
+    #   -user_account; is populated with id, login, balance, all portfolios and respective stocks from database
+    # RAISES: None
     def populate_user_account(self, user_account : User, login : str) -> None:
         stored_user, stored_portfolios, stored_stocks = self.retrieve_stored_data(login)
 
