@@ -1,26 +1,42 @@
 from integration_layer import Api as api
 
 
-# PURPOSE: To provide an abstraction layer that handles all validation to allow other layers to assume the happy path
+# PURPOSE: 
+#   -Validator provides validation abstraction
+#   -Ensures all user input meets constraints before reaching lower layers
 class Validator:
     def __init__(self, service):
         self.serv = service
 
 
-    # INPUT: tuple of two strings representing login, password, bool determining if account is being newly created or not
-    # OUTPUT: bool determining if user credentials are valid
-    # PRECONDITION: None
-    # POSTCONDITION: credentials have been validated
+    # INPUT:
+    #   -credentials(tuple[str,str]); user login and password
+    #   -new(bool); True if creating a new account, False if logging in
+    # OUTPUT:
+    #   -valid(bool); account validation result True or False
+    # PRECONDITION:
+    #   -new; is not None
+    # POSTCONDITION:
+    #   -valid; True if credentials meet all constraints, False otherwise
+    # RAISES: None
     def account_validator(self, credentials : tuple[str, str], new : bool) -> bool:
         # TODO: Validate account credentials using service method
         # TODO: Add any other validation you want, if you want to enforce certain additional constraints
         pass
 
      
-    # INPUT: User, String, bool; string represents portfolio name, bool telling if a portfolio is being created or not
-    # OUTPUT: bool determining if the portfolio is valid
-    # PRECONDITION: The user is logged in and populated from database
-    # POSTCONDITION: portfolio request has been validated
+    # INPUT:
+    #   -user_account(User); current user account 
+    #   -portfolio_name(str); requested name of portfolio
+    #   -create(bool); True if portfolio is being created, False if being accessed
+    # OUTPUT:
+    #   -valid(bool); portfolio validation result True or False
+    # PRECONDITION:
+    #   -user_account; user account is fully populated and up to date
+    #   -create; is not None
+    # POSTCONDITION:
+    #   -valid; True if portfolio name exists or is available and meets all constraints, False otherwise
+    # RAISES: None
     @staticmethod
     def portfolio_validator(user_account, portfolio_name : str, create : bool) -> bool:
         # TODO: Validate that portfolio_name doesnt already exist
@@ -29,10 +45,18 @@ class Validator:
         pass
 
 
-    # INPUT: Portfolio, String, bool; string represents the stock ticker, and bool determines if this is a purchase or sale
-    # OUTPUT: bool determining if ticker is valid
-    # PRECONDITION: The user is logged in and populated from database
-    # POSTCONDITION: stock ticker has been validated
+    # INPUT:
+    #   -portfolio(Portfolio); user portfolio to update
+    #   -ticker(str); requested stock ticker symbol
+    #   -purchase(bool); True if a stock is being purchased, False if being sold
+    # OUTPUT:
+    #   -valid(bool); stock ticker validation result True or False
+    # PRECONDITION:
+    #   -portfolio; user portfolio is fully populated and up to date
+    #   -purchase; is not None
+    # POSTCONDITION:
+    #   -valid; True if ticker meets all constraints for given purchase state, False otherwise 
+    # RAISES: None
     @staticmethod
     def stock_ticker_validator(portfolio, ticker : str, purchase : bool) -> bool:
         # TODO: Validate ticker symbol format with regex
@@ -43,10 +67,19 @@ class Validator:
         pass
 
 
-    # INPUT: Portfolio, tuple of string and int, bool; tuple represented requested shares given ticker, quantity, bool represents if we are buying or selling
-    # OUTPUT: bool determining if requested stock quantity is valid
-    # PRECONDITION: stock ticker is a valid ticker for our operation
-    # POSTCONDITION: stock quantity request has been validated
+    # INPUT:
+    #   -portfolio(Portfolio); user portfolio to update
+    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
+    #   -purchase(bool); True if a stock is being purchased, False if being sold
+    # OUTPUT:
+    #   -valid(bool); stock quantity validation result True or False
+    # PRECONDITION:
+    #   -shares_requested; ticker of requested shares is valid, see Validator.stock_ticker_validator() POSTCONDITION
+    #   -portfolio; user portfolio is fully populated and up to date
+    #   -purchase; is not None
+    # POSTCONDITION:
+    #   -valid; True if quantity meets all constraints for given purchase state, False otherwise
+    # RAISES: None
     @staticmethod
     def stock_quantity_validator(portfolio, shares_requested : tuple[str, int], purchase : bool) -> bool:
         # TODO: If we are not purchasing check if portfolio has enough shares of stock
@@ -54,10 +87,19 @@ class Validator:
         pass
 
 
-    # INPUT: float, tuple of string and int, bool; float represents the user balance, tuple is the stock, quantity request, bool is if we are buying or selling
-    # OUTPUT: bool determining if user has sufficient balance
-    # PRECONDITION: shares requested are valid
-    # POSTCONDITION: user balance is validated
+    # INPUT:
+    #   -balance(float); users current balance
+    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
+    #   -purchase(bool); True if a stock is being purchased, False if being sold
+    # OUTPUT:
+    #   -valid(bool); user balance validator result True or False
+    # PRECONDITION:
+    #   -balance; user balance >= 0
+    #   -shares_requested; requested shares are valid, see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    #   -purchase; is not None
+    # POSTCONDITION:
+    #   -valid; True if user has sufficient balance, False otherwise
+    # RAISES: None
     @staticmethod
     def sufficient_balance_validator(balance : float, shares_requested : tuple[str, int], purchase : bool) -> bool:
         # TODO: get price of stock from api
@@ -66,10 +108,16 @@ class Validator:
         pass
 
 
-    # INPUT: float, float; float reepresents user balance, float represents funds requested
-    # OUTPUT: bool determining if funds request is valid
-    # PRECONDITION: None
-    # POSTCONDITION: funds request is accepted or denied
+    # INPUT:
+    #   -balance(float); users current balance
+    #   -funds_request(float); requested funds to add
+    # OUTPUT:
+    #   -valid(bool); requested funds validator result True or False
+    # PRECONDITION:
+    #   -balance; user balance >= 0
+    # POSTCONDITION:
+    #   -valid; True if funds_request > 0 and meets all constraints, False otherwise
+    # RAISES: None
     @staticmethod
     def fund_validator(balance : float, funds_request : float) -> bool:
         # TODO: validate that the funds are positive and reasonable within discrecion
