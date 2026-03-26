@@ -68,6 +68,7 @@
     <Compile Include="integration_layer\routes.py" />
     <Compile Include="integration_layer\__init__.py" />
     <Compile Include="interface_layer\cli.py" />
+    <Compile Include="interface_layer\frontend.py" />
     <Compile Include="interface_layer\visualizer.py" />
     <Compile Include="interface_layer\__init__.py" />
     <Compile Include="persistence_layer\database.py" />

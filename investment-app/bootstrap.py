@@ -1,12 +1,8 @@
-import uvicorn
-
 from pathlib import Path
-from fastapi import FastAPI
 from persistence_layer import Database
 from service_layer import Service
 from validation_layer import Validator
-from interface_layer import Cli, Visualizer
-from integration_layer import FrontendApi, router, init
+from interface_layer import Cli, Visualizer, Frontend
 
 
 # PURPOSE:
@@ -14,7 +10,6 @@ from integration_layer import FrontendApi, router, init
 #	-Allows for clean dependency injection and easy swaps between test mode and display type
 class App:
     def __init__(self, testing=False, frontend=True):
-        self.frontend = frontend
         self.init(testing, frontend)
 
 
@@ -29,7 +24,7 @@ class App:
 	#	-self.db; Database constructed with resolved db_path
 	#	-self.serv; Service constructed with self.db injection
 	#	-self.val; Validator constructed with self.serv injection
-	#	-frontend=True; self.display is FrontendApi; self.app is FastAPI with router mounted
+	#	-frontend=True; self.display is Frontend with serv, val injection
 	#	-frontend=False; self.vis is Visualizer; self.display is Cli with serv, val, vis injection
 	# RAISES: None
     def init(self, testing : bool, frontend : bool) -> None:
@@ -44,10 +39,7 @@ class App:
         self.val = Validator(self.serv)
 
         if frontend:
-            self.display = FrontendApi(self.serv, self.val)
-            self.app = FastAPI()
-            init(self.display)
-            self.app.include_router(router)
+            self.display = Frontend(self.serv, self.val)
         else:
             self.vis = Visualizer()
             self.display = Cli(self.serv, self.val, self.vis)
@@ -84,10 +76,7 @@ class App:
     #   -frontend=False; Cli starts execution on terminal
     # RAISES: None
     def run(self) -> None:
-        if self.frontend:
-            uvicorn.run(self.app, host="0.0.0.0", port=8000)
-        else:
-            self.display.execute()
+        self.display.execute()
 
 
 if __name__ == "__main__" :

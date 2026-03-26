@@ -78,4 +78,3 @@ class FrontendApi:
             raise ValidationError("")
 
         return self.serv.execute_sell(user_account, portfolio, shares_requested)
-
