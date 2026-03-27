@@ -1,6 +1,6 @@
 import sys
 from collections import defaultdict
-from common.errors import DatabaseError
+from common.errors import DatabaseError, ServiceError
 from integration_layer import ExternalApi as eapi
 from domain_models import User, Portfolio, Stock
 
