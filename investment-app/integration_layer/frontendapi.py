@@ -5,6 +5,7 @@ class FrontendApi:
         self.serv = service
         self.validator = validator
     
+
     def create_account(self, creds):
         valid = self.validator.account_validator(creds, new=True)
 
@@ -12,6 +13,7 @@ class FrontendApi:
             raise ValidationError("")
 
         return self.serv.create_account(creds)
+
 
     def find_account(self, creds):
         valid = self.validator.account_validator(creds, new=False)

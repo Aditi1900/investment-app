@@ -1,80 +1,25 @@
 import secrets
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from common.errors import ServiceError, ValidationError
 from .frontendapi import FrontendApi
+from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
 
 router = APIRouter()
 
-frontend : FrontendApi
+frontend_api : FrontendApi
 
 active_sessions : dict = {}
 
-def init(frontend_api : FrontendApi) -> None:
-    global frontend
-    frontend = frontend_api
+def init(api : FrontendApi) -> None:
+    global frontend_api
+    frontend_api = api
 
 def generate_session_id() -> str:
     return secrets.token_hex(32)
 
-class LogoutRequest(BaseModel):
-    session_id: str
 
-class CredsRequest(BaseModel):
-    login: str
-    password: str
-
-class FundsRequest(BaseModel):
-    session_id: str
-    funds_requested: float
-
-class PortfolioRequest(BaseModel):
-    session_id: str
-    name: str
-
-class TransactionRequest(BaseModel):
-    session_id: str
-    portfolio_name: str
-    ticker: str
-    quantity: int
-
-
-class StockData(BaseModel):
-    ticker: str
-    quantity: int
-
-class PortfolioData(BaseModel):
-    name: str
-    stocks: dict[str, StockData]
-
-    @classmethod
-    def convert(cls, portfolio):
-        return cls(
-            name=portfolio.name,
-            stocks={
-                ticker: StockData(ticker=ticker, quantity=qty)
-                for ticker, qty in portfolio.stocks.items()
-            }
-        )
-       
-
-class UserData(BaseModel):
-    login: str
-    balance: float
-    portfolios: dict[str, PortfolioData]
-
-    @classmethod
-    def convert(cls, user):
-        return cls(
-            login=user.login,
-            balance=user.balance,
-            portfolios={
-                name: PortfolioData.convert(portfolio)
-                for name, portfolio in user.portfolios.items()
-            }
-        )
 
 @router.post("/register", status_code = 201)
 def register(req : CredsRequest):
@@ -83,11 +28,12 @@ def register(req : CredsRequest):
 
     try:
 
-        frontend.create_account(creds)
+        frontend_api.create_account(creds)
         return {"message" : "account created"}
 
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
 
@@ -99,13 +45,14 @@ def login(req : CredsRequest):
 
     try:
 
-        user = frontend.find_account(creds)
+        user = frontend_api.find_account(creds)
         session_id = generate_session_id()
         active_sessions[session_id] = user
         return {"session_id" : session_id, "user" : UserData.convert(user)}
 
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code = 404, detail = str(e))
 
@@ -125,11 +72,12 @@ def fund(req : FundsRequest):
 
     try:
 
-        frontend.fund_account(user, req.funds_requested)
+        frontend_api.fund_account(user, req.funds_requested)
         return {"user" : UserData.convert(user)}
 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -142,11 +90,12 @@ def create_portfolio(req : PortfolioRequest):
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
-        frontend.create_portfolio(user, req.name)
+        frontend_api.create_portfolio(user, req.name)
         return {"user" : UserData.convert(user)}
 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -160,11 +109,12 @@ def remove_portfolio(req : PortfolioRequest):
 
     try:
 
-        frontend.remove_portfolio(user, req.name)
+        frontend_api.remove_portfolio(user, req.name)
         return {"user" : UserData.convert(user)}
 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -183,11 +133,12 @@ def buy(req : TransactionRequest):
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
     try:
-        frontend.execute_buy(user, portfolio, shares_requested)
+        frontend_api.execute_buy(user, portfolio, shares_requested)
         return {"portfolio" : PortfolioData.convert(portfolio)}
 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -207,11 +158,12 @@ def sell(req : TransactionRequest):
 
     try:
 
-        frontend.execute_sell(user, portfolio, shares_requested)
+        frontend_api.execute_sell(user, portfolio, shares_requested)
         return {"portfolio" : PortfolioData.convert(portfolio)}
 
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
