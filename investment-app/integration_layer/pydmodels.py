@@ -38,15 +38,13 @@ class PortfolioData(BaseModel):
 
     @classmethod
     def convert(cls, portfolio):
-        return cls(
+        
+        stocks = {}
 
-            name = portfolio.name,
+        for ticker, stock in portfolio.stocks.items():
+            stocks[ticker] = StockData(ticker = ticker, quantity = stock.quantity)
 
-            stocks = {
-                ticker: StockData(ticker = ticker, quantity = qty)
-                for ticker, qty in portfolio.stocks.items()
-            }
-        )
+        return cls(name = portfolio.name, stocks = stocks)
        
 
 class UserData(BaseModel):
@@ -56,14 +54,10 @@ class UserData(BaseModel):
 
     @classmethod
     def convert(cls, user):
-        return cls(
 
-            login = user.login,
+        portfolios = {}
 
-            balance = user.balance,
-
-            portfolios = {
-                name: PortfolioData.convert(portfolio)
-                for name, portfolio in user.portfolios.items()
-            }
-        )
+        for name, portfolio in user.portfolios.items():
+            portfolios[name] = PortfolioData.convert(portfolio)
+        
+        return cls(login = user.login, balance = user.balance, portfolios = portfolios)
