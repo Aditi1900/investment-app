@@ -105,7 +105,7 @@ def register(req : CredsRequest) -> dict[str,str]:
 #   -HTTPException(400); a ValidationError is raised, malformed credentials
 #   -HTTPException(404); a ServiceError is raised, account not found
 @router.post("/login", status_code = 200)
-def login(req : CredsRequest) -> dict[str, int | UserData]:
+def login(req : CredsRequest) -> dict[str, str | UserData]:
 
     creds = (req.login, req.password)
 
