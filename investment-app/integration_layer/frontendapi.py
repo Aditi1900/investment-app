@@ -15,7 +15,7 @@ class FrontendApi:
     # POSTCONDITION:
     # RAISES:
     def link_routes(self):
-        return connect(self)
+        connect(self)
 
 
     # INPUT:
