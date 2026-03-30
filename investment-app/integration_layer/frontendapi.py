@@ -1,5 +1,6 @@
-from common.errors import ValidationError
 from .routes import connect
+from common.errors import ValidationError
+
 
 # PURPOSE:
 class FrontendApi:
@@ -15,6 +16,8 @@ class FrontendApi:
     # RAISES:
     def link_routes(self):
         return connect(self)
+
+
     # INPUT:
     # OUTPUT:
     # PRECONDITION:
