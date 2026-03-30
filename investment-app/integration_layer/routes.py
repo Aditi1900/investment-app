@@ -159,7 +159,7 @@ def logout(req : LogoutRequest) -> dict[str,str]:
 def fund(req : FundsRequest) -> dict[str, UserData]:
     user = active_sessions.get(req.session_id)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
@@ -186,7 +186,7 @@ def fund(req : FundsRequest) -> dict[str, UserData]:
 def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
     user = active_sessions.get(req.session_id)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
@@ -213,7 +213,7 @@ def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
     user = active_sessions.get(req.session_id)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
@@ -241,12 +241,12 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
     user = active_sessions.get(req.session_id)
     shares_requested = (req.ticker, req.quantity)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     portfolio = user.portfolios.get(req.portfolio_name)
 
-    if not portfolio:
+    if portfolio is None:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
     try:
@@ -274,12 +274,12 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
     user = active_sessions.get(req.session_id)
     shares_requested = (req.ticker, req.quantity)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     portfolio = user.portfolios.get(req.portfolio_name)
 
-    if not portfolio:
+    if portfolio is None:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
     try:
@@ -306,7 +306,7 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
 def get_user(session_id : str) -> dict[str, UserData]:
     user = active_sessions.get(session_id)
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     response = {"user": UserData.convert(user)}
