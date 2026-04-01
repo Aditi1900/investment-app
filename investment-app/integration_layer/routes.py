@@ -59,6 +59,21 @@ def start_session(user) -> str:
 
 
 # INPUT:
+#   -session_id(str); a session of some user
+# OUTPUT:
+#   -user(User); a user account
+# PRECONDITION: None
+# POSTCONDITION:
+#   -user; requesting sessions user data is returned, otherwise None
+# RAISES: None
+def find_sessions_user(session_id : str):
+    u_id = active_sessions.get(session_id)
+    user = active_users.get(u_id)
+
+    return user
+
+
+# INPUT:
 #   -req(CredsRequest); HTTP credential payload
 # OUTPUT:
 #   -response(dict[str,str]); success confirmation sent to client
@@ -165,8 +180,7 @@ def logout(req : LogoutRequest) -> dict[str,str]:
 # RAISES:
 @router.post("/fund")
 def fund(req : FundsRequest) -> dict[str, UserData]:
-    u_id = active_sessions.get(req.session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
@@ -194,8 +208,7 @@ def fund(req : FundsRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/portfolio/create", status_code=201)
 def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
-    u_id = active_sessions.get(req.session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
@@ -223,8 +236,7 @@ def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/portfolio/remove")
 def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
-    u_id = active_sessions.get(req.session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
@@ -252,8 +264,7 @@ def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/buy")
 def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
-    u_id = active_sessions.get(req.session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(req.session_id)
 
     shares_requested = (req.ticker, req.quantity)
 
@@ -288,8 +299,7 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
 # RAISES:
 @router.post("/sell")
 def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
-    u_id = active_sessions.get(req.session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(req.session_id)
 
     shares_requested = (req.ticker, req.quantity)
 
@@ -324,8 +334,7 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
 # RAISES:
 @router.get("/user")
 def get_user(session_id : str) -> dict[str, UserData]:
-    u_id = active_sessions.get(session_id)
-    user = active_users.get(u_id)
+    user = find_sessions_user(session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
