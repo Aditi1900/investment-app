@@ -153,7 +153,7 @@ class Service:
 
         portfolio.buy_shares(shares_requested)
 
-        if s_id != None:
+        if s_id is not None:
             portfolio.stocks[ticker].id = s_id
         
 
@@ -204,15 +204,7 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def credentials_match(self, credentials : tuple[str, str]) -> bool:
-        try:
-
-            u_id = self.db.resolve_credentials(credentials)
-
-        except DatabaseError as e:
-            raise ServiceError("Failed to match credentials") from e
-
-        match = u_id != None
-
+        match = self.resolve_uid(credentials) is not None
         return match 
 
 
