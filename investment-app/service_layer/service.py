@@ -217,6 +217,27 @@ class Service:
 
 
     # INPUT:
+    #   -credentials(tuple[str,str]); user login and password
+    # OUTPUT:
+    #   -u_id(int); user identifying number
+    # PRECONDITION:
+    #   -credentials; login and password are non empty
+    # POSTCONDITION:
+    #   -u_id; user id provided if credentials exist in db, None otherwise
+    # RAISES:
+    #   -ServiceError; database call fails
+    def resolve_uid(self, credentials : tuple[str, str]) -> int:
+        try:
+
+            u_id = self.db.resolve_credentials(credentials)
+
+        except DatabaseError as e:
+            raise ServiceError("Failed to match credentials") from e
+
+        return u_id
+
+
+    # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
     #   -packaged_data(list[dict[str,str|int]]); explicit labeler for each stock pair "ticker", "quantity" labels  

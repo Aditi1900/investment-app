@@ -23,6 +23,15 @@ class FrontendApi:
     # PRECONDITION:
     # POSTCONDITION:
     # RAISES:
+    def resolve_uid(self, creds):
+        return self.serv.resolve_uid(creds)
+
+
+    # INPUT:
+    # OUTPUT:
+    # PRECONDITION:
+    # POSTCONDITION:
+    # RAISES:
     def create_account(self, credentials):
         valid = self.validator.account_validator(credentials, new=True)
 
