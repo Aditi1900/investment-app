@@ -1,4 +1,5 @@
 import sys
+
 from collections import defaultdict
 from common.errors import DatabaseError, ServiceError
 from integration_layer import ExternalApi as eapi
@@ -153,7 +154,7 @@ class Service:
 
         portfolio.buy_shares(shares_requested)
 
-        if s_id != None:
+        if s_id is not None:
             portfolio.stocks[ticker].id = s_id
         
 
@@ -204,6 +205,21 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def credentials_match(self, credentials : tuple[str, str]) -> bool:
+        match = self.resolve_uid(credentials) is not None
+        return match 
+
+
+    # INPUT:
+    #   -credentials(tuple[str,str]); user login and password
+    # OUTPUT:
+    #   -u_id(int); user identifying number
+    # PRECONDITION:
+    #   -credentials; login and password are non empty
+    # POSTCONDITION:
+    #   -u_id; user id provided if credentials exist in db, None otherwise
+    # RAISES:
+    #   -ServiceError; database call fails
+    def resolve_uid(self, credentials : tuple[str, str]) -> int:
         try:
 
             u_id = self.db.resolve_credentials(credentials)
@@ -211,9 +227,7 @@ class Service:
         except DatabaseError as e:
             raise ServiceError("Failed to match credentials") from e
 
-        match = u_id != None
-
-        return match 
+        return u_id
 
 
     # INPUT:

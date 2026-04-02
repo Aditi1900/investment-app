@@ -65,6 +65,7 @@
     <Compile Include="common\__init__.py" />
     <Compile Include="integration_layer\externalapi.py" />
     <Compile Include="integration_layer\frontendapi.py" />
+    <Compile Include="integration_layer\pydmodels.py" />
     <Compile Include="integration_layer\routes.py" />
     <Compile Include="integration_layer\__init__.py" />
     <Compile Include="interface_layer\cli.py" />

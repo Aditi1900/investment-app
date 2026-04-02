@@ -1,17 +1,14 @@
 import secrets
 
 from fastapi import APIRouter, HTTPException
-
 from common.errors import ServiceError, ValidationError
-from .frontendapi import FrontendApi
 from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
 
+frontend_api = None
 router = APIRouter()
 
-frontend_api : FrontendApi
-
 active_sessions : dict = {}
-
+active_users : dict = {}
 
 # INPUT:
 #   -api(FrontendApi); functional interface
@@ -21,7 +18,7 @@ active_sessions : dict = {}
 # POSTCONDITION:
 #   -frontend_api; passed api is assigned to global module memory
 # RAISES: None
-def connect(api : FrontendApi) -> None:
+def connect(api) -> None:
     global frontend_api
     frontend_api = api
 
@@ -53,8 +50,24 @@ def generate_session_id() -> str:
 # RAISES: None
 def start_session(user) -> str:
     session_id = generate_session_id()
-    active_sessions[session_id] = user
+    active_sessions[session_id] = user.id
+    active_users[user.id] = user
     return session_id
+
+
+# INPUT:
+#   -session_id(str); a session of some user
+# OUTPUT:
+#   -user(User); a user account
+# PRECONDITION: None
+# POSTCONDITION:
+#   -user; requesting sessions user data is returned, otherwise None
+# RAISES: None
+def find_sessions_user(session_id : str):
+    u_id = active_sessions.get(session_id)
+    user = active_users.get(u_id)
+
+    return user
 
 
 # INPUT:
@@ -76,7 +89,7 @@ def register(req : CredsRequest) -> dict[str,str]:
     creds = (req.login, req.password)
 
     try:
-
+    
         frontend_api.create_account(creds)
         
     except ValidationError as e:
@@ -110,8 +123,12 @@ def login(req : CredsRequest) -> dict[str, str | UserData]:
     creds = (req.login, req.password)
 
     try:
+        u_id = frontend_api.resolve_uid(creds)
 
-        user = frontend_api.find_account(creds)
+        if u_id in active_sessions.values():
+            user = active_users[u_id]
+        else:
+            user = frontend_api.find_account(creds)
 
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
@@ -140,10 +157,13 @@ def login(req : CredsRequest) -> dict[str, str | UserData]:
 #   -HTTPException(404); session id is not found in active sessions
 @router.post("/logout")
 def logout(req : LogoutRequest) -> dict[str,str]:
-    user = active_sessions.pop(req.session_id, None)
+    u_id = active_sessions.pop(req.session_id, None)
 
-    if user is None:
+    if u_id is None:
         raise HTTPException(status_code = 404, detail = "session not found")
+
+    if u_id not in active_sessions.values():
+        active_users.pop(u_id, None)
 
     response = {"message" : "logged out"}
 
@@ -157,14 +177,15 @@ def logout(req : LogoutRequest) -> dict[str,str]:
 # RAISES:
 @router.post("/fund")
 def fund(req : FundsRequest) -> dict[str, UserData]:
-    user = active_sessions.get(req.session_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
 
-        frontend_api.fund_account(user, req.funds_requested)
+        with user.lock:
+            frontend_api.fund_account(user, req.funds_requested)
        
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -184,14 +205,15 @@ def fund(req : FundsRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/portfolio/create", status_code=201)
 def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
-    user = active_sessions.get(req.session_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
-
-        frontend_api.create_portfolio(user, req.name)
+        
+        with user.lock:
+            frontend_api.create_portfolio(user, req.name)
         
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -211,14 +233,15 @@ def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/portfolio/remove")
 def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
-    user = active_sessions.get(req.session_id)
+    user = find_sessions_user(req.session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")
 
     try:
 
-        frontend_api.remove_portfolio(user, req.name)
+        with user.lock:
+            frontend_api.remove_portfolio(user, req.name)
         
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -238,7 +261,8 @@ def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 # RAISES:
 @router.post("/buy")
 def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
-    user = active_sessions.get(req.session_id)
+    user = find_sessions_user(req.session_id)
+
     shares_requested = (req.ticker, req.quantity)
 
     if user is None:
@@ -251,7 +275,8 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
 
     try:
 
-        frontend_api.execute_buy(user, portfolio, shares_requested)
+        with user.lock:
+            frontend_api.execute_buy(user, portfolio, shares_requested)
         
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -271,7 +296,8 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
 # RAISES:
 @router.post("/sell")
 def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
-    user = active_sessions.get(req.session_id)
+    user = find_sessions_user(req.session_id)
+
     shares_requested = (req.ticker, req.quantity)
 
     if user is None:
@@ -284,7 +310,8 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
 
     try:
 
-        frontend_api.execute_sell(user, portfolio, shares_requested)
+        with user.lock:
+            frontend_api.execute_sell(user, portfolio, shares_requested)
         
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -304,7 +331,7 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
 # RAISES:
 @router.get("/user")
 def get_user(session_id : str) -> dict[str, UserData]:
-    user = active_sessions.get(session_id)
+    user = find_sessions_user(session_id)
 
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid session")

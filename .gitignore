@@ -205,6 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-/PersonalPortfolioApp/.vs/PersonalPortfolioApp.slnx
-/.vs
-/investment-app/.vs/investment-app.slnx
+
+# Visual Studio
+.vs/

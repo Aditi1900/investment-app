@@ -1,3 +1,4 @@
+from threading import Lock
 from .portfolio import Portfolio
 
 # PURPOSE:
@@ -9,6 +10,8 @@ class User:
         self.login = login
         self.balance = balance
         self.portfolios = portfolios if portfolios is not None else {}
+
+        self.lock = Lock()
 
 
     # INPUT:
