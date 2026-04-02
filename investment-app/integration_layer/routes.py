@@ -1,14 +1,11 @@
 import secrets
 
 from fastapi import APIRouter, HTTPException
-
 from common.errors import ServiceError, ValidationError
-from .frontendapi import FrontendApi
 from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
 
+frontend_api = None
 router = APIRouter()
-
-frontend_api : FrontendApi
 
 active_sessions : dict = {}
 active_users : dict = {}
@@ -21,7 +18,7 @@ active_users : dict = {}
 # POSTCONDITION:
 #   -frontend_api; passed api is assigned to global module memory
 # RAISES: None
-def connect(api : FrontendApi) -> None:
+def connect(api) -> None:
     global frontend_api
     frontend_api = api
 
