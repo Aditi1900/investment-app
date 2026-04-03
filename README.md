@@ -44,6 +44,8 @@ def function_name(param_name: type) -> type:
 
 ---
 
+# Program Models
+
 ## Types
 
 | Type | Description |
