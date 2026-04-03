@@ -31,11 +31,10 @@ class Validator:
         if login == '' or password == '':
             return valid
         
-        stored_user = self.serv.identify_user(login)
+        stored_creds = self.serv.resolve_credentials(login)
         
-        if stored_user is not None:
-            stored_login = stored_user[1]
-            stored_password = stored_user[2]
+        if stored_creds is not None:
+            stored_login, stored_password = stored_creds
 
             login_match = login == stored_login
             password_match = password == stored_password

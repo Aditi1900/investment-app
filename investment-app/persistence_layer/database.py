@@ -78,7 +78,7 @@ class Database:
     #   -user_data; database information related to user with respective login is retrieved, None otherwise
     # RAISES:
     #   -DatabaseError; SqliteError occurs during selection 
-    def pull_user(self, login : str) -> tuple[int, str, float]:
+    def pull_user(self, login : str) -> tuple[int, str, float] | None:
 
         cursor = self.conn.cursor()
 

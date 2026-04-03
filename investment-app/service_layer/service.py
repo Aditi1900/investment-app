@@ -214,6 +214,33 @@ class Service:
 
         return user_dat
 
+    # INPUT:
+    # OUTPUT:
+    # PRECONDITION:
+    # POSTCONDITION:
+    # RAISES:
+    def resolve_credentials(self, login : str) -> tuple[str, str] | None:
+        user_dat = self.identify_user(login)
+        if user_dat is None:
+            user_creds = None
+        else:
+            user_creds = user_dat[1], user_dat[2]
+
+        return user_creds
+
+    # INPUT:
+    # OUTPUT:
+    # PRECONDITION:
+    # POSTCONDITION:
+    # RAISES:    
+    def resolve_uid(self, login : str) -> int | None:
+        user_dat = self.identify_user(login)
+        if user_dat is None:
+            u_id = None
+        else:
+            u_id = user_dat[0]
+
+        return u_id
 
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio

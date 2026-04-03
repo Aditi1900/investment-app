@@ -24,10 +24,7 @@ class FrontendApi:
     # POSTCONDITION:
     # RAISES:
     def resolve_uid(self, login):
-        user_dat = self.serv.identify_user(login)
-        
-        u_id = user_dat[0] if user_dat else None
-
+        u_id = self.serv.resolve_uid(login)
         return u_id 
 
 
