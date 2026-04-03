@@ -56,9 +56,64 @@ def function_name(param_name: type) -> type:
 
 ---
 
-## Data Models
+## Request Models
+
+JSON request bodies sent to the Frontend API.
+
+**LogoutRequest**
+```json
+{
+    "session_id": "string"
+}
+```
+
+**CredsRequest**
+```json
+{
+    "login": "string",
+    "password": "string"
+}
+```
+
+**FundsRequest**
+```json
+{
+    "session_id": "string",
+    "funds_requested": 0.00
+}
+```
+
+**PortfolioRequest**
+```json
+{
+    "session_id": "string",
+    "name": "string"
+}
+```
+
+**TransactionRequest**
+```json
+{
+    "session_id": "string",
+    "portfolio_name": "string",
+    "ticker": "string",
+    "quantity": 0
+}
+```
+
+---
+
+## Response Models
 
 JSON response bodies returned by the Frontend API.
+
+**StockData**
+```json
+{
+    "ticker": "string",
+    "quantity": 0
+}
+```
 
 **PortfolioData**
 ```json
