@@ -1,6 +1,6 @@
 import re
 
-from integration_layer import ExternalApi as eapi
+from integration_layer import ExternalApi as eapi, PortfolioData, PortfolioRequest
 
 
 # PURPOSE: 
@@ -34,7 +34,7 @@ class Validator:
 
         if new:
             # password should be more than 6 chars in length
-            valid =  (not valid) and len(password) >= 6
+            valid = not valid and len(password) >= 6
         
         return valid
 
@@ -120,17 +120,19 @@ class Validator:
         
         ticker, quantity = shares_requested
 
+        cur_quantity = portfolio.stocks[ticker].quantity
+
         # quantity must be positive
-        valid = (quantity > 0)
+        valid = quantity > 0
 
         if purchase and valid:
-            # a way to do this is by having a get_volume() sort of a function in the ExternalApi file
-            volume = eapi.get_volume(ticker)
-            valid = (volume < quantity)
+            # validating that a user is not purchasing more in open market
+            max_stocks = eapi.get_float(ticker)
+            valid = max_stocks <= quantity
             
         elif valid:
             # if selling ensure enough shares exist
-            valid = portfolio.stocks[ticker].quantity >= quantity
+            valid = cur_quantity >= quantity
         
         return valid
 

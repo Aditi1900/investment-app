@@ -34,3 +34,18 @@ class ExternalApi:
     def does_ticker_exist(ticker : str) -> bool:
         # TODO: Call the api to identify if the ticker actually exists
         pass
+
+
+    # INPUT:
+    #   -ticker(str); a stock ticker symbol 
+    # OUTPUT:
+    #   -max_shares(int); the maximum amount of open market shares
+    # PRECONDITION:
+    #   -ticker; is an existant ticker in open market
+    # POSTCONDITION:
+    #   -max_shares; the maximum open market shares is sourced and returned
+    # RAISES: None
+    @staticmethod
+    def get_float(ticker : str) -> int:
+        #TODO: Call the api to identify the maximum amount of shares the market has to offer
+        pass
