@@ -196,6 +196,6 @@ class Validator:
         # TODO: validate that the funds are positive and reasonable within discrecion
     
         # ensures funds requested are in valid range zero - one-million
-        valid = (1_000_000 > funds_request > 0)
+        valid = 1_000_000 > funds_request > 0
 
         return valid
