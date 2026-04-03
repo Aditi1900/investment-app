@@ -76,7 +76,7 @@ class App:
     # RAISES: None
     def run(self) -> None:
         self.display.execute()
-
+    
 
 if __name__ == "__main__" :
     investment_app = App(testing = True, frontend = False)

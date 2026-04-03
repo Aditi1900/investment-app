@@ -36,7 +36,7 @@ value None so readers know the field was considered.
 
   Semicolons    Separate name/type from description with "; "
 
-  Indentation   Labels flush-left one space; entries indented with TAB
+  Indentation   Labels flush-left; entries indented with TAB
 
   Types         Use Python builtins or typing module. Project-defined
                 types are listed in the TYPES section below. Persistent
@@ -61,14 +61,57 @@ value None so readers know the field was considered.
   ----------------------------------------------------------------
 
   User         Represents a user account; holds login, balance and collection of portfolios
-  Portfolio    Represents named collection of stocks
+  Portfolio    Represents a named collection of stocks
   Stock        Represents a stock holding; ticker and quantity
 
   ----------------------------------------------------------------
-  DATA MODELS
+  REQUEST MODELS
+  ----------------------------------------------------------------
+
+  JSON request bodies sent to the Frontend API.
+
+  LogoutRequest
+  {
+      "session_id": "string"
+  }
+
+  CredsRequest
+  {
+      "login": "string",
+      "password": "string"
+  }
+
+  FundsRequest
+  {
+      "session_id": "string",
+      "funds_requested": 0.00
+  }
+
+  PortfolioRequest
+  {
+      "session_id": "string",
+      "name": "string"
+  }
+
+  TransactionRequest
+  {
+      "session_id": "string",
+      "portfolio_name": "string",
+      "ticker": "string",
+      "quantity": 0
+  }
+
+  ----------------------------------------------------------------
+  RESPONSE MODELS
   ----------------------------------------------------------------
 
   JSON response bodies returned by the Frontend API.
+
+  StockData
+  {
+      "ticker": "string",
+      "quantity": 0
+  }
 
   PortfolioData
   {
