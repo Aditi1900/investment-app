@@ -51,3 +51,34 @@ def function_name(param_name: type) -> type:
 | `User` | Represents a user account; holds login, balance, and a collection of portfolios |
 | `Portfolio` | Represents a named collection of stocks |
 | `Stock` | Represents a stock holding; ticker and quantity |
+
+---
+
+## Data Models
+
+JSON response bodies returned by the Frontend API.
+
+**PortfolioData**
+```json
+{
+    "name": "tech",
+    "stocks": {
+        "AAPL": {
+            "ticker": "AAPL",
+            "quantity": 10
+        }
+    }
+}
+```
+
+**UserData**
+```json
+{
+    "login": "john_doe",
+    "balance": 1000.00,
+    "portfolios": {
+        "tech": { }
+    }
+}
+```
+> `portfolios` values follow the `PortfolioData` schema above.

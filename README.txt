@@ -63,3 +63,29 @@ def function_name(param_name: type) -> type:
   Portfolio    Represents named collection of stocks
 
   Stock        Represents a stock holding; ticker and quantity
+
+  ----------------------------------------------------------------
+  DATA MODELS
+  ----------------------------------------------------------------
+
+  JSON response bodies returned by the Frontend API.
+
+  PortfolioData
+  {
+      "name": "tech",
+      "stocks": {
+          "AAPL": {
+              "ticker": "AAPL",
+              "quantity": 10
+          }
+      }
+  }
+
+  UserData
+  {
+      "login": "john_doe",
+      "balance": 1000.00,
+      "portfolios": {
+          "tech": { ... }  // see PortfolioData
+      }
+  }
