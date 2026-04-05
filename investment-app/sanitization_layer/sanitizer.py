@@ -1,13 +1,16 @@
 # PURPOSE:
-#   -
-#   -
+#   -Sanitizer provides a string input sanitization and conversion abstraction
+#   -Provides methods to take a specific input the system needs and convert it to a non-malformed readable value
 class Sanitizer:
     
     # INPUT:
+    #   -login(str); raw user login input
     # OUTPUT:
-    # PRECONDITION:
+    #   -login(str); sanitized user login
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -login; login is sanitized from basic malformed input
+    # RAISES: None
     @staticmethod
     def sanitize_login(login : str) -> str:
         login = login.strip()
@@ -15,20 +18,26 @@ class Sanitizer:
 
 
     # INPUT:
+    #   -password(str); raw user password input
     # OUTPUT:
-    # PRECONDITION:
+    #   -password(str); sanitized user password
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -password; password is sanitized from basic malformed input
+    # RAISES: None
     @staticmethod
     def sanitize_password(password : str) -> str:
         return password
 
 
     # INPUT:
+    #   -credentials(tuple[str,str]); a user login and password
     # OUTPUT:
-    # PRECONDITION:
+    #   -credentials(tuple[str,str]); sanitized user login and password
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -credentials; see Sanitizer.sanitize_login() & Sanitizer.sanitize_password() POSTCONDITIONS
+    # RAISES: None
     @staticmethod
     def sanitize_credentials(self, credentials : tuple[str, str]) -> tuple[str, str]:
         credentials = self.sanitize_login(credentials[0]), self.sanitize_password(credentials[1])
@@ -36,10 +45,13 @@ class Sanitizer:
 
 
     # INPUT:
+    #   -funds_request(str); a funds request input
     # OUTPUT:
-    # PRECONDITION:
+    #   -funds_request(float); a floating point representation of funds_request, otherwise None
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -funds_request; converted to a floating point number, if non numeric None
+    # RAISES: None
     @staticmethod
     def sanitize_funds_request(funds_request : str) -> float | None:
         try:
@@ -51,10 +63,13 @@ class Sanitizer:
 
 
     # INPUT:
+    #   -portfolio_name(str); raw portfolio name input
     # OUTPUT:
-    # PRECONDITION:
+    #   -portfolio_name(str); sanitized portfolio name
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -portfolio_name; portfolio name is sanitized from basic malformed input
+    # RAISES: None
     @staticmethod
     def sanitize_portfolio_name(portfolio_name : str) -> str:
         portfolio_name.strip()
@@ -62,10 +77,13 @@ class Sanitizer:
 
 
     # INPUT:
+    #   -ticker(str); raw stock ticker input
     # OUTPUT:
-    # PRECONDITION:
+    #   -ticker(str); sanitized ticker input
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -ticker; ticker is sanitized from basic malformed input
+    # RAISES: None
     @staticmethod
     def sanitize_ticker(ticker : str) -> str:
         ticker = ticker.strip()
@@ -73,10 +91,13 @@ class Sanitizer:
 
 
     # INPUT:
+    #   -quantity(str); a quantity input
     # OUTPUT:
-    # PRECONDITION:
+    #   -funds_request(float); a integer representation of quantity, otherwise None
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -quantity; converted to a integer, if non numeric None
+    # RAISES: None
     @staticmethod
     def sanitize_quantity(quantity : str) -> int | None:
          try:
@@ -88,10 +109,13 @@ class Sanitizer:
 
        
     # INPUT:
+    #   -shares_request(tuple[str,str]); a ticker and quantity
     # OUTPUT:
-    # PRECONDITION:
+    #   -shares_request(tuple[str,str]); sanitized ticker and quantity
+    # PRECONDITION: None
     # POSTCONDITION:
-    # RAISES:
+    #   -shares_request; see Sanitizer.sanitize_ticker() & Sanitizer.sanitize_quantity() POSTCONDITIONS
+    # RAISES: None
     @staticmethod
     def sanitize_shares_request(self, shares_request : tuple[str,str]) -> tuple[str, str | None]:
         shares_request = self.sanitize_ticker(shares_request[0]), self.sanitize_quantity(shares_request[1])
