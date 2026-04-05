@@ -47,15 +47,15 @@ class Validator:
         stored_password = self.serv.resolve_password(login)
         account_exists = stored_password is not None
 
-        if account_exists and password != stored_password:
-            return Result(False, "Invalid password.")
-
         if new and account_exists:
             return Result(False, "An account with this username already exists.")
 
         if new and not account_exists and len(password) < 6:
             return Result(False, "Password must be six characters or more.")
         
+        if not new and account_exists and password != stored_password:
+            return Result(False, "Invalid password.")
+
         if not new and not account_exists:
             return Result(False, "No account exists with entered username.")
 
