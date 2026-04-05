@@ -26,10 +26,10 @@ class FrontendApi:
     # RAISES:
     #   -ValidationError; see Validator.account_validator() POSTCONDITION (new=True)
     def create_account(self, credentials):
-        valid = self.validator.account_validator(credentials, new=True)
 
-        if not valid:
-            raise ValidationError("A user with this login already exists or field was blank")
+        result = self.validator.account_validator(credentials, new=True)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.create_account(credentials)
 
@@ -40,10 +40,10 @@ class FrontendApi:
     # RAISES:
     #   -ValidationError; see Validator.account_validator() POSTCONDITION (new=False)
     def find_account(self, credentials):
-        valid = self.validator.account_validator(credentials, new=False)
 
-        if not valid:
-            raise ValidationError("Login/Password are incorrect")
+        result = self.validator.account_validator(credentials, new=False)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         login = credentials[0]
 
@@ -54,10 +54,10 @@ class FrontendApi:
     # RAISES:
     #   -ValidationError; see Validator.fund_validator() POSTCONDITION
     def fund_account(self, user_account, funds_request):
-        valid = self.validator.fund_validator(funds_request)
 
-        if not valid:
-            raise ValidationError("Funds to add must be 1-999,999")
+        result = self.validator.fund_validator(funds_request)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.fund_account(user_account, funds_request)
 
@@ -66,10 +66,10 @@ class FrontendApi:
     # RAISES:
     #   -ValidationError; see Validator.portfolio_validator() POSTCONDITION (create=True)
     def create_portfolio(self, user_account, portfolio_name):
-        valid = self.validator.portfolio_validator(user_account, portfolio_name, create=True)
 
-        if not valid:
-            raise ValidationError("Portfolio already exists or no name entered")
+        result = self.validator.portfolio_validator(user_account, portfolio_name, create=True)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.create_portfolio(user_account, portfolio_name)
 
@@ -78,10 +78,10 @@ class FrontendApi:
     # RAISES:
     #   -ValidationError; see Validator.portfolio_validator() POSTCONDITION (create=False)
     def remove_portfolio(self, user_account, portfolio_name):
-        valid = self.validator.portfolio_validator(user_account, portfolio_name, create=False)
 
-        if not valid:
-            raise ValidationError("Portfolio name does not exist")
+        result = self.validator.portfolio_validator(user_account, portfolio_name, create=False)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.remove_portfolio(user_account, portfolio_name)
 
@@ -95,17 +95,17 @@ class FrontendApi:
         ticker = shares_requested[0]
         purchase = True
 
-        valid = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
-        if not valid:
-            raise ValidationError("Ticker supplied does not exist")
+        result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
-        valid = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
-        if not valid:
-            raise ValidationError("Quantity requested is too much")
+        result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
-        valid = self.validator.sufficient_balance_validator(user_account.balance, shares_requested, purchase)
-        if not valid:
-            raise ValidationError("Insufficient balance")
+        result = self.validator.sufficient_balance_validator(user_account.balance, shares_requested, purchase)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.execute_buy(user_account, portfolio, shares_requested)
 
@@ -118,12 +118,12 @@ class FrontendApi:
         ticker = shares_requested[0]
         purchase = False
 
-        valid = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
-        if not valid:
-            raise ValidationError("Ticker is not owned")
+        result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
-        valid = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
-        if not valid:
-            raise ValidationError("User has insufficient amount of stock")
+        result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
+        if not result.valid:
+            raise ValidationError(result.reason)
 
         return self.serv.execute_sell(user_account, portfolio, shares_requested)

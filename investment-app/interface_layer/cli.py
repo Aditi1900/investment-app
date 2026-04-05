@@ -1,5 +1,40 @@
 from common.errors import ServiceError
 
+
+# INPUT:
+#   -prompt(str); a prompt to show the user
+# OUTPUT:
+#   -floating(float); a floating point number result
+# PRECONDITION: None
+# POSTCONDITION:
+#   -floating; a proper floating point number is parsed from the user input
+# RAISES: None
+def get_float_input(prompt : str) -> float:
+    while True:
+        try:
+            floating = float(input(prompt))
+            return floating
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+# INPUT:
+#   -prompt(str); a prompt to show the user
+# OUTPUT:
+#   -integer(int); an integer result
+# PRECONDITION: None
+# POSTCONDITION:
+#   -integer; a proper integer is parsed from the user input
+# RAISES: None
+def get_int_input(prompt : str) -> int:
+    while True:
+        try:
+            integer = int(input(prompt))
+            return integer
+        except ValueError:
+            print("Please enter a valid number.")
+
+
 # PURPOSE: 
 #   -Cli provides a user interaction abstraction
 #   -Handles all user interaction and enforces program control flow
@@ -42,7 +77,7 @@ class Cli:
             print("3. Exit application\n")
 
             # TODO: Selection input receiver
-            selection = int(input("Select option: "))
+            selection = get_int_input("Select option: ")
 
             if selection == 1:
                 self.display_account_credential_gatherer(new=True)
@@ -69,9 +104,6 @@ class Cli:
     #   -Cli; returns to caller on confirm or cancel
     # RAISES: None  
     def display_account_credential_gatherer(self, new : bool) -> None:
-
-        valid = False
-
         while True:
             print('---------------LOGIN/SIGNUP---------------\n')
             
@@ -80,13 +112,13 @@ class Cli:
 
             creds = login, password
 
-            valid = self.validator.account_validator(creds, new)
+            result = self.validator.account_validator(creds, new)
 
-            if valid:
+            if result.valid:
                 break
 
             # TODO: invalid credentials error msg
-            print('Invalid credentials./n')
+            print(result.reason)
 
 
         while True:
@@ -97,7 +129,7 @@ class Cli:
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = int(input("Select option: "))
+            selection = get_int_input("Select option: ")
 
             if selection == 1:
                 try:
@@ -132,7 +164,6 @@ class Cli:
     #   -Cli; navigates to portfolio contents, funding menu, portfolio modification menu, returns on logout, or exits
     # RAISES: None 
     def display_user_dashboard(self, user_account) -> None:
-
         while True:
             selection = 0
             numPortfolios = len(user_account.portfolios)
@@ -157,7 +188,7 @@ class Cli:
             print(numPortfolios + 5, ". Exit")
             
             # TODO: Selection input receiver
-            selection = int(input("Select option: "))
+            selection = get_int_input("Select option: ")
 
             if 0 < selection <= numPortfolios:
                 r = self.display_portfolio_contents(portfolio_list[selection - 1])
@@ -188,25 +219,20 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_funding_menu(self, user_account) -> None:
-
-        valid = False
-
         while True :
             # TODO: Account Funding display
             print("\n------------ Fund Account ------------")
             
             # TODO: Funds input reciever
-            funds_request = float(input("Enter amount: "))
+            funds_request = get_float_input("Enter amount: ")
 
-            funds_request = funds_request
+            result = self.validator.fund_validator(funds_request)
 
-            valid = self.validator.fund_validator(funds_request)
-
-            if valid:
+            if result.valid:
                 break
 
             # TODO: invalid funds error msg
-            print("Invalid funds/n")
+            print(result.reason)
 
         while True:
             selection = 0
@@ -216,7 +242,7 @@ class Cli:
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = int(input("Select option: "))
+            selection = get_int_input("Select option: ")
 
             if selection == 1:
                 try:
@@ -248,9 +274,6 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_portfolio_modification_menu(self, user_account, create : bool) -> None:
-
-        valid = False
-
         while True:
             # TODO: Portfolio creation display
             print("\n-------------- Portfolio Modification Menu ------------------")
@@ -259,13 +282,13 @@ class Cli:
 
             name_request = input("Enter portfolio name: ")
 
-            valid = self.validator.portfolio_validator(user_account, name_request, create)
+            result = self.validator.portfolio_validator(user_account, name_request, create)
 
-            if valid:
+            if result.valid:
                 break
 
             # TODO: invalid name error msg
-            print("Invalid portfolio name/n")
+            print(result.reason)
 
 
         while True:
@@ -276,7 +299,7 @@ class Cli:
             print("2. Cancel\n")
 
             # TODO: Selection input receiver
-            selection = int(input)
+            selection = get_int_input("Select option: ")
 
             if selection == 1:
                 try:
@@ -330,7 +353,7 @@ class Cli:
             print("5. Exit\n")
 
             # TODO: Selection input receiver
-            selection = int(input("Enter your selection option: "))
+            selection = get_int_input("Select option: ")
 
             self.vis.close_chart()
 
@@ -362,33 +385,33 @@ class Cli:
     #   -Cli; returns to portfolio menu
     # RAISES: None 
     def display_stock_transaction_menu(self, portfolio, purchase : bool) -> None:
-
         while True:
             # TODO: Transaction menu display
             print("\n------------- Stock Transaction ---------------")
             
             # TODO: shares_requested input receiver (ticker & quantity)
             ticker = input("Enter stock ticker (e.g., AAPL): ")
-            quantity = int(input("Enter number of shares to buy/sell: "))
+            quantity = get_int_input("Enter number of shares to buy/sell: ")
             
             shares_requested = ticker, quantity
 
-            valid = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
-            if not valid:
+            result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
+
+            if not result.valid:
                 # TODO: invalid ticker error msg
-                print("Invalid Ticker\n")
+                print(result.reason)
                 continue
 
-            valid = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
-            if not valid:
+            result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
+            if not result.valid:
                 # TODO: invalid quantity error msg
-                print("Invalid Quantity\n")
+                print(result.reason)
                 continue
 
-            valid = self.validator.sufficient_balance_validator(self.user_account.balance, shares_requested, purchase)
-            if not valid:
+            result = self.validator.sufficient_balance_validator(self.user_account.balance, shares_requested, purchase)
+            if not result.valid:
                 # TODO: invalid selection error msg
-                print("Invalid Selection\n")
+                print(result.reason)
                 continue
 
             break
@@ -403,7 +426,7 @@ class Cli:
             print("2. Cancel\n")
 
             # TODO: Selection input receiver
-            selection = input("Enter the selection number")
+            selection = get_int_input("Select option: ")
 
             if selection == 1:
 
