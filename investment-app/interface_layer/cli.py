@@ -1,6 +1,7 @@
 from common.errors import ServiceError
 
 
+
 # PURPOSE: 
 #   -Cli provides a user interaction abstraction
 #   -Handles all user interaction and enforces program control flow
@@ -32,7 +33,6 @@ class Cli:
     # RAISES: None
     def display_startup_menu(self) -> None:
         while True:
-            selection = 0
             self.user_account = None
 
             # TODO: Welcome menu display
@@ -45,6 +45,7 @@ class Cli:
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 self.display_account_credential_gatherer(new=True)
@@ -55,7 +56,7 @@ class Cli:
                 self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
-                print('Invalid selection, please enter a valid number.\n')
+                print('Invalid selection.\n')
                 continue
 
             self.display_user_dashboard(self.user_account)
@@ -71,10 +72,11 @@ class Cli:
     #   -Cli; returns to caller on confirm or cancel
     # RAISES: None  
     def display_account_credential_gatherer(self, new : bool) -> None:
+        result = None
         while True:
             print('---------------LOGIN/SIGNUP---------------\n')
             
-            login = input('Enter your login:').strip()
+            login = input('Enter your login:')
             password = input('Enter your password:')
 
             creds = login, password
@@ -90,14 +92,13 @@ class Cli:
 
 
         while True:
-            selection = 0
-
             # TODO: Display selection options
             print("\n1. Confirm")
             print("2. Cancel")
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 try:
@@ -105,11 +106,11 @@ class Cli:
                     if new:
                         self.user_account = self.serv.create_account(creds)
                         # TODO: Msg that indicates a action was successfully performed
-                        print("Your account was created Successfully!\n")
+                        print(result.reason)
                     else:
                         self.user_account = self.serv.find_account(login)
                         #additional
-                        print("Login successful.")
+                        print(result.reason)
                         
                 except ServiceError as e:
                     print(f"ERROR: {e}")
@@ -133,7 +134,6 @@ class Cli:
     # RAISES: None 
     def display_user_dashboard(self, user_account) -> None:
         while True:
-            selection = 0
             numPortfolios = len(user_account.portfolios)
             portfolio_list = list(user_account.portfolios.values())
 
@@ -157,6 +157,7 @@ class Cli:
             
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if 0 < selection <= numPortfolios:
                 r = self.display_portfolio_contents(portfolio_list[selection - 1])
@@ -187,6 +188,7 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_funding_menu(self, user_account) -> None:
+        result = None
         while True :
             # TODO: Account Funding display
             print("\n------------ Fund Account ------------")
@@ -204,21 +206,20 @@ class Cli:
             print(result.reason)
 
         while True:
-            selection = 0
-
             # TODO: Display selection options
             print("\n1. Confirm")
             print("2. Cancel")
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 try:
 
                     self.serv.fund_account(user_account, funds_request)
                     # TODO: Msg that indicates a action was successfully performed
-                    print("Funds added successfully.")
+                    print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")
@@ -243,6 +244,7 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_portfolio_modification_menu(self, user_account, create : bool) -> None:
+        result = None
         while True:
             # TODO: Portfolio creation display
             print("\n-------------- Portfolio Modification Menu ------------------")
@@ -262,27 +264,26 @@ class Cli:
 
 
         while True:
-            selection = 0
-
             # TODO: Display selection options
             print("1. Submit\n")
             print("2. Cancel\n")
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 try:
 
-                    if(create):
+                    if create:
                         self.serv.create_portfolio(user_account, name_request)
                         # TODO: Msg that indicates a action was successfully performed
-                        print("Portfolio was succesfully created\n")
+                        print(result.reason)
                         
                     else:
                         self.serv.remove_portfolio(user_account, name_request)
                         # TODO: Msg that indicates a action was successfully performed
-                        print("Portfolio was succesfully removed\n")
+                        print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")
@@ -306,7 +307,6 @@ class Cli:
     # RAISES: None
     def display_portfolio_contents(self, portfolio) -> str | None:
         while True:
-            selection = 0
             packaged_data = self.serv.package_portfolio_data(portfolio)
             
             self.vis.display_pie_chart(packaged_data)
@@ -324,6 +324,7 @@ class Cli:
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             self.vis.close_chart()
 
@@ -355,6 +356,7 @@ class Cli:
     #   -Cli; returns to portfolio menu
     # RAISES: None 
     def display_stock_transaction_menu(self, portfolio, purchase : bool) -> None:
+        result = None
         while True:
             # TODO: Transaction menu display
             print("\n------------- Stock Transaction ---------------")
@@ -375,8 +377,6 @@ class Cli:
 
 
         while True:
-            selection = 0
-
             # TODO: Display selection options
             print("What would you like to do?\n")
             print("1. Submit\n")
@@ -384,6 +384,7 @@ class Cli:
 
             # TODO: Selection input receiver
             selection = input("Select option: ")
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
 
@@ -392,11 +393,11 @@ class Cli:
                     if purchase:
                         self.serv.execute_buy(self.user_account, portfolio, shares_request)
                         # TODO: Msg that indicates a action was successfully performed
-                        print("Purchase Successful\n")
+                        print(result.reason)
                     else:
                         self.serv.execute_sell(self.user_account, portfolio, shares_request)
                         # TODO: Msg that indicates a action was successfully performed
-                        print("Sale successful\n")
+                        print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")

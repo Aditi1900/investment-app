@@ -36,31 +36,33 @@ class Validator:
         login, password = credentials
         
         if login == '' and password != '' and not password.isspace():
-            return Result(False, "No username entered.")
+            return Result(False, "No username entered.\n")
 
-        if login != '' and password == '' or password.isspace():
-            return Result(False, "No password entered.")
+        if login != '' and (password == '' or password.isspace()):
+            return Result(False, "No password entered.\n")
 
-        if login == '' and password == '' or password.isspace():
-            return Result(False, "No credentials entered.")
+        if login == '' and (password == '' or password.isspace()):
+            return Result(False, "No credentials entered.\n")
         
         stored_password = self.serv.resolve_password(login)
         account_exists = stored_password is not None
 
         if new and account_exists:
-            return Result(False, "An account with this username already exists.")
+            return Result(False, "An account with this username already exists.\n")
 
         if new and not account_exists and len(password) < 6:
-            return Result(False, "Password must be six characters or more.")
+            return Result(False, "Password must be six characters or more.\n")
         
         if not new and account_exists and password != stored_password:
-            return Result(False, "Invalid password.")
+            return Result(False, "Invalid password.\n")
 
         if not new and not account_exists:
-            return Result(False, "No account exists with entered username.")
+            return Result(False, "No account exists with entered username.\n")
 
-        return Result(True)
-
+        if new:
+            return Result(True, f"{login} has successfully created a new account.\n")
+        else:
+            return Result(True, f"{login} has successfully logged in.\n")
 
 
 
@@ -85,15 +87,19 @@ class Validator:
         in_account = portfolio_name in user_account.portfolios
 
         if create and portfolio_name == '':
-            return Result(False, "Portfolio name cannot be empty.")
+            return Result(False, "Portfolio name cannot be empty.\n")
 
         if create and in_account:
-            return Result(False, "Portfolio with same name already exists.")
+            return Result(False, "Portfolio with same name already exists.\n")
         
         if not create and not in_account:
-           return Result(False, "Portfolio does not exist.")
+           return Result(False, "Portfolio does not exist.\n")
 
-        return Result(True)
+        if create:
+            return Result(True, f"Portfolio {portfolio_name} successfully created.\n")
+        else:
+            return Result(True, f"Portfolio {portfolio_name} successfully removed.\n")
+
 
 
     # INPUT:
@@ -116,28 +122,28 @@ class Validator:
         ticker, quantity = shares_request
 
         if quantity is None:
-            return Result(False, "Quantity entered must be a valid number.")
+            return Result(False, "Quantity entered must be a valid number.\n")
 
         #Validate ticker
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
-           return Result(False, "Ticker symbols must be capital and 1-5 characters.")
+           return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
         
         if purchase and not eapi.does_ticker_exist(ticker):
-           return Result(False, "This stock does not exist on the open market.")
+           return Result(False, "This stock does not exist on the open market.\n")
         
         if not purchase and ticker not in portfolio.stocks:
-            return Result(False, "You do not own this stock.")
+            return Result(False, "You do not own this stock.\n")
 
 
         #Validate Quantity
         if quantity <= 0:
-            return Result(False, "Requested quantity must be positive.")
+            return Result(False, "Requested quantity must be positive.\n")
 
         if purchase and eapi.get_float(ticker) < quantity:
-           return Result(False, "Requested quantity exceeds available shares on open market.")
+           return Result(False, "Requested quantity exceeds available shares on open market.\n")
             
         if not purchase and portfolio.stocks[ticker].quantity < quantity:
-            return Result(False, "You do not own enough shares to sell.")
+            return Result(False, "You do not own enough shares to sell.\n")
 
 
         #Validate Balance
@@ -146,9 +152,12 @@ class Validator:
             total_cost = price * quantity
 
             if balance < total_cost:
-                return Result(False, "Shares requested exceed current balance.")
+                return Result(False, "Shares requested exceed current balance.\n")
 
-        return Result(True)
+        if purchase:
+            return Result(True, f"{quantity} shares of {ticker} successfully purchased.\n")
+        else:
+            return Result(True, f"{quantity} shares of {ticker} successfully sold.\n")
 
 
     # INPUT:
@@ -164,12 +173,12 @@ class Validator:
     def fund_validator(funds_request : float) -> Result:
         # TODO: validate that the funds are positive and reasonable within discrecion
         if funds_request is None:
-            return Result(False, "Funds requested must be a valid number.")
+            return Result(False, "Funds requested must be a valid number.\n")
         # ensures funds requested are in valid range zero - one-million
         if funds_request >= 1_000_000 or funds_request <= 0:
-            return Result(False, "Funds request must be between 1-999,999.")
+            return Result(False, "Funds request must be between 1-999,999.\n")
 
-        return Result(True)
+        return Result(True, "Funds request was successful.\n")
 
 
    
