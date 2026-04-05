@@ -352,7 +352,7 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
 #   -frontend_api; see FrontendApi.execute_sell() POSTCONDITION
 #   -response; contains updated PortfolioData
 # RAISES:
-#   -HTTPException(400); a ValidationError is raised, invalid ticker, quantity or too large balance
+#   -HTTPException(400); a ValidationError is raised, invalid ticker or quantity
 #   -HTTPException(401); unauthorized, user session does not exist
 #   -HTTPException(404); portfolio is not found
 #   -HTTPException(500); a ServiceError is raised, server side error
@@ -364,9 +364,6 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
 
     if user is None:
         raise HTTPException(status_code = 401, detail = "Invalid session")
-
-    
-
     try:
 
         with user.lock:
