@@ -110,6 +110,7 @@ class Validator:
     # POSTCONDITION:
     #   -Result; True if all three sub-validations pass, False with first failing reason
     # RAISES: None
+    @staticmethod
     def shares_request_validator(self, portfolio, shares_requested : tuple[str,int], balance : float, purchase : bool):
 
         ticker, quantity = shares_requested
