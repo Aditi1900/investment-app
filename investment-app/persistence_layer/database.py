@@ -268,7 +268,7 @@ class Database:
     #   -s_id(int); the database primary key for the new stock
     # PRECONDITION:
     #   -portfolio_id; exists in database
-    #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
     #   -database; new stock row inserted with portfolio_id, ticker, and quantity
     #   -s_id; primary key of the inserted stock row

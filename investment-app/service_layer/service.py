@@ -122,9 +122,9 @@ class Service:
     #   -shares_requested(tuple[str,int]); requested stock ticker and quantity
     # OUTPUT: None
     # PRECONDITION:
-    #   -user_account; account info is up to date, see Validator.sufficient_balance_validator() POSTCONDITION
+    #   -user_account; account info is up to date
     #   -portfolio; portfolio is up to date
-    #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
     #   -database; if ticker exists in portfolio see Database.update_stock(), else see Database.insert_stock() POSTCONDITION
     #   -user_account; balance is decremented based on purchase cost
@@ -162,7 +162,7 @@ class Service:
     # PRECONDITION:
     #   -user_account; account info is up to date
     #   -portfolio; portfolio is up to date
-    #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
     #   -database; if quantity equals current holdings see Database.delete_stock(), else see Database.update_stock() POSTCONDITION
     #   -user_account; balance is incremented by sale value

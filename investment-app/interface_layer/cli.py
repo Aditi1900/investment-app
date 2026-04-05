@@ -395,26 +395,12 @@ class Cli:
             
             shares_requested = ticker, quantity
 
-            result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
+            result = self.validator.shares_request_validator(portfolio, shares_requested, self.user_account.balance, purchase)
+            
+            if result.valid:
+                break;
 
-            if not result.valid:
-                # TODO: invalid ticker error msg
-                print(result.reason)
-                continue
-
-            result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
-            if not result.valid:
-                # TODO: invalid quantity error msg
-                print(result.reason)
-                continue
-
-            result = self.validator.sufficient_balance_validator(self.user_account.balance, shares_requested, purchase)
-            if not result.valid:
-                # TODO: invalid selection error msg
-                print(result.reason)
-                continue
-
-            break
+            print(result.reason)
 
 
         while True:

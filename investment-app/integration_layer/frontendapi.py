@@ -88,22 +88,12 @@ class FrontendApi:
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective Service.execute_buy() fields
     # RAISES:
-    #   -ValidationError; see Validator.stock_ticker_validator() POSTCONDITION (purchase=True)
-    #   -ValidationError; see Validator.stock_quantity_validator() POSTCONDITION (purchase=True)
-    #   -ValidationError; see Validator.sufficient_balance_validator() POSTCONDITION (purchase=True)
+    #   -ValidationError; see Validator.shares_request_validator() POSTCONDITION (purchase=True)
     def execute_buy(self, user_account, portfolio, shares_requested):
         ticker = shares_requested[0]
         purchase = True
 
-        result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
-        if not result.valid:
-            raise ValidationError(result.reason)
-
-        result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
-        if not result.valid:
-            raise ValidationError(result.reason)
-
-        result = self.validator.sufficient_balance_validator(user_account.balance, shares_requested, purchase)
+        result = self.validator.shares_request_validator(portfolio, shares_requested, user_account.balance, purchase)
         if not result.valid:
             raise ValidationError(result.reason)
 
@@ -112,17 +102,12 @@ class FrontendApi:
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective Service.execute_sell() fields
     # RAISES:
-    #   -ValidationError; see Validator.stock_ticker_validator() POSTCONDITION (purchase=False)
-    #   -ValidationError; see Validator.stock_quantity_validator() POSTCONDITION (purchase=False)
+    #   -ValidationError; see Validator.shares_request_validator() POSTCONDITION (purchase=False)
     def execute_sell(self, user_account, portfolio, shares_requested):
         ticker = shares_requested[0]
         purchase = False
 
-        result = self.validator.stock_ticker_validator(portfolio, ticker, purchase)
-        if not result.valid:
-            raise ValidationError(result.reason)
-
-        result = self.validator.stock_quantity_validator(portfolio, shares_requested, purchase)
+        result = self.validator.shares_request_validator(portfolio, shares_requested, user_account.balance, purchase)
         if not result.valid:
             raise ValidationError(result.reason)
 

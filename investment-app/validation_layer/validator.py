@@ -18,7 +18,7 @@ class Validator:
     def __init__(self, service):
         self.serv = service
 
-
+    
     # INPUT:
     #   -credentials(tuple[str,str]); user login and password
     #   -new(bool); True if creating a new account, False if logging in
@@ -98,29 +98,25 @@ class Validator:
 
     # INPUT:
     #   -portfolio(Portfolio); user portfolio to update
-    #   -ticker(str); requested stock ticker symbol
-    #   -purchase(bool); True if a stock is being purchased, False if being sold
+    #   -balance(float); users current balance
+    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
+    #   -purchase(bool); True if purchasing, False if selling
     # OUTPUT:
-    #   -return(Result); stock ticker validation result True or False with reason
+    #   -return(Result); validation result True or False with reason
     # PRECONDITION:
-    #   -portfolio.stocks; accessible and current
+    #   -portfolio.stocks; accessable and current
+    #   -balance; >= 0
     #   -purchase; is True or False
     # POSTCONDITION:
-    #   -Result; True if format matches [A-Z]{1,5} and exists in yfinance (purchase), or exists in portfolio (sell)
+    #   -Result; True if all three sub-validations pass, False with first failing reason
     # RAISES: None
-    @staticmethod
-    def stock_ticker_validator(portfolio, ticker : str, purchase : bool) -> Result:
-        # TODO: Validate ticker symbol format with regex
-        # TODO: identify if we are purchasing a stock or not
-        # TODO: if stock is not being purchased check if it exists in the portfolio
-        # TODO: if stock is being purchased find out if it exists in yfinance
-        # TODO: if ticker doesnt exist in portfolio and we arent purchasing return false
-        ticker = ticker.strip()
-        
-        # checking if format is valid
-        correct_format = re.fullmatch(r"[A-Z]{1,5}", ticker)
+    def shares_request_validator(self, portfolio, shares_requested : tuple[str,int], balance : float, purchase : bool):
 
-        if not correct_format:
+        ticker, quantity = shares_requested
+        ticker = ticker.strip()
+
+        #Validate ticker
+        if not re.fullmatch(r"[A-Z]{1,5}", ticker):
            return Result(False, "Ticker symbols must be capital and 1-5 characters.")
         
         if purchase and not eapi.does_ticker_exist(ticker):
@@ -128,30 +124,9 @@ class Validator:
         
         if not purchase and ticker not in portfolio.stocks:
             return Result(False, "You do not own this stock.")
-            
-        return Result(True)
 
 
-    # INPUT:
-    #   -portfolio(Portfolio); user portfolio to update
-    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
-    #   -purchase(bool); True if a stock is being purchased, False if being sold
-    # OUTPUT:
-    #   -return(Result); stock quantity validation result True or False with reason
-    # PRECONDITION:
-    #   -shares_requested; ticker is valid, see stock_ticker_validator() POSTCONDITION
-    #   -quantity; > 0
-    #   -purchase; is True or False
-    # POSTCONDITION:
-    #   -Result; True if quantity > 0 and does not exceed float shares (purchase), or current holdings (sell)
-    # RAISES: None
-    @staticmethod
-    def stock_quantity_validator(portfolio, shares_requested : tuple[str, int], purchase : bool) -> Result:
-        # TODO: If we are not purchasing check if portfolio has enough shares of stock
-        # TODO: (optional) if we are purchasing ensure the purchase amount is not more than number of available shares in open market
-        
-        ticker, quantity = shares_requested
-
+        #Validate Quantity
         if quantity <= 0:
             return Result(False, "Requested quantity must be positive.")
 
@@ -160,39 +135,16 @@ class Validator:
             
         if not purchase and portfolio.stocks[ticker].quantity < quantity:
             return Result(False, "You do not own enough shares to sell.")
-        
-        return Result(True)
 
 
-    # INPUT:
-    #   -balance(float); users current balance
-    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
-    #   -purchase(bool); True if a stock is being purchased, False if being sold
-    # OUTPUT:
-    #   -return(Result); user balance validator result True or False with reason
-    # PRECONDITION:
-    #   -balance; >= 0
-    #   -shares_requested; ticker and quantity are valid, see stock_ticker_validator() & stock_quantity_validator() POSTCONDITIONS
-    #   -purchase; is True or False
-    # POSTCONDITION:
-    #   -Result; True if balance >= price * quantity (purchase), or True unconditionally (sell)
-    # RAISES: None
-    @staticmethod
-    def sufficient_balance_validator(balance : float, shares_requested : tuple[str, int], purchase : bool) -> Result:
-        # TODO: get price of stock from api
-        # TODO: Validate that the user has sufficient balance for the requested stock and amount
-        # TODO: if user is selling we return true by default
-        
-        ticker, quantity = shares_requested
-
-        # to get stock price from api
+        #Validate Balance
         if purchase: 
             price = eapi.get_price(ticker)
             total_cost = price * quantity
 
             if balance < total_cost:
                 return Result(False, "Shares requested exceed current balance.")
-            
+
         return Result(True)
 
 
