@@ -39,8 +39,8 @@ class Sanitizer:
     #   -credentials; see Sanitizer.sanitize_login() & Sanitizer.sanitize_password() POSTCONDITIONS
     # RAISES: None
     @staticmethod
-    def sanitize_credentials(self, credentials : tuple[str, str]) -> tuple[str, str]:
-        credentials = self.sanitize_login(credentials[0]), self.sanitize_password(credentials[1])
+    def sanitize_credentials(credentials : tuple[str, str]) -> tuple[str, str]:
+        credentials = Sanitizer.sanitize_login(credentials[0]), Sanitizer.sanitize_password(credentials[1])
         return credentials
 
 
@@ -72,7 +72,7 @@ class Sanitizer:
     # RAISES: None
     @staticmethod
     def sanitize_portfolio_name(portfolio_name : str) -> str:
-        portfolio_name.strip()
+        portfolio_name = portfolio_name.strip()
         return portfolio_name
 
 
@@ -117,8 +117,8 @@ class Sanitizer:
     #   -shares_request; see Sanitizer.sanitize_ticker() & Sanitizer.sanitize_quantity() POSTCONDITIONS
     # RAISES: None
     @staticmethod
-    def sanitize_shares_request(self, shares_request : tuple[str,str]) -> tuple[str, str | None]:
-        shares_request = self.sanitize_ticker(shares_request[0]), self.sanitize_quantity(shares_request[1])
+    def sanitize_shares_request(shares_request : tuple[str,str]) -> tuple[str, int | None]:
+        shares_request = Sanitizer.sanitize_ticker(shares_request[0]), Sanitizer.sanitize_quantity(shares_request[1])
         return shares_request
 
 
