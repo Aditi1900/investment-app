@@ -9,11 +9,11 @@ from integration_layer import FrontendApi, router
 #   -Frontend provides a serving abstraction
 #   -Allows for frontend connection to the system through FrontendApi routes
 class Frontend:
-    def __init__(self, service, validator):
+    def __init__(self, service, sanitizer, validator):
 
         origins = ["http://localhost:3000"]
 
-        FrontendApi(service, validator).link_routes()
+        FrontendApi(service, sanitizer, validator).link_routes()
 
         self.app = FastAPI()
         self.app.add_middleware(CORSMiddleware, allow_origins = origins, allow_credentials = True, allow_methods = ['*'], allow_headers = ['*'])

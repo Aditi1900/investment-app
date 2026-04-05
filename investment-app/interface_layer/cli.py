@@ -1,49 +1,16 @@
 from common.errors import ServiceError
 
 
-# INPUT:
-#   -prompt(str); a prompt to show the user
-# OUTPUT:
-#   -floating(float); a floating point number result
-# PRECONDITION: None
-# POSTCONDITION:
-#   -floating; a proper floating point number is parsed from the user input
-# RAISES: None
-def get_float_input(prompt : str) -> float:
-    while True:
-        try:
-            floating = float(input(prompt))
-            return floating
-        except ValueError:
-            print("Please enter a valid number.")
-
-
-# INPUT:
-#   -prompt(str); a prompt to show the user
-# OUTPUT:
-#   -integer(int); an integer result
-# PRECONDITION: None
-# POSTCONDITION:
-#   -integer; a proper integer is parsed from the user input
-# RAISES: None
-def get_int_input(prompt : str) -> int:
-    while True:
-        try:
-            integer = int(input(prompt))
-            return integer
-        except ValueError:
-            print("Please enter a valid number.")
-
-
 # PURPOSE: 
 #   -Cli provides a user interaction abstraction
 #   -Handles all user interaction and enforces program control flow
 class Cli:
-    def __init__(self, service, validator, visualizer):
+    def __init__(self, service, sanitizer, validator, visualizer):
         self.user_account = None
         self.serv = service
         self.validator = validator
         self.vis = visualizer
+        self.san = sanitizer
 
 
     # INPUT: None
@@ -77,7 +44,7 @@ class Cli:
             print("3. Exit application\n")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if selection == 1:
                 self.display_account_credential_gatherer(new=True)
@@ -111,6 +78,7 @@ class Cli:
             password = input('Enter your password:')
 
             creds = login, password
+            creds = self.san.sanitize_credentials(creds)
 
             result = self.validator.account_validator(creds, new)
 
@@ -129,7 +97,7 @@ class Cli:
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if selection == 1:
                 try:
@@ -188,7 +156,7 @@ class Cli:
             print(numPortfolios + 5, ". Exit")
             
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if 0 < selection <= numPortfolios:
                 r = self.display_portfolio_contents(portfolio_list[selection - 1])
@@ -224,7 +192,8 @@ class Cli:
             print("\n------------ Fund Account ------------")
             
             # TODO: Funds input reciever
-            funds_request = get_float_input("Enter amount: ")
+            funds_request = input("Enter amount: ")
+            funds_request = self.san.sanitize_funds_request(funds_request)
 
             result = self.validator.fund_validator(funds_request)
 
@@ -242,7 +211,7 @@ class Cli:
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if selection == 1:
                 try:
@@ -281,6 +250,7 @@ class Cli:
             # TODO: Portfolio name input receiver
 
             name_request = input("Enter portfolio name: ").strip()
+            name_request = self.san.sanitize_portfolio_name(name_request)
 
             result = self.validator.portfolio_validator(user_account, name_request, create)
 
@@ -299,7 +269,7 @@ class Cli:
             print("2. Cancel\n")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if selection == 1:
                 try:
@@ -353,7 +323,7 @@ class Cli:
             print("5. Exit\n")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             self.vis.close_chart()
 
@@ -389,13 +359,14 @@ class Cli:
             # TODO: Transaction menu display
             print("\n------------- Stock Transaction ---------------")
             
-            # TODO: shares_requested input receiver (ticker & quantity)
-            ticker = input("Enter stock ticker (e.g., AAPL): ").strip()
-            quantity = get_int_input("Enter number of shares to buy/sell: ")
+            # TODO: shares_request input receiver (ticker & quantity)
+            ticker = input("Enter stock ticker (e.g., AAPL): ")
+            quantity = input("Enter number of shares to buy/sell: ")
             
-            shares_requested = ticker, quantity
+            shares_request = ticker, quantity
+            shares_request = self.san.sanitize_shares_request(shares_request)
 
-            result = self.validator.shares_request_validator(portfolio, shares_requested, self.user_account.balance, purchase)
+            result = self.validator.shares_request_validator(portfolio, shares_request, self.user_account.balance, purchase)
             
             if result.valid:
                 break;
@@ -412,18 +383,18 @@ class Cli:
             print("2. Cancel\n")
 
             # TODO: Selection input receiver
-            selection = get_int_input("Select option: ")
+            selection = input("Select option: ")
 
             if selection == 1:
 
                 try:
 
                     if purchase:
-                        self.serv.execute_buy(self.user_account, portfolio, shares_requested)
+                        self.serv.execute_buy(self.user_account, portfolio, shares_request)
                         # TODO: Msg that indicates a action was successfully performed
                         print("Purchase Successful\n")
                     else:
-                        self.serv.execute_sell(self.user_account, portfolio, shares_requested)
+                        self.serv.execute_sell(self.user_account, portfolio, shares_request)
                         # TODO: Msg that indicates a action was successfully performed
                         print("Sale successful\n")
 

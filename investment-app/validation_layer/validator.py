@@ -1,7 +1,7 @@
 import re
 from typing import NamedTuple
 
-from integration_layer import ExternalApi as eapi, PortfolioData, PortfolioRequest
+from integration_layer import ExternalApi as eapi
 
 # PURPOSE: 
 #   -Result provides description abstraction
@@ -99,7 +99,7 @@ class Validator:
     # INPUT:
     #   -portfolio(Portfolio); user portfolio to update
     #   -balance(float); users current balance
-    #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested
+    #   -shares_request(tuple[str,int]); ticker and quantity of shares requested
     #   -purchase(bool); True if purchasing, False if selling
     # OUTPUT:
     #   -return(Result); validation result True or False with reason
@@ -111,10 +111,12 @@ class Validator:
     #   -Result; True if all three sub-validations pass, False with first failing reason
     # RAISES: None
     @staticmethod
-    def shares_request_validator(self, portfolio, shares_requested : tuple[str,int], balance : float, purchase : bool):
+    def shares_request_validator(self, portfolio, shares_request : tuple[str,int], balance : float, purchase : bool):
 
-        ticker, quantity = shares_requested
-        ticker = ticker.strip()
+        ticker, quantity = shares_request
+
+        if quantity is None:
+            return Result(False, "Quantity entered must be a valid number.")
 
         #Validate ticker
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
@@ -161,7 +163,8 @@ class Validator:
     @staticmethod
     def fund_validator(funds_request : float) -> Result:
         # TODO: validate that the funds are positive and reasonable within discrecion
-    
+        if funds_request is None:
+            return Result(False, "Funds requested must be a valid number.")
         # ensures funds requested are in valid range zero - one-million
         if funds_request >= 1_000_000 or funds_request <= 0:
             return Result(False, "Funds request must be between 1-999,999.")

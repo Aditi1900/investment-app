@@ -1,8 +1,10 @@
 from pathlib import Path
-from persistence_layer import Database
-from service_layer import Service
-from validation_layer import Validator
+
 from interface_layer import Cli, Visualizer, Frontend
+from sanitization_layer import Sanitizer
+from validation_layer import Validator
+from service_layer import Service
+from persistence_layer import Database
 
 
 # PURPOSE:
@@ -32,16 +34,17 @@ class App:
             db_path = ':memory:'
         else:
             db_path = self.establish_path('investment-app.db')
-        
+
+        self.san = Sanitizer()
         self.db = Database(db_path)
         self.serv = Service(self.db)
         self.val = Validator(self.serv)
 
         if frontend:
-            self.display = Frontend(self.serv, self.val)
+            self.display = Frontend(self.serv, self.san, self.val)
         else:
             self.vis = Visualizer()
-            self.display = Cli(self.serv, self.val, self.vis)
+            self.display = Cli(self.serv, self.san, self.val, self.vis)
 
 
     # INPUT:

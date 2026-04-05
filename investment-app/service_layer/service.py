@@ -119,23 +119,23 @@ class Service:
     # INPUT: 
     #   -user_account(User); current user account
     #   -portfolio(Portfolio); some portfolio belonging to current user
-    #   -shares_requested(tuple[str,int]); requested stock ticker and quantity
+    #   -shares_request(tuple[str,int]); requested stock ticker and quantity
     # OUTPUT: None
     # PRECONDITION:
     #   -user_account; account info is up to date
     #   -portfolio; portfolio is up to date
-    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
+    #   -shares_request; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
     #   -database; if ticker exists in portfolio see Database.update_stock(), else see Database.insert_stock() POSTCONDITION
     #   -user_account; balance is decremented based on purchase cost
     #   -portfolio; stock with matching ticker is added with quantity or updated
     # RAISES:
     #   -ServiceError; database call fails
-    def execute_buy(self, user_account : User, portfolio : Portfolio, shares_requested : tuple[str, int]) -> None:
+    def execute_buy(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
         # TODO: call api to get stock price
         # TODO: subtract funds from user account
         
-        ticker, quantity = shares_requested
+        ticker, quantity = shares_request
 
         s_id = None
 
@@ -144,11 +144,11 @@ class Service:
                 # TODO: update the database
                 pass
             else:
-                 s_id = self.db.insert_stock(portfolio.id, shares_requested)
+                 s_id = self.db.insert_stock(portfolio.id, shares_request)
         except DatabaseError as e:
             raise ServiceError("Failed to execute buy") from e
 
-        portfolio.buy_shares(shares_requested)
+        portfolio.buy_shares(shares_request)
 
         if s_id is not None:
             portfolio.stocks[ticker].id = s_id
@@ -157,23 +157,23 @@ class Service:
     # INPUT: 
     #   -user_account(User); current user account
     #   -portfolio(Portfolio); some portfolio belonging to current user
-    #   -shares_requested(tuple[str,int]); requested stock ticker and quantity
+    #   -shares_request(tuple[str,int]); requested stock ticker and quantity
     # OUTPUT: None
     # PRECONDITION:
     #   -user_account; account info is up to date
     #   -portfolio; portfolio is up to date
-    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
+    #   -shares_request; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
     #   -database; if quantity equals current holdings see Database.delete_stock(), else see Database.update_stock() POSTCONDITION
     #   -user_account; balance is incremented by sale value
     #   -portfolio; stock with matching ticker is updated or removed
     # RAISES:
     #   -ServiceError; database call fails
-    def execute_sell(self, user_account : User, portfolio : Portfolio, shares_requested : tuple[str, int]) -> None:
+    def execute_sell(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
         # TODO: call api to get stock price
         # TODO: add funds to user account
         
-        ticker, quantity = shares_requested
+        ticker, quantity = shares_request
 
         try:
             if portfolio.has_stock(ticker) and quantity == portfolio.stocks[ticker].quantity:
@@ -185,7 +185,7 @@ class Service:
         except DatabaseError as e:
             raise ServiceError("Failed to execute sell") from e
 
-        portfolio.sell_shares(shares_requested)
+        portfolio.sell_shares(shares_request)
 
 
     # INPUT:
