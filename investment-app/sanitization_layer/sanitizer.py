@@ -93,7 +93,7 @@ class Sanitizer:
     # INPUT:
     #   -quantity(str); a quantity input
     # OUTPUT:
-    #   -funds_request(float); a integer representation of quantity, otherwise None
+    #   -quantity(int); a integer representation of quantity, otherwise None
     # PRECONDITION: None
     # POSTCONDITION:
     #   -quantity; converted to a integer, if non numeric None
