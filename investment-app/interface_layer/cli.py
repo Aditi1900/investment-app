@@ -1,7 +1,6 @@
 from common.errors import ServiceError
 
 
-
 # PURPOSE: 
 #   -Cli provides a user interaction abstraction
 #   -Handles all user interaction and enforces program control flow

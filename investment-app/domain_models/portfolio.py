@@ -36,7 +36,7 @@ class Portfolio:
 
         t, q = shares_requested
 
-        if (self.has_stock(t)):
+        if self.has_stock(t):
             self.stocks[t].increment_quantity(q)
         else:
             self.stocks[t] = Stock(ticker=t, quantity=q)
@@ -57,5 +57,5 @@ class Portfolio:
 
         self.stocks[t].decrement_quantity(q)
 
-        if (self.stocks[t].quantity == 0):
+        if self.stocks[t].quantity == 0:
             del self.stocks[t]
