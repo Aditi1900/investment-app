@@ -117,7 +117,7 @@ value None so readers know the field was considered.
   {
       "name": "tech",
       "stocks": {
-          "AAPL": { }  // see StockData
+          "AAPL": { ... }  // see StockData
       }
   }
 
