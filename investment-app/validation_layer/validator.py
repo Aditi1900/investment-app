@@ -85,7 +85,7 @@ class Validator:
         # TODO: ensure creation only is allowed when portfolio doesnt exist and removal is only allowed when it does
 
         in_account = portfolio_name in user_account.portfolios
-        portfolio_empty = user_account.portfolios[portfolio_name].stocks == {} if in_account else False 
+        portfolio_empty = not user_account.portfolios[portfolio_name].stocks if in_account else False 
 
 
         if create and portfolio_name == '':
