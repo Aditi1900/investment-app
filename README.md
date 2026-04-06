@@ -109,10 +109,10 @@ flowchart TD
     A([client])
     A --> B[Sanitizer.sanitize_portfolio_name]
     B -->|CLI| D[Validator.portfolio_validator]
-    B -->|Frontend| C[FrontendApi.create_or_remove_portfolio]
+    B -->|Frontend| C[FrontendApi.create/remove_portfolio]
     C --> D
-    D --> E[Service.create_or_remove_portfolio]
-    E --> F[(Database.insert_or_delete_portfolio)]
+    D --> E[Service.create/remove_portfolio]
+    E --> F[(Database.insert/delete_portfolio)]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
@@ -128,10 +128,10 @@ flowchart TD
     A([client])
     A --> B[Sanitizer.sanitize_shares_request]
     B -->|CLI| D[Validator.shares_request_validator]
-    B -->|Frontend| C[FrontendApi.execute_buy_or_sell]
+    B -->|Frontend| C[FrontendApi.execute_buy/sell]
     C --> D
-    D --> E[Service.execute_buy_or_sell]
-    E --> F[(Database.update_or_insert_or_delete_stock)]
+    D --> E[Service.execute_buy/sell]
+    E --> F[(Database.update/insert/delete_stock)]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
