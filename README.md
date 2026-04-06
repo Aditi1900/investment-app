@@ -1,35 +1,33 @@
 ```mermaid
 flowchart TD
-    DOM([Domain models\nUser · Portfolio · Stock])
+    A([App.run])
 
-    A([bootstrap.py → App.run])
+    A --> B[Cli]
+    A --> C[Frontend]
+    B -.-> VIZ([Visualizer])
 
-    A --> B[Cli.execute]
-    A --> C[Frontend.execute]
-    B -.->|renders| VIZ([Visualizer / pie chart])
-
-    B --> D([client])
+    B --> D([Client])
     C --> D
 
-    D --> E[Sanitizer\nsanitize_credentials · sanitize_funds_request\nsanitize_portfolio_name · sanitize_shares_request]
+    D --> E[Sanitizer]
 
-    E -->|CLI direct| G
-    E -->|Frontend only| F[FrontendApi\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
+    E -->|CLI| G
+    E -->|Frontend| F[FrontendApi]
     F --> G
 
-    %% Domain models on LEFT (feed into service)
-    DOM --> H
+    G[Validator]
 
-    G[Validator\naccount_validator · fund_validator\nportfolio_validator · shares_request_validator]
-    G --> H[Service\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
+    %% Core row (force horizontal alignment)
+     ---  --- 
 
-    H --> I[(Database\ninsert_user · pull_user · pull_portfolios · pull_stocks\nupdate_funds · insert_portfolio · delete_portfolio\nupdate_stock · insert_stock · delete_stock)]
+    G --> H[Service]
+    G --> EXT[External API]
+    H --> DOM[Domain Models]
+    H --> EXT
 
-    %% External API on RIGHT (used by service)
-    H --> EXT([ExternalApi\nyfinance])
-    G --> EXT
+    H --> I[(Database)]
 
-    ERR[/errors.py\nDatabaseError · ValidationError · ServiceError\npropagates through all layers/]
+    ERR[/Errors/]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style D fill:#F1EFE8,stroke:#888780,color:#444441
