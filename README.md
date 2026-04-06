@@ -41,6 +41,11 @@ flowchart TD
     style ERR fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
 ```
 # Feature Piplines
+
+Core feature piplines with traversal through layers and main method calls excluding helper functions.
+
+---
+
 ## Create Account
 ```mermaid
 flowchart TD
@@ -59,6 +64,7 @@ flowchart TD
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
 ```
+
 ## Find Account
 ```mermaid
 flowchart TD
@@ -77,6 +83,7 @@ flowchart TD
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
 ```
+
 ## Fund Account
 ```mermaid
 flowchart TD
@@ -95,6 +102,7 @@ flowchart TD
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
 ```
+
 ## Create/Remove Portfolio
 ```mermaid
 flowchart TD
@@ -132,6 +140,7 @@ flowchart TD
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
 ```
+
 # Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
