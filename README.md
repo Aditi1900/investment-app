@@ -16,6 +16,7 @@ flowchart TD
     F --> G
 
     EXT([ExternalApi\nyfinance]) --> G
+    EXT([ExternalApi\nyfinance]) --> H
     DOM([Domain models\nUser · Portfolio · Stock]) --> H
 
     G[Validator\naccount_validator · fund_validator\nportfolio_validator · shares_request_validator]
