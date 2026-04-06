@@ -1,3 +1,45 @@
+```mermaid
+flowchart TD
+    A([bootstrap.py → App.run])
+
+    A --> B[Cli.execute]
+    A --> C[Frontend.execute]
+    B -.->|renders| VIZ([Visualizer / pie chart])
+
+    B --> D([client])
+    C --> D
+
+    D --> E[Sanitizer\nsanitize_credentials · sanitize_funds_request\nsanitize_portfolio_name · sanitize_shares_request]
+
+    E -->|CLI direct| G
+    E -->|Frontend only| F[FrontendApi\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
+    F --> G
+
+    EXT([ExternalApi\nyfinance]) --> G
+    DOM([Domain models\nUser · Portfolio · Stock]) --> H
+
+    G[Validator\naccount_validator · fund_validator\nportfolio_validator · shares_request_validator]
+    G --> H[Service\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
+
+    H --> I[(Database\ninsert_user · pull_user · pull_portfolios · pull_stocks\nupdate_funds · insert_portfolio · delete_portfolio\nupdate_stock · insert_stock · delete_stock)]
+
+    ERR[/errors.py\nDatabaseError · ValidationError · ServiceError\npropagates through all layers/]
+
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#F1EFE8,stroke:#888780,color:#444441
+    style VIZ fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#EEEDFE,stroke:#534AB7,color:#3C3489
+    style C fill:#EEEDFE,stroke:#534AB7,color:#3C3489
+    style E fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style F fill:#F1EFE8,stroke:#888780,color:#444441
+    style G fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style H fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style I fill:#FAECE7,stroke:#993C1D,color:#712B13
+    style EXT fill:#FAEEDA,stroke:#854F0B,color:#633806
+    style DOM fill:#F1EFE8,stroke:#888780,color:#444441
+    style ERR fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+```
+
 # Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
