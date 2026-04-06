@@ -76,7 +76,7 @@ class Validator:
     #   -user_account.portfolios; accessible and current
     #   -create; is True or False
     # POSTCONDITION:
-    #   -Result; True if name is non-empty and not taken (create), or exists in account
+    #   -Result; True if name is non-empty and not taken (create), or exists in account and is empty
     # RAISES: None
     @staticmethod
     def portfolio_validator(user_account, portfolio_name : str, create : bool) -> Result:
@@ -85,6 +85,8 @@ class Validator:
         # TODO: ensure creation only is allowed when portfolio doesnt exist and removal is only allowed when it does
 
         in_account = portfolio_name in user_account.portfolios
+        portfolio_empty = user_account.portfolios[portfolio_name] == {} if in_account else False 
+
 
         if create and portfolio_name == '':
             return Result(False, "Portfolio name cannot be empty.\n")
@@ -94,6 +96,9 @@ class Validator:
         
         if not create and not in_account:
            return Result(False, "Portfolio does not exist.\n")
+        
+        if not create and not portfolio_empty:
+            return Result(False, "Portfolio needs to be liquidated before removal.\n")
 
         if create:
             return Result(True, f"Portfolio {portfolio_name} successfully created.\n")
