@@ -251,8 +251,8 @@ JSON response bodies returned by the Frontend API.
 **StockData**
 ```json
 {
-    "ticker": "string",
-    "quantity": 0
+    "ticker": "AAPL",
+    "quantity": 4
 }
 ```
 
@@ -261,13 +261,11 @@ JSON response bodies returned by the Frontend API.
 {
     "name": "tech",
     "stocks": {
-        "AAPL": {
-            "ticker": "AAPL",
-            "quantity": 10
-        }
+        "AAPL": { }
     }
 }
 ```
+> `stocks` values follow the `StockData` schema above.
 
 **UserData**
 ```json

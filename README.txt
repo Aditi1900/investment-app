@@ -109,18 +109,15 @@ value None so readers know the field was considered.
 
   StockData
   {
-      "ticker": "string",
-      "quantity": 0
+      "ticker": "AAPL",
+      "quantity": 4
   }
 
   PortfolioData
   {
       "name": "tech",
       "stocks": {
-          "AAPL": {
-              "ticker": "AAPL",
-              "quantity": 10
-          }
+          "AAPL": { }  // see StockData
       }
   }
 
