@@ -1,5 +1,5 @@
 ```mermaid
-flowchart LR
+flowchart TD
     DOM([Domain models\nUser · Portfolio · Stock])
 
     A([bootstrap.py → App.run])
