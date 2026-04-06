@@ -1,3 +1,5 @@
+# System Architecture
+
 ```mermaid
 flowchart TD
     A([App.run])
@@ -5,29 +7,24 @@ flowchart TD
     A --> B[Cli]
     A --> C[Frontend]
     B -.-> VIZ([Visualizer])
+    VIZ ~~~ ERR[/Errors/]
+    ERR ~~~ G
 
     B --> D([Client])
     C --> D
 
     D --> E[Sanitizer]
 
-    E -->|CLI| G
+    E -->|CLI| G[Validator]
     E -->|Frontend| F[FrontendApi]
     F --> G
 
-    G[Validator]
-
-    %% Core row (force horizontal alignment)
-     ---  --- 
-
     G --> H[Service]
     G --> EXT[External API]
+    EXT ~~~ H
     H --> DOM[Domain Models]
-    H --> EXT
-
     H --> I[(Database)]
-
-    ERR[/Errors/]
+    H --> EXT
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style D fill:#F1EFE8,stroke:#888780,color:#444441
