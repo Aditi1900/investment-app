@@ -40,7 +40,98 @@ flowchart TD
     style DOM fill:#F1EFE8,stroke:#888780,color:#444441
     style ERR fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
 ```
+# Feature Piplines
+## Create Account
+```mermaid
+flowchart TD
+    A([client])
+    A --> B[Sanitizer.sanitize_credentials]
+    B -->|CLI| D[Validator.account_validator]
+    B -->|Frontend| C[FrontendApi.create_account]
+    C --> D
+    D --> E[Service.create_account]
+    E --> F[(Database.insert_user)]
 
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style C fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+```
+## Find Account
+```mermaid
+flowchart TD
+    A([client])
+    A --> B[Sanitizer.sanitize_credentials]
+    B -->|CLI| D[Validator.account_validator]
+    B -->|Frontend| C[FrontendApi.find_account]
+    C --> D
+    D --> E[Service.find_account]
+    E --> F[(pull_user → pull_portfolios → pull_stocks)]
+
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style C fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+```
+## Fund Account
+```mermaid
+flowchart TD
+    A([client])
+    A --> B[Sanitizer.sanitize_funds_request]
+    B -->|CLI| D[Validator.fund_validator]
+    B -->|Frontend| C[FrontendApi.fund_account]
+    C --> D
+    D --> E[Service.fund_account]
+    E --> F[(Database.update_funds)]
+
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style C fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+```
+## Create/Remove Portfolio
+```mermaid
+flowchart TD
+    A([client])
+    A --> B[Sanitizer.sanitize_portfolio_name]
+    B -->|CLI| D[Validator.portfolio_validator]
+    B -->|Frontend| C[FrontendApi.create / remove_portfolio]
+    C --> D
+    D --> E[Service.create / remove_portfolio]
+    E --> F[(Database.insert / delete_portfolio)]
+
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style C fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+```
+
+## Execute Buy/Sell
+```mermaid
+flowchart TD
+    A([client])
+    A --> B[Sanitizer.sanitize_shares_request]
+    B -->|CLI| D[Validator.shares_request_validator]
+    B -->|Frontend| C[FrontendApi.execute_buy / execute_sell]
+    C --> D
+    D --> E[Service.execute_buy / execute_sell]
+    E --> F[(update_stock or insert / delete_stock)]
+
+    style A fill:#F1EFE8,stroke:#888780,color:#444441
+    style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style C fill:#F1EFE8,stroke:#888780,color:#444441
+    style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+```
 # Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
