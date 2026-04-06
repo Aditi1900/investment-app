@@ -1,5 +1,4 @@
 # System Architecture
-
 ```mermaid
 flowchart TD
     A([App.run])
@@ -40,9 +39,10 @@ flowchart TD
     style DOM fill:#F1EFE8,stroke:#888780,color:#444441
     style ERR fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
 ```
-# Feature Piplines
 
-Core feature piplines with traversal through layers and main method calls excluding helper functions.
+# Feature Pipelines
+
+Core feature pipelines with traversal through layers and main method calls excluding helper functions.
 
 ---
 
@@ -74,7 +74,7 @@ flowchart TD
     B -->|Frontend| C[FrontendApi.find_account]
     C --> D
     D --> E[Service.find_account]
-    E --> F[(pull_user → pull_portfolios → pull_stocks)]
+    E --> F[(Database.pull_user + pull_portfolios + pull_stocks)]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
@@ -109,10 +109,10 @@ flowchart TD
     A([client])
     A --> B[Sanitizer.sanitize_portfolio_name]
     B -->|CLI| D[Validator.portfolio_validator]
-    B -->|Frontend| C[FrontendApi.create / remove_portfolio]
+    B -->|Frontend| C[FrontendApi.create_or_remove_portfolio]
     C --> D
-    D --> E[Service.create / remove_portfolio]
-    E --> F[(Database.insert / delete_portfolio)]
+    D --> E[Service.create_or_remove_portfolio]
+    E --> F[(Database.insert_or_delete_portfolio)]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
@@ -128,10 +128,10 @@ flowchart TD
     A([client])
     A --> B[Sanitizer.sanitize_shares_request]
     B -->|CLI| D[Validator.shares_request_validator]
-    B -->|Frontend| C[FrontendApi.execute_buy / execute_sell]
+    B -->|Frontend| C[FrontendApi.execute_buy_or_sell]
     C --> D
-    D --> E[Service.execute_buy / execute_sell]
-    E --> F[(update_stock or insert / delete_stock)]
+    D --> E[Service.execute_buy_or_sell]
+    E --> F[(Database.update_or_insert_or_delete_stock)]
 
     style A fill:#F1EFE8,stroke:#888780,color:#444441
     style B fill:#E1F5EE,stroke:#0F6E56,color:#085041
@@ -153,8 +153,6 @@ Fields marked **"if N/A – None"** must still appear with the literal value `No
 #    - <ClassName> provides <X> abstraction
 #    - <why the abstraction exists>
 ```
-
----
 
 ## Functions
 ```python
