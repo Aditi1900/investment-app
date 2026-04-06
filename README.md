@@ -1,5 +1,7 @@
 ```mermaid
-flowchart TD
+flowchart LR
+    DOM([Domain models\nUser · Portfolio · Stock])
+
     A([bootstrap.py → App.run])
 
     A --> B[Cli.execute]
@@ -15,14 +17,17 @@ flowchart TD
     E -->|Frontend only| F[FrontendApi\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
     F --> G
 
-    EXT([ExternalApi\nyfinance]) --> G
-    EXT([ExternalApi\nyfinance]) --> H
-    DOM([Domain models\nUser · Portfolio · Stock]) --> H
+    %% Domain models on LEFT (feed into service)
+    DOM --> H
 
     G[Validator\naccount_validator · fund_validator\nportfolio_validator · shares_request_validator]
     G --> H[Service\ncreate_account · find_account · fund_account\ncreate_portfolio · remove_portfolio\nexecute_buy · execute_sell]
 
     H --> I[(Database\ninsert_user · pull_user · pull_portfolios · pull_stocks\nupdate_funds · insert_portfolio · delete_portfolio\nupdate_stock · insert_stock · delete_stock)]
+
+    %% External API on RIGHT (used by service)
+    H --> EXT([ExternalApi\nyfinance])
+    G --> EXT
 
     ERR[/errors.py\nDatabaseError · ValidationError · ServiceError\npropagates through all layers/]
 
