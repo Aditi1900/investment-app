@@ -140,7 +140,7 @@ class Cli:
             print("-------------------DASHBOARD---------------------\n")
             
             # Greets the user and displays the balance
-            print("Hello,", user_account.username)
+            print("Hello,", user_account.login)
             print("Current Balance: $", user_account.balance, "\n")
 
             # Portfolio list

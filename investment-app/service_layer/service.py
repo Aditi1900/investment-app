@@ -139,7 +139,7 @@ class Service:
         # TODO: call api to get stock price
         # TODO: subtract funds from user account
         
-        ticker, quantity = shares_requested
+        ticker, quantity = shares_request
 
         price = eapi.get_stock_price(ticker)
         total_cost = price * quantity

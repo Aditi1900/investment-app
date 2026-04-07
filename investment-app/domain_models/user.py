@@ -5,7 +5,7 @@ from .portfolio import Portfolio
 #   -User provides a user account abstraction
 #   -encapsulates data related to a user account and methods to modify account values
 class User:
-    def __init__(self, id=None, *, login, balance, portfolios: dict[str, Portfolio] = None):
+    def __init__(self, id=None, *, login = '', balance = 0, portfolios: dict[str, Portfolio] = None):
         self.id = id
         self.login = login
         self.balance = balance
