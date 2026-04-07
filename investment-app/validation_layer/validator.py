@@ -122,7 +122,7 @@ class Validator:
     #   -Result; True if all three sub-validations pass, False with first failing reason
     # RAISES: None
     @staticmethod
-    def shares_request_validator(self, portfolio, shares_request : tuple[str,int], balance : float, purchase : bool):
+    def shares_request_validator(portfolio, shares_request : tuple[str,int], balance : float, purchase : bool):
 
         ticker, quantity = shares_request
 
