@@ -35,8 +35,8 @@ class Cli:
             self.user_account = None
 
             # TODO: Welcome menu display
-            print("Welcome to our investment portfolio app!\nWhat would you like to do?\n")
-           
+            print("Welcome to our investment portfolio app!")
+            print("\nWhat would you like to do?\n")
             # TODO: Display selection options
             print("1. Create an account\n")
             print("2. Login\n")
@@ -73,7 +73,7 @@ class Cli:
     def display_account_credential_gatherer(self, new : bool) -> None:
         result = None
         while True:
-            print('---------------LOGIN/SIGNUP---------------\n')
+            print(f'---------------{'SIGNUP' if new else 'LOGIN'}---------------\n')
             
             login = input('Enter your login:')
             password = input('Enter your password:')
@@ -362,7 +362,7 @@ class Cli:
             
             # TODO: shares_request input receiver (ticker & quantity)
             ticker = input("Enter stock ticker (e.g., AAPL): ")
-            quantity = input("Enter number of shares to buy/sell: ")
+            quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: ")
             
             shares_request = ticker, quantity
             shares_request = self.san.sanitize_shares_request(shares_request)
