@@ -4,7 +4,7 @@ import pandas as pd
 
 # PURPOSE:
 #   -Visualizer provides a data visualization abstraction
-#   -provides a isolated layer that allows for construction of data charts
+#   -provides an isolated layer that allows for construction of data charts
 class Visualizer:
     def __init__(self):
         self.fig, self.ax = plt.subplots()
@@ -21,7 +21,18 @@ class Visualizer:
     def display_pie_chart(self, portfolio_data : list[dict[str, str | int]]) -> None:
 
         # TODO: use pandas to format the data
+        df = pd.DataFrame(portfolio_data)
+        
         # TODO: use matplotlib to display the data
+        self.ax.pie(
+            df['quantity'],
+            labels=df['ticker'],
+            
+            #formats percentages as whole numbers followed by a percentage symbol e.g. 33% etc.
+            autopct='%1.0f%%'
+        )
+
+        self.ax.set_title("Portfolio Distribution")
 
         plt.show(block=False)
 
