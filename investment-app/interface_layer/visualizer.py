@@ -4,7 +4,7 @@ import pandas as pd
 
 # PURPOSE:
 #   -Visualizer provides a data visualization abstraction
-#   -provides a isolated layer that allows for construction of data charts
+#   -provides an isolated layer that allows for construction of data charts
 class Visualizer:
     def __init__(self):
         self.fig, self.ax = plt.subplots()
@@ -15,25 +15,34 @@ class Visualizer:
     # PRECONDITION:
     #   -portfolio_data; non-empty, each dict contains 'ticker'(str) and 'quantity'(int)
     # POSTCONDITION:
-    #   -process; a pie chart is displayed with stock data distributions does not block program execution
+    #   -self.fig; pie chart rendered with ticker labels and quantity distribution
+    #   -execution; chart display does not block program
     # RAISES: None
     def display_pie_chart(self, portfolio_data : list[dict[str, str | int]]) -> None:
 
-
         # TODO: use pandas to format the data
-        # TODO: use matplotlib to display the data
-
+        df = pd.DataFrame(portfolio_data)
         
-        plt.show(block=False) #Displays chart doesnt block program
+        # TODO: use matplotlib to display the data
+        self.ax.pie(
+            df['quantity'],
+            labels=df['ticker'],
+            
+            #formats percentages as whole numbers followed by a percentage symbol e.g. 33% etc.
+            autopct='%1.0f%%'
+        )
+
+        self.ax.set_title("Portfolio Distribution")
+
+        plt.show(block=False)
 
     
     # INPUT: None
     # OUTPUT: None
     # PRECONDITION:
-    #   -process; current process has a chart displayed
+    #   -self.fig; an active chart exists
     # POSTCONDITION:
-    #   -process; chart is closed
+    #   -self.fig; chart is closed and removed from display
     # RAISES: None
     def close_chart(self) -> None:
         plt.close(self.fig)
-            

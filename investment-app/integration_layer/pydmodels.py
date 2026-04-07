@@ -63,7 +63,7 @@ class PortfolioData(BaseModel):
     # OUTPUT:
     #   -portfolio_data(PortfolioData); an object representing serializable data of portfolio
     # PRECONDITION:
-    #   -portfolio; portfolio is up to date and fully populated
+    #   -portfolio; fully populated and up to date
     # POSTCONDITION:
     #   -portfolio_data; properly represents the JSON response body of a portfolio
     # RAISES: None
@@ -94,7 +94,7 @@ class UserData(BaseModel):
     # OUTPUT:
     #   -user_data(UserData); an object representing serializable data of user
     # PRECONDITION:
-    #   -user; user is up to date and fully populated
+    #   -user; fully populated and up to date
     # POSTCONDITION:
     #   -user_data; properly represents the JSON response body of a user
     # RAISES: None

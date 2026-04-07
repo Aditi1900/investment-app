@@ -18,9 +18,9 @@ class User:
     #   -portfolio_name(str); a name for a portfolio
     # OUTPUT: None
     # PRECONDITION:
-    #   -portfolio_name; portfolio name is not in use by user and is not empty
+    #   -portfolio_name; not empty and not already in self.portfolios
     # POSTCONDITION:
-    #   -User; a portfolio is added to the users portfolio collection with the input name
+    #   -self.portfolios; new empty Portfolio keyed by portfolio_name
     # RAISES: None
     def add_portfolio(self, portfolio_name : str) -> None:
         self.portfolios[portfolio_name] = Portfolio(name = portfolio_name)
@@ -30,21 +30,21 @@ class User:
     #   -portfolio_name(str); a name of a portfolio
     # OUTPUT: None
     # PRECONDITION:
-    #   -portfolio_name; user has a portfolio with this name
+    #   -portfolio_name; exists as a key in self.portfolios
     # POSTCONDITION:
-    #   -User; portfolio with input name is deleted from user collection
+    #   -self.portfolios; portfolio keyed by portfolio_name is removed
     # RAISES: None
     def remove_portfolio(self, portfolio_name : str) -> None:
         del self.portfolios[portfolio_name]
 
-    
+
     # INPUT:
     #   -funds_to_add(float); an amount of money
     # OUTPUT: None
     # PRECONDITION:
-    #   -funds_to_add; >= 0
+    #   -funds_to_add; > 0
     # POSTCONDITION:
-    #   -User; users balance is updated to reflect the added funds
+    #   -self.balance; incremented by funds_to_add
     # RAISES: None
     def add_funds(self, funds_to_add : float) -> None:
         self.balance += funds_to_add
@@ -54,15 +54,9 @@ class User:
     #   -funds_to_sub(float); an amount of money
     # OUTPUT: None
     # PRECONDITION:
-    #   -funds_to_sub; balance >= funds_to_sub >= 0 
+    #   -funds_to_sub; balance >= funds_to_sub > 0
     # POSTCONDITION:
-    #   -User; users balance is updated to reflect the removed funds
+    #   -self.balance; decremented by funds_to_sub
     # RAISES: None
     def sub_funds(self, funds_to_sub : float) -> None:
         self.balance -= funds_to_sub
-
-
-
-
-
-

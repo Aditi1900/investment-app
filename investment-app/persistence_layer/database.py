@@ -18,7 +18,7 @@ class Database:
     # INPUT: None
     # OUTPUT: None
     # PRECONDITION:
-    #   -Database; source attached to filepath, connection to source established, foreign keys enabled
+    #   -self.conn; active connection with foreign keys enabled
     # POSTCONDITION:
     #   -database; users, portfolios, and stocks tables exist and are properly linked
     # RAISES:
@@ -72,19 +72,18 @@ class Database:
     # INPUT:
     #   -login(str); user login 
     # OUTPUT:
-    #   -user_data(tuple[int,str,float]); user data from database id, login, balance
-    # PRECONDITION:
-    #   -login; exists in database
+    #   -user_data(tuple[int,str,str,float] | None); id, login, password, balance
+    # PRECONDITION: None
     # POSTCONDITION:
-    #   -user_data; database information related to user with respective login is retrieved
+    #   -user_data; row matching login retrieved if exists, None otherwise
     # RAISES:
     #   -DatabaseError; SqliteError occurs during selection 
-    def pull_user(self, login : str) -> tuple[int, str, float]:
+    def pull_user(self, login : str) -> tuple[int, str, float] | None:
 
         cursor = self.conn.cursor()
 
         pull_user = '''
-            SELECT id, login, balance
+            SELECT id, login, password, balance
             FROM users
             WHERE login = ?
         '''
@@ -109,7 +108,7 @@ class Database:
     # PRECONDITION:
     #   -user_id; exists in database  
     # POSTCONDITION:
-    #   -user_portfolios; database information related to all user portfolios is retrieved
+    #   -user_portfolios; all portfolio rows for user_id retrieved, empty list if none exist
     # RAISES:
     #   -DatabaseError; SqliteError occurs during selection
     def pull_portfolios(self, user_id : int) -> list[tuple[int, str]]:
@@ -141,7 +140,7 @@ class Database:
     # PRECONDITION:
     #   -user_id; exists in database
     # POSTCONDITION:
-    #   -user_stocks; database information for all user owned stocks is retrieved
+    #   -user_stocks; all stock rows across all portfolios for user_id retrieved, empty list if none exist
     # RAISES:
     #   -DatabaseError; SqliteError occurs during selection
     def pull_stocks(self, user_id : int) -> list[tuple[int, int, str, int]]:
@@ -174,8 +173,8 @@ class Database:
     # PRECONDITION:
     #   -credentials; see Validator.account_validator() POSTCONDITION
     # POSTCONDITION:
-    #   -database; user credentials are used to create a new user entry in database
-    #   -u_id; a user primary key from the database is generated and returned
+    #   -database; new user row inserted with login and password
+    #   -u_id; primary key of the inserted user row
     # RAISES:
     #   -DatabaseError; SqliteError occurs on insert
     def insert_user(self, credentials : tuple[str, str]) -> int:
@@ -206,11 +205,11 @@ class Database:
     # OUTPUT:
     #   -p_id(int); the database primary key for the new portfolio
     # PRECONDITION:
-    #   -user_id; user id exists in the database
+    #   -user_id; exists in database
     #   -portfolio_name; see Validator.portfolio_validator() POSTCONDITION
     # POSTCONDITION:
-    #   -database; portfolio name and user id are used to create a new portfolio entry
-    #   -p_id; a portfolio primary key from database is generated and returned
+    #   -database; new portfolio row inserted with user_id and portfolio_name
+    #   -p_id; primary key of the inserted portfolio row
     # RAISES:
     #   -DatabaseError; SqliteError occurs during insertion
     def insert_portfolio(self, user_id : int, portfolio_name : str) -> int:
@@ -239,9 +238,9 @@ class Database:
     #   -portfolio_id(int); portfolio id number in database
     # OUTPUT: None
     # PRECONDITION:
-    #   -portfolio_id; portfolio id exists in the database
+    #   -portfolio_id; exists in database
     # POSTCONDITION:
-    #   -database; portfolio is deleted, deletes CASCADE to stocks, total database removal
+    #   -database; portfolio row and all associated stock rows deleted via CASCADE
     # RAISES:
     #   -DatabaseError; SqliteError occurs during delete
     def delete_portfolio(self, portfolio_id : int) -> None:
@@ -262,18 +261,17 @@ class Database:
             raise DatabaseError(f"delete_portfolio failed: {e}") from e
 
 
-
     # INPUT:
     #   -portfolio_id(int); portfolio id number in database
     #   -shares_requested(tuple[str,int]); ticker and quantity of shares requested  
     # OUTPUT:
     #   -s_id(int); the database primary key for the new stock
     # PRECONDITION:
-    #   -portfolio_id; portfolio id exists in the database
-    #   -shares_requested; see Validator.stock_ticker_validator() & Validator.stock_quantity_validator() POSTCONDITIONS
+    #   -portfolio_id; exists in database
+    #   -shares_requested; see Validator.shares_request_validator() POSTCONDITION
     # POSTCONDITION:
-    #   -database; stock ticker, quantity and portfolio id are used to create a new stock entry
-    #   -s_id; a stock primary key from database is generated and returned
+    #   -database; new stock row inserted with portfolio_id, ticker, and quantity
+    #   -s_id; primary key of the inserted stock row
     # RAISES:
     #   -DatabaseError; SqliteError occurs during insertion
     def insert_stock(self, portfolio_id : int, shares_requested : tuple[str, int]) -> int:
@@ -304,9 +302,9 @@ class Database:
     #   -stock_id(int); stock id number in database
     # OUTPUT: None
     # PRECONDITION:
-    #   -stock_id; stock id exists in the database
+    #   -stock_id; exists in database
     # POSTCONDITION:
-    #   -database; stock is deleted, total database removal
+    #   -database; stock row deleted
     # RAISES:
     #   -DatabaseError; SqliteError occurs during delete
     def delete_stock(self, stock_id : int) -> None:
@@ -329,13 +327,13 @@ class Database:
 
     # INPUT:
     #   -stock_id(int); stock id number in database 
-    #   -quantity(int); quantity of stocks to add or remove 
+    #   -quantity(int); amount to add or subtract from current quantity
     # OUTPUT: None
     # PRECONDITION:
-    #   -stock_id; stock id exists in the database
-    #   -quantity; != 0, result of update cannot reduce stock below 0
+    #   -stock_id; exists in database
+    #   -quantity; != 0 and current quantity + quantity >= 0
     # POSTCONDITION:
-    #   -database; stock information is properly updated
+    #   -database; stock quantity incremented by quantity for given stock_id
     # RAISES:
     #   -DatabaseError; SqliteError occurs during update
     def update_stock(self, stock_id : int, quantity : int) -> None:
@@ -359,13 +357,13 @@ class Database:
 
     # INPUT:
     #   -user_id(int); user id number in database
-    #   -funds_request(float); amount to be added or removed from balance
+    #   -funds_request(float); amount to add or subtract from balance
     # OUTPUT: None
     # PRECONDITION:
-    #   -user_id; user id exists in database
-    #   -funds_request; != 0, result of update cannot reduce balance below 0 
+    #   -user_id; exists in database
+    #   -funds_request; != 0 and current balance + funds_request >= 0
     # POSTCONDITION:
-    #   -database; users balance is updated
+    #   -database; balance incremented by funds_request for given user_id
     # RAISES:
     #   -DatabaseError; SqliteError occurs during update
     def update_funds(self, user_id : int, funds_request : float) -> None:
@@ -385,37 +383,3 @@ class Database:
         except SqliteError as e:
             self.conn.rollback()
             raise DatabaseError(f"update_funds failed: {e}") from e
-
-
-    # INPUT:
-    #   -credentials(tuple[str,str]); user login and password
-    # OUTPUT:
-    #   -u_id(int | None); user id or None
-    # PRECONDITION:
-    #   -credentials; see Validator.account_validator() POSTCONDITION
-    # POSTCONDITION:
-    #   -u_id; matched user id if credentials exist in database, None otherwise
-    # RAISES:
-    #   -DatabaseError; SqliteError occurs during selection
-    def resolve_credentials(self, credentials : tuple[str, str]) -> int | None:
-        cursor = self.conn.cursor()
-
-        resolve_id = '''
-            SELECT id
-            FROM users
-            WHERE login = ? AND password = ?
-        '''
-
-        try:
-
-            cursor.execute(resolve_id, credentials)
-
-        except SqliteError as e:
-            self.conn.rollback()
-            raise DatabaseError(f"resolve_credentials failed: {e}") from e
-
-        user_info = cursor.fetchone()
-
-        u_id = user_info[0] if user_info else None
-        
-        return u_id

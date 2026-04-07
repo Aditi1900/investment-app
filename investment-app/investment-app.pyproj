@@ -48,6 +48,7 @@
     <Folder Include="interface_layer\" />
     <Folder Include="interface_layer\__pycache__\" />
     <Folder Include="common\" />
+    <Folder Include="sanitization_layer\" />
     <Folder Include="persistence_layer\" />
     <Folder Include="persistence_layer\__pycache__\" />
     <Folder Include="service_layer\" />
@@ -74,6 +75,8 @@
     <Compile Include="interface_layer\__init__.py" />
     <Compile Include="persistence_layer\database.py" />
     <Compile Include="persistence_layer\__init__.py" />
+    <Compile Include="sanitization_layer\sanitizer.py" />
+    <Compile Include="sanitization_layer\__init__.py" />
     <Compile Include="service_layer\service.py" />
     <Compile Include="service_layer\__init__.py" />
     <Compile Include="validation_layer\validator.py" />

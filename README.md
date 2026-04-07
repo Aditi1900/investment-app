@@ -1,3 +1,57 @@
+# System Architecture
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-architecture.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-architecture.png" alt="Architecture Diagram">
+</picture>
+
+# Feature Pipelines
+
+Core feature pipelines with traversal through layers and main method calls excluding helper functions.
+
+---
+
+## Create Account
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-pipelines-create-account.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
+</picture>
+
+## Find Account
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-pipelines-find-account.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
+</picture>
+
+## Fund Account
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-pipelines-fund-account.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
+</picture>
+
+## Create/Remove Portfolio
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-pipelines-create_or_remove-portfolio.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
+</picture>
+
+## Execute Buy/Sell
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-pipelines-execute_buy_or_sell.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
+</picture>
+
 # Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
@@ -10,8 +64,6 @@ Fields marked **"if N/A – None"** must still appear with the literal value `No
 #    - <ClassName> provides <X> abstraction
 #    - <why the abstraction exists>
 ```
-
----
 
 ## Functions
 ```python
@@ -44,6 +96,8 @@ def function_name(param_name: type) -> type:
 
 ---
 
+# Program Models
+
 ## Types
 
 | Type | Description |
@@ -51,3 +105,87 @@ def function_name(param_name: type) -> type:
 | `User` | Represents a user account; holds login, balance, and a collection of portfolios |
 | `Portfolio` | Represents a named collection of stocks |
 | `Stock` | Represents a stock holding; ticker and quantity |
+
+---
+
+## Request Models
+
+JSON request bodies sent to the Frontend API.
+
+**LogoutRequest**
+```json
+{
+    "session_id": "string"
+}
+```
+
+**CredsRequest**
+```json
+{
+    "login": "string",
+    "password": "string"
+}
+```
+
+**FundsRequest**
+```json
+{
+    "session_id": "string",
+    "funds_requested": 0.00
+}
+```
+
+**PortfolioRequest**
+```json
+{
+    "session_id": "string",
+    "name": "string"
+}
+```
+
+**TransactionRequest**
+```json
+{
+    "session_id": "string",
+    "portfolio_name": "string",
+    "ticker": "string",
+    "quantity": 0
+}
+```
+
+---
+
+## Response Models
+
+JSON response bodies returned by the Frontend API.
+
+**StockData**
+```json
+{
+    "ticker": "AAPL",
+    "quantity": 4
+}
+```
+
+**PortfolioData**
+```json
+{
+    "name": "tech",
+    "stocks": {
+        "AAPL": { }
+    }
+}
+```
+> `stocks` values follow the `StockData` schema above.
+
+**UserData**
+```json
+{
+    "login": "john_doe",
+    "balance": 1000.00,
+    "portfolios": {
+        "tech": { }
+    }
+}
+```
+> `portfolios` values follow the `PortfolioData` schema above.

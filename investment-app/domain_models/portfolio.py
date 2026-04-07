@@ -13,10 +13,10 @@ class Portfolio:
     # INPUT:
     #   -ticker(str); a stock ticker symbol
     # OUTPUT:
-    #   -exists(bool); True or False
+    #   -exists(bool); whether ticker is held in portfolio
     # PRECONDITION: None
     # POSTCONDITION:
-    #   -exists; True if ticker held, False if not
+    #   -exists; True if ticker held, False otherwise
     # RAISES: None
     def has_stock(self, ticker : str) -> bool:
         exists = ticker in self.stocks
@@ -27,16 +27,16 @@ class Portfolio:
     #   -shares_requested(tuple[str,int]); a request for a ticker and quantity of stocks
     # OUTPUT: None
     # PRECONDITION:
-    #   -shares_requested; ticker exists as a real stock ticker, quantity does not exceed market available shares
+    #   -ticker; exists in open market
+    #   -quantity; > 0
     # POSTCONDITION:
-    #   -Portfolio; stocks are either incremented or newly added to the portfolio
+    #   -self.stocks; ticker quantity incremented if held, otherwise new Stock added
     # RAISES: None
     def buy_shares(self, shares_requested : tuple[str, int]) -> None:
 
         t, q = shares_requested
 
-
-        if (self.has_stock(t)):
+        if self.has_stock(t):
             self.stocks[t].increment_quantity(q)
         else:
             self.stocks[t] = Stock(ticker=t, quantity=q)
@@ -46,17 +46,16 @@ class Portfolio:
     #   -shares_requested(tuple[str,int]); a request for a ticker and quantity of stocks
     # OUTPUT: None
     # PRECONDITION:
-    #   -shares_requested; ticker exists in portfolio, quantity does not exceed current holdings
+    #   -ticker; exists in self.stocks
+    #   -quantity; current holdings >= quantity > 0
     # POSTCONDITION:
-    #   -Portfolio; stock quantity is decremented, and if 0 deleted from portfolio
+    #   -self.stocks; ticker quantity decremented, and removed if quantity reaches 0
     # RAISES: None
     def sell_shares(self, shares_requested : tuple[str, int]) -> None:
 
         t, q = shares_requested
 
-
         self.stocks[t].decrement_quantity(q)
 
-        if (self.stocks[t].quantity == 0):
+        if self.stocks[t].quantity == 0:
             del self.stocks[t]
-

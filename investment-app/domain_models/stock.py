@@ -12,9 +12,9 @@ class Stock:
     #   -inc_amt(int); an amount of stock we want to increase
     # OUTPUT: None
     # PRECONDITION:
-    #   -inc_amt; >= 0
+    #   -inc_amt; > 0
     # POSTCONDITION:
-    #   -Stock; the current stocks quantity is increased by inc_amt
+    #   -self.quantity; incremented by inc_amt
     # RAISES: None
     def increment_quantity(self, inc_amt : int) -> None:
         self.quantity += inc_amt
@@ -24,9 +24,9 @@ class Stock:
     #   -dec_amt(int); an amount of stock we want to decrease
     # OUTPUT: None
     # PRECONDITION:
-    #   -dec_amt; quantity >= dec_amt >= 0
+    #   -dec_amt; quantity >= dec_amt > 0
     # POSTCONDITION:
-    #   -Stock; the current stocks quantity is decreased by dec_amt
+    #   -self.quantity; decremented by dec_amt
     # RAISES: None
     def decrement_quantity(self, dec_amt : int) -> None:
         self.quantity -= dec_amt
