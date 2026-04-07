@@ -191,10 +191,13 @@ class Service:
         price = eapi.get_stock_price(ticker)
         total_value = price * quantity
 
-        self.db.update_funds(user_account.id, total_value)
-        user_account.balance += total_value
+        
 
         try:
+            
+            self.db.update_funds(user_account.id, total_value)
+            user_account.add_funds(total_value)
+
             stock = portfolio.stocks[ticker]
 
             if portfolio.has_stock(ticker) and quantity == portfolio.stocks[ticker].quantity:
