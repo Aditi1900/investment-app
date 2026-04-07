@@ -26,7 +26,7 @@ class Service:
     def create_account(self, credentials : tuple[str, str]) -> None:
         try:
         # TODO: Add user to the database
-            pass
+            self.db.insert_user(credentials)
         except DatabaseError as e:
             raise ServiceError("Failed to create account") from e
 
@@ -44,8 +44,10 @@ class Service:
     def find_account(self, login : str) -> User:
         # TODO: Create user object
         try:
+            user = User()
         # TODO: Populate user object
-            pass
+            self.populate_user_account(user, login)
+            return user
         except DatabaseError as e:
             raise ServiceError("Failed to find account") from e
 
@@ -65,14 +67,14 @@ class Service:
     def fund_account(self, user_account : User, funds_request : float) -> None:
         try:
         #TODO: update database funds
-            pass
+            self.db.update_funds(user_account.id, funds_request)
         except DatabaseError as e:
             raise ServiceError("Failed to update funds") from e
 
         user_account.add_funds(funds_request)
         
 
-    # INPUT:
+    # INPUT:  -----------------------------------------------------
     #   -user_account(User); current user account
     #   -portfolio_name(str); name of portfolio to create
     # OUTPUT: None
@@ -91,6 +93,7 @@ class Service:
             raise ServiceError("Failed to create portfolio") from e
 
         # TODO: add new empty portfolio to user_account object
+        user_account.add_portfolio(portfolio_name)
         user_account.portfolios[portfolio_name].id = p_id
 
 
@@ -109,7 +112,8 @@ class Service:
     def remove_portfolio(self, user_account : User, portfolio_name : str) -> None:
         try:
         #TODO: call remove function for removing portfolio from database
-            pass
+            portfolio = user_account.portfolios[portfolio_name]
+            self.db.delete_portfolio(portfolio.id)
         except DatabaseError as e:
             raise ServiceError("Failed to remove portfolio") from e
 
@@ -135,14 +139,23 @@ class Service:
         # TODO: call api to get stock price
         # TODO: subtract funds from user account
         
-        ticker, quantity = shares_request
+        ticker, quantity = shares_requested
+
+        price = eapi.get_stock_price(ticker)
+        total_cost = price * quantity
+
+        
 
         s_id = None
 
         try:
+            self.db.update_funds(user_account.id, -total_cost)
+            user_account.sub_funds(total_cost)
+
             if portfolio.has_stock(ticker):
                 # TODO: update the database
-                pass
+                stock = portfolio.stocks[ticker]
+                self.db.update_stock(stock.id, quantity)
             else:
                  s_id = self.db.insert_stock(portfolio.id, shares_request)
         except DatabaseError as e:
@@ -175,13 +188,24 @@ class Service:
         
         ticker, quantity = shares_request
 
+        price = eapi.get_stock_price(ticker)
+        total_value = price * quantity
+
+        
+
         try:
+            
+            self.db.update_funds(user_account.id, total_value)
+            user_account.add_funds(total_value)
+
+            stock = portfolio.stocks[ticker]
+
             if portfolio.has_stock(ticker) and quantity == portfolio.stocks[ticker].quantity:
                 # TODO: remove from the database
-                pass
+                self.db.delete_stock(stock.id)
             else:
                 # TODO: update the database
-                pass
+                self.db.update_stock(stock.id, -quantity)
         except DatabaseError as e:
             raise ServiceError("Failed to execute sell") from e
 
@@ -371,7 +395,7 @@ class Service:
     # PRECONDITION: None
     # POSTCONDITION: None
     #   -execution; program execution is terminated
-    # RAISES:
+    # RAISES:   
     #   -SystemExit; always raised on call
     @staticmethod
     def exit_app() -> None:
