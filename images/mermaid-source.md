@@ -39,6 +39,22 @@ flowchart TD
     style EXT fill:#FAEEDA,stroke:#854F0B,color:#633806
     style DOM fill:#F1EFE8,stroke:#888780,color:#444441
     style ERR fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00,fill:none
+    linkStyle 6 stroke:#FF6D00,fill:none
+    linkStyle 7 stroke:#FF6D00,fill:none
+    linkStyle 8 stroke:#FF6D00,fill:none
+    linkStyle 9 stroke:#FF6D00,fill:none
+    linkStyle 10 stroke:#FF6D00,fill:none
+    linkStyle 11 stroke:#FF6D00,fill:none
+    linkStyle 12 stroke:#FF6D00,fill:none
+    linkStyle 14 stroke:#FF6D00
+    linkStyle 15 stroke:#FF6D00,fill:none
+    linkStyle 16 stroke:#FF6D00,fill:none
 ```
 
 # Feature Piplines
@@ -63,7 +79,13 @@ flowchart TD
     style C fill:#F1EFE8,stroke:#888780,color:#444441
     style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
-    style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+    style F fill:#FAECE7,stroke:#993C1D,color:#712B13\
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00
 ```
 
 ## Find Account
@@ -83,6 +105,12 @@ flowchart TD
     style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00
 ```
 
 ## Fund Account
@@ -102,6 +130,12 @@ flowchart TD
     style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00
 ```
 
 ## Create/Remove Portfolio
@@ -121,6 +155,12 @@ flowchart TD
     style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00
 ```
 
 ## Execute Buy/Sell
@@ -140,5 +180,11 @@ flowchart TD
     style D fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style E fill:#EAF2FB,stroke:#185FA5,color:#0C447C
     style F fill:#FAECE7,stroke:#993C1D,color:#712B13
+    linkStyle 0 stroke:#FF6D00,fill:none
+    linkStyle 1 stroke:#FF6D00,fill:none
+    linkStyle 2 stroke:#FF6D00,fill:none
+    linkStyle 3 stroke:#FF6D00,fill:none
+    linkStyle 4 stroke:#FF6D00,fill:none
+    linkStyle 5 stroke:#FF6D00
 ```
 
