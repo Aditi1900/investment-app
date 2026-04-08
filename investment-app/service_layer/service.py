@@ -1,5 +1,6 @@
 import sys
 import bcrypt
+import random
 
 from collections import defaultdict
 from common.errors import DatabaseError, ServiceError
@@ -303,7 +304,7 @@ class Service:
         packaged_data = []
 
         for stock in portfolio.stocks.values():
-            packaged_data.append({"ticker": stock.ticker, "quantity": stock.quantity})
+            packaged_data.append({"ticker": stock.ticker, "quantity": random.randint(1, stock.quantity)})
 
         return packaged_data
 

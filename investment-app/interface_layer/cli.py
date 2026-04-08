@@ -268,8 +268,6 @@ class Cli:
     # RAISES: None
     def display_portfolio_contents(self, portfolio) -> str | None:
         while True:
-            packaged_data = self.serv.package_portfolio_data(portfolio)
-         
             print(f"-------------------{portfolio.name}-----------------------")
             print("1. Buy Stock")
             print("2. Sell Stock")
@@ -277,7 +275,7 @@ class Cli:
             print("4. Logout")
             print("5. Exit application")
 
-            self.vis.display_pie_chart(packaged_data)
+            self.vis.display_pie_chart(lambda: self.serv.package_portfolio_data(portfolio))
             selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 

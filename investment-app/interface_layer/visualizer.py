@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import pandas as pd
 
 
@@ -6,7 +7,11 @@ import pandas as pd
 #   -Visualizer provides a data visualization abstraction
 #   -provides an isolated layer that allows for construction of data charts
 class Visualizer:
-        
+    def __init__(self):
+        self.fig = None
+        self.ax = None
+        self.ani = None
+
     # INPUT:
     #   -portfolio_data(list[dict[str|int]]); formatted portfolio data
     # OUTPUT: None
@@ -16,19 +21,22 @@ class Visualizer:
     #   -self.fig; pie chart rendered with ticker labels and quantity distribution
     #   -execution; chart display does not block program
     # RAISES: None
-    def display_pie_chart(self, portfolio_data : list[dict[str, str | int]]) -> None:
-        if not portfolio_data:
+    def display_pie_chart(self, package_portfolio_data : callable) -> None:
+        if not package_portfolio_data():
             return
-
-        df = pd.DataFrame(portfolio_data)
 
         self.fig, self.ax = plt.subplots()
 
-        self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
-        self.ax.set_title("Portfolio Distribution")
+        def update(frame):
+            portfolio_data = package_portfolio_data()
+            df = pd.DataFrame(portfolio_data)
 
-        plt.show(block=False)  
-        plt.pause(0.1)          
+            self.ax.clear()
+            self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
+            self.ax.set_title("Portfolio Distribution")
+
+        self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)
+        plt.show(block=False)    
 
     
     # INPUT: None
@@ -39,5 +47,7 @@ class Visualizer:
     #   -self.fig; chart is closed and removed from display
     # RAISES: None
     def close_chart(self) -> None:
-        if hasattr(self, "fig"):
+        if self.fig is not None:
             plt.close(self.fig)
+            self.fig = None
+            self.ax = None
