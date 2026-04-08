@@ -18,7 +18,7 @@ class ExternalApi:
     @staticmethod
     def get_stock_price(ticker : str) -> float:
         # TODO: Pull stock price data given a ticker
-        pass
+        return 100
 
 
     # INPUT:
@@ -33,7 +33,7 @@ class ExternalApi:
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
         # TODO: Call the api to identify if the ticker actually exists
-        pass
+        return True
 
 
     # INPUT:
@@ -48,4 +48,4 @@ class ExternalApi:
     @staticmethod
     def get_float(ticker : str) -> int:
         #TODO: Call the api to identify the maximum amount of shares the market has to offer
-        pass
+        return 1_000_000_000

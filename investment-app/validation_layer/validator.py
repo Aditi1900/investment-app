@@ -156,7 +156,7 @@ class Validator:
 
         #Validate Balance
         if purchase: 
-            price = eapi.get_price(ticker)
+            price = eapi.get_stock_price(ticker)
             total_cost = price * quantity
 
             if balance < total_cost:

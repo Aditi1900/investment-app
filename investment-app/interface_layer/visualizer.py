@@ -6,8 +6,6 @@ import pandas as pd
 #   -Visualizer provides a data visualization abstraction
 #   -provides an isolated layer that allows for construction of data charts
 class Visualizer:
-    def __init__(self):
-        self.fig, self.ax = plt.subplots()
         
     # INPUT:
     #   -portfolio_data(list[dict[str|int]]); formatted portfolio data
@@ -21,14 +19,16 @@ class Visualizer:
     def display_pie_chart(self, portfolio_data : list[dict[str, str | int]]) -> None:
         if not portfolio_data:
             return
-        # TODO: use pandas to format the data
+
         df = pd.DataFrame(portfolio_data)
-        
-        # TODO: use matplotlib to display the data
+
+        self.fig, self.ax = plt.subplots()
+
         self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
         self.ax.set_title("Portfolio Distribution")
 
-        plt.show(block=False)
+        plt.show(block=False)  
+        plt.pause(0.1)          
 
     
     # INPUT: None
@@ -39,4 +39,5 @@ class Visualizer:
     #   -self.fig; chart is closed and removed from display
     # RAISES: None
     def close_chart(self) -> None:
-        plt.close(self.fig)
+        if hasattr(self, "fig"):
+            plt.close(self.fig)
