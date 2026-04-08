@@ -122,37 +122,37 @@ class Cli:
     # RAISES: None 
     def display_user_dashboard(self, user_account) -> None:
         while True:
-            numPortfolios = len(user_account.portfolios)
+            num_portfolios = len(user_account.portfolios)
             portfolio_list = list(user_account.portfolios.values())
             print("-------------------DASHBOARD---------------------")
             print(f"Hello, {user_account.login}")
             print(f"Current Balance: ${user_account.balance:,.2f}\n")
 
-            for i in range(numPortfolios):
+            for i in range(num_portfolios):
                 print(f"{i + 1}. {portfolio_list[i].name}")
 
-            print(f"{numPortfolios + 1}. Add Funds")
-            print(f"{numPortfolios + 2}. Create Portfolio")
-            print(f"{numPortfolios + 3}. Remove Portfolio")
-            print(f"{numPortfolios + 4}. Logout")
-            print(f"{numPortfolios + 5}. Exit application")
+            print(f"{num_portfolios + 1}. Add Funds")
+            print(f"{num_portfolios + 2}. Create Portfolio")
+            print(f"{num_portfolios + 3}. Remove Portfolio")
+            print(f"{num_portfolios + 4}. Logout")
+            print(f"{num_portfolios + 5}. Exit application")
             selection = input("Select option: "); print()
 
             selection = self.san.sanitize_selection(selection)
 
-            if 0 < selection <= numPortfolios:
+            if 0 < selection <= num_portfolios:
                 r = self.display_portfolio_contents(portfolio_list[selection - 1])
                 if r == "logout":
                     return
-            elif selection == numPortfolios + 1:
+            elif selection == num_portfolios + 1:
                 self.display_funding_menu(user_account)
-            elif selection == numPortfolios + 2:
+            elif selection == num_portfolios + 2:
                 self.display_portfolio_modification_menu(user_account, create = True)
-            elif selection == numPortfolios + 3:
+            elif selection == num_portfolios + 3:
                 self.display_portfolio_modification_menu(user_account, create = False)
-            elif selection == numPortfolios + 4:
+            elif selection == num_portfolios + 4:
                 return
-            elif selection == numPortfolios + 5:
+            elif selection == num_portfolios + 5:
                 self.serv.exit_app()
             else:
                 print('Invalid selection!')
@@ -268,7 +268,12 @@ class Cli:
     # RAISES: None
     def display_portfolio_contents(self, portfolio) -> str | None:
         while True:
+            num_stocks = len(portfolio.stocks)
+            stock_list = list(portfolio.stocks.values())
             print(f"-------------------{portfolio.name}-----------------------")
+            for i in range(num_stocks):
+                print(f"|{stock_list[i].ticker} {stock_list[i].quantity}|")
+
             print("1. Buy Stock")
             print("2. Sell Stock")
             print("3. Go Back")
