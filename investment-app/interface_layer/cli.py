@@ -71,25 +71,16 @@ class Cli:
     #   -Cli; returns to caller on confirm or cancel
     # RAISES: None  
     def display_account_credential_gatherer(self, new : bool) -> None:
-        result = None
-        while True:
-            print(f"---------------{'SIGNUP' if new else 'LOGIN'}---------------")
-            login = input('Enter your login: ')
-            password = input('Enter your password: ')
-            print(f"---------------{'------' if new else '-----'}---------------")
+        print(f"---------------{'SIGNUP' if new else 'LOGIN'}---------------")
+        login = input('Enter your login: ')
+        password = input('Enter your password: ')
+        print(f"---------------{'------' if new else '-----'}---------------")
 
-            creds = login, password
-            creds = self.san.sanitize_credentials(creds)
+        creds = login, password
+        creds = self.san.sanitize_credentials(creds)
 
-            result = self.validator.account_validator(creds, new)
-
-            if result.valid:
-                break
-
-            # TODO: invalid credentials error msg
-            print(result.reason)
-            return
-
+        result = self.validator.account_validator(creds, new)
+            
 
         while True:
             # TODO: Display selection options
@@ -101,6 +92,11 @@ class Cli:
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
+
+                if not result.valid:
+                    print(result.reason)
+                    return
+
                 try:
 
                     if new:
@@ -188,23 +184,17 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_funding_menu(self, user_account) -> None:
-        result = None
-        while True :
-            # TODO: Account Funding display
-            print("------------ Fund Account ------------")
+        # TODO: Account Funding display
+        print("------------ Fund Account ------------")
             
-            # TODO: Funds input reciever
-            funds_request = input("Enter amount: "); print()
-            funds_request = self.san.sanitize_funds_request(funds_request)
+        # TODO: Funds input reciever
+        funds_request = input("Enter amount: "); print()
+        funds_request = self.san.sanitize_funds_request(funds_request)
 
-            result = self.validator.fund_validator(funds_request)
+        result = self.validator.fund_validator(funds_request)
 
-            if result.valid:
-                break
-
-            # TODO: invalid funds error msg
-            print(result.reason)
-            return
+        
+            
 
         while True:
             # TODO: Display selection options
@@ -216,6 +206,11 @@ class Cli:
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
+
+                if not result.valid:
+                    print(result.reason)
+                    return
+
                 try:
 
                     self.serv.fund_account(user_account, funds_request)
@@ -245,28 +240,19 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_portfolio_modification_menu(self, user_account, create : bool) -> None:
-        result = None
-        while True:
-            # TODO: Portfolio creation display
-            print("-------------- Portfolio Modification Menu ------------------")
+        # TODO: Portfolio creation display
+        print("-------------- Portfolio Modification Menu ------------------")
 
-            # TODO: Portfolio name input receiver
+        # TODO: Portfolio name input receiver
 
-            name_request = input("Enter portfolio name: ").strip()
-            name_request = self.san.sanitize_portfolio_name(name_request)
+        name_request = input("Enter portfolio name: ").strip()
+        name_request = self.san.sanitize_portfolio_name(name_request)
 
-            result = self.validator.portfolio_validator(user_account, name_request, create)
-
-            if result.valid:
-                break
-
-            # TODO: invalid name error msg
-            print(result.reason)
-            return
+        result = self.validator.portfolio_validator(user_account, name_request, create)
 
         while True:
             # TODO: Display selection options
-            print("1. Submit")
+            print("1. Confirm")
             print("2. Cancel")
 
             # TODO: Selection input receiver
@@ -274,6 +260,11 @@ class Cli:
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
+
+                if not result.valid:
+                    print(result.reason)
+                    return
+
                 try:
 
                     if create:
@@ -289,6 +280,7 @@ class Cli:
                 except ServiceError as e:
                     print(f"ERROR: {e}")
                     continue
+
             elif selection != 2:
                 # TODO: invalid selection error msg
                 print("Invalid selection!")
@@ -309,9 +301,7 @@ class Cli:
     def display_portfolio_contents(self, portfolio) -> str | None:
         while True:
             packaged_data = self.serv.package_portfolio_data(portfolio)
-            
-            
-
+         
             # TODO: Portfolio contents display
             print(f"-------------------{portfolio.name}-----------------------")
             
@@ -357,27 +347,18 @@ class Cli:
     #   -Cli; returns to portfolio menu
     # RAISES: None 
     def display_stock_transaction_menu(self, portfolio, purchase : bool) -> None:
-        result = None
-        while True:
-            # TODO: Transaction menu display
-            print("------------- Stock Transaction ---------------")
+        # TODO: Transaction menu display
+        print("------------- Stock Transaction ---------------")
             
-            # TODO: shares_request input receiver (ticker & quantity)
-            ticker = input("Enter stock ticker (e.g., AAPL): ")
-            quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: "); print()
+        # TODO: shares_request input receiver (ticker & quantity)
+        ticker = input("Enter stock ticker (e.g., AAPL): ")
+        quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: "); print()
             
-            shares_request = ticker, quantity
-            shares_request = self.san.sanitize_shares_request(shares_request)
+        shares_request = ticker, quantity
+        shares_request = self.san.sanitize_shares_request(shares_request)
 
-            result = self.validator.shares_request_validator(portfolio, shares_request, self.user_account.balance, purchase)
+        result = self.validator.shares_request_validator(portfolio, shares_request, self.user_account.balance, purchase)
             
-            if result.valid:
-                break;
-
-            print(result.reason)
-            return
-
-
         while True:
             # TODO: Display selection options
             print("1. Submit")
@@ -388,6 +369,10 @@ class Cli:
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
+
+                if not result.valid:
+                    print(result.reason)
+                    return
 
                 try:
 
