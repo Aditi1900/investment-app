@@ -15,7 +15,7 @@ class Service:
         self.db = database
 
     @staticmethod
-    def secure_creds(credentials : tuple[str, str]) -> str:
+    def secure_creds(credentials : tuple[str, str]) -> tuple[str, str]:
         password = credentials[1]
         salt = bcrypt.gensalt()
 
