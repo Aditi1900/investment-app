@@ -128,13 +128,13 @@ class Sanitizer:
     #   -selection(int); a integer representation of selection, otherwise None
     # PRECONDITION: None
     # POSTCONDITION:
-    #   -selection; converted to a integer, if non numeric None
+    #   -selection; converted to a integer, if non numeric -1
     # RAISES: None
     @staticmethod
     def sanitize_selection(selection : str) -> int | None:
          try:
             selection = int(selection)
          except Exception:
-            selection = None
+            selection = -1
 
          return selection

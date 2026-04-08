@@ -35,30 +35,30 @@ class Cli:
             self.user_account = None
 
             # TODO: Welcome menu display
-            print("Welcome to our investment portfolio app!")
-            print("\nWhat would you like to do?\n")
+            print("==============================")
+            print("Welcome to our Investment App!")
+            print("==============================\n")
             # TODO: Display selection options
-            print("1. Create an account\n")
-            print("2. Login\n")
-            print("3. Exit application\n")
+            print("1. Create an account")
+            print("2. Login")
+            print("3. Exit application")
 
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 self.display_account_credential_gatherer(new=True)
-                continue
             elif selection == 2:
                 self.display_account_credential_gatherer(new=False)
             elif selection == 3:
                 self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
-                print('Invalid selection.\n')
-                continue
+                print('Invalid selection!')
 
-            self.display_user_dashboard(self.user_account)
+            if self.user_account is not None:
+                self.display_user_dashboard(self.user_account)
 
 
     # INPUT: 
@@ -73,10 +73,10 @@ class Cli:
     def display_account_credential_gatherer(self, new : bool) -> None:
         result = None
         while True:
-            print(f'---------------{'SIGNUP' if new else 'LOGIN'}---------------\n')
-            
-            login = input('Enter your login:')
-            password = input('Enter your password:')
+            print(f"---------------{'SIGNUP' if new else 'LOGIN'}---------------")
+            login = input('Enter your login: ')
+            password = input('Enter your password: ')
+            print(f"---------------{'------' if new else '-----'}---------------")
 
             creds = login, password
             creds = self.san.sanitize_credentials(creds)
@@ -88,15 +88,16 @@ class Cli:
 
             # TODO: invalid credentials error msg
             print(result.reason)
+            return
 
 
         while True:
             # TODO: Display selection options
-            print("\n1. Confirm")
+            print("1. Confirm")
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -117,7 +118,7 @@ class Cli:
                     
             elif selection != 2:
                 # TODO: invalid selection error msg
-                print("Invalid selection.\n")
+                print("Invalid selection!")
                 continue
 
             return
@@ -137,25 +138,25 @@ class Cli:
             portfolio_list = list(user_account.portfolios.values())
 
             # TODO: User dashboard display
-            print("-------------------DASHBOARD---------------------\n")
+            print("-------------------DASHBOARD---------------------")
             
             # Greets the user and displays the balance
-            print("Hello,", user_account.login)
-            print("Current Balance: $", user_account.balance, "\n")
+            print(f"Hello, {user_account.login}")
+            print(f"Current Balance: ${user_account.balance:,.2f}\n")
 
             # Portfolio list
             for i in range(numPortfolios):
-                print(i + 1, ".", portfolio_list[i].name)
+                print(f"{i + 1}. {portfolio_list[i].name}")
                 
             # TODO: Display selection options
-            print(numPortfolios + 1, ". Add Funds")
-            print(numPortfolios + 2, ". Create Portfolio")
-            print(numPortfolios + 3, ". Remove Portfolio")
-            print(numPortfolios + 4, ". Logout")
-            print(numPortfolios + 5, ". Exit")
+            print(f"{numPortfolios + 1}. Add Funds")
+            print(f"{numPortfolios + 2}. Create Portfolio")
+            print(f"{numPortfolios + 3}. Remove Portfolio")
+            print(f"{numPortfolios + 4}. Logout")
+            print(f"{numPortfolios + 5}. Exit")
             
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if 0 < selection <= numPortfolios:
@@ -174,7 +175,7 @@ class Cli:
                 self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
-                print('Invalid selection!\n')
+                print('Invalid selection!')
                 
     
     # INPUT: 
@@ -190,10 +191,10 @@ class Cli:
         result = None
         while True :
             # TODO: Account Funding display
-            print("\n------------ Fund Account ------------")
+            print("------------ Fund Account ------------")
             
             # TODO: Funds input reciever
-            funds_request = input("Enter amount: ")
+            funds_request = input("Enter amount: "); print()
             funds_request = self.san.sanitize_funds_request(funds_request)
 
             result = self.validator.fund_validator(funds_request)
@@ -203,14 +204,15 @@ class Cli:
 
             # TODO: invalid funds error msg
             print(result.reason)
+            return
 
         while True:
             # TODO: Display selection options
-            print("\n1. Confirm")
+            print("1. Confirm")
             print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -225,7 +227,7 @@ class Cli:
                     continue
             elif selection != 2:
                 # TODO: invalid selection error msg
-                print("Invalid selection/n")
+                print("Invalid selection!")
                 continue
 
             return
@@ -246,7 +248,7 @@ class Cli:
         result = None
         while True:
             # TODO: Portfolio creation display
-            print("\n-------------- Portfolio Modification Menu ------------------")
+            print("-------------- Portfolio Modification Menu ------------------")
 
             # TODO: Portfolio name input receiver
 
@@ -260,15 +262,15 @@ class Cli:
 
             # TODO: invalid name error msg
             print(result.reason)
-
+            return
 
         while True:
             # TODO: Display selection options
-            print("1. Submit\n")
-            print("2. Cancel\n")
+            print("1. Submit")
+            print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -289,7 +291,7 @@ class Cli:
                     continue
             elif selection != 2:
                 # TODO: invalid selection error msg
-                print("Invalid selection/n")
+                print("Invalid selection!")
                 continue
 
             return
@@ -308,21 +310,21 @@ class Cli:
         while True:
             packaged_data = self.serv.package_portfolio_data(portfolio)
             
-            self.vis.display_pie_chart(packaged_data)
+            
 
             # TODO: Portfolio contents display
-            print("-------------------USER PORTFOLIO-----------------------")
+            print(f"-------------------{portfolio.name}-----------------------")
             
             # TODO: Display selection options
-            print("Select an option:\n")
-            print("1. Buy Stock\n")
-            print("2. Sell Stock\n")
-            print("3. Go Back\n")
-            print("4. Logout\n")
-            print("5. Exit\n")
+            print("1. Buy Stock")
+            print("2. Sell Stock")
+            print("3. Go Back")
+            print("4. Logout")
+            print("5. Exit")
 
+            self.vis.display_pie_chart(packaged_data)
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             self.vis.close_chart()
@@ -339,7 +341,7 @@ class Cli:
                 self.serv.exit_app()
             else:
                 # TODO: invalid selection error msg
-                print("Invalid Selection/n")
+                print("Invalid Selection!")
            
 
     # INPUT:
@@ -358,11 +360,11 @@ class Cli:
         result = None
         while True:
             # TODO: Transaction menu display
-            print("\n------------- Stock Transaction ---------------")
+            print("------------- Stock Transaction ---------------")
             
             # TODO: shares_request input receiver (ticker & quantity)
             ticker = input("Enter stock ticker (e.g., AAPL): ")
-            quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: ")
+            quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: "); print()
             
             shares_request = ticker, quantity
             shares_request = self.san.sanitize_shares_request(shares_request)
@@ -373,16 +375,16 @@ class Cli:
                 break;
 
             print(result.reason)
+            return
 
 
         while True:
             # TODO: Display selection options
-            print("What would you like to do?\n")
-            print("1. Submit\n")
-            print("2. Cancel\n")
+            print("1. Submit")
+            print("2. Cancel")
 
             # TODO: Selection input receiver
-            selection = input("Select option: ")
+            selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -404,7 +406,7 @@ class Cli:
 
             elif selection != 2:
                 # TODO: invalid selection error msg
-                print("Invalid selection/n")
+                print("Invalid selection!")
                 continue
 
             return

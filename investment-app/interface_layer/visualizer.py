@@ -19,7 +19,8 @@ class Visualizer:
     #   -execution; chart display does not block program
     # RAISES: None
     def display_pie_chart(self, portfolio_data : list[dict[str, str | int]]) -> None:
-
+        if not portfolio_data:
+            return
         # TODO: use pandas to format the data
         df = pd.DataFrame(portfolio_data)
         
