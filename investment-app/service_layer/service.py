@@ -13,7 +13,16 @@ from domain_models import User, Portfolio, Stock
 class Service:
     def __init__(self, database):
         self.db = database
+    
 
+    # INPUT: 
+    #   -credentials(tuple[str,str]); user login and password
+    # OUTPUT: None
+    # PRECONDITION:
+    #   -credentials; login and password are non-empty strings, see Validator.account_validator() POSTCONDITION
+    # POSTCONDITION: 
+    #   -credentials; password is properly hashed and repacked into credentials with the hashed string replacement
+    # RAISES: None
     @staticmethod
     def secure_creds(credentials : tuple[str, str]) -> tuple[str, str]:
         password = credentials[1]
