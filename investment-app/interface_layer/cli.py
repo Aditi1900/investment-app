@@ -34,17 +34,15 @@ class Cli:
         while True:
             self.user_account = None
 
-            # TODO: Welcome menu display
             print("==============================")
             print("Welcome to our Investment App!")
             print("==============================\n")
-            # TODO: Display selection options
+
             print("1. Create an account")
             print("2. Login")
             print("3. Exit application")
-
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -54,7 +52,6 @@ class Cli:
             elif selection == 3:
                 self.serv.exit_app()
             else:
-                # TODO: invalid selection error msg
                 print('Invalid selection!')
 
             if self.user_account is not None:
@@ -83,12 +80,10 @@ class Cli:
             
 
         while True:
-            # TODO: Display selection options
             print("1. Confirm")
             print("2. Cancel")
-
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -101,19 +96,16 @@ class Cli:
 
                     if new:
                         self.user_account = self.serv.create_account(creds)
-                        # TODO: Msg that indicates a action was successfully performed
-                        print(result.reason)
                     else:
                         self.user_account = self.serv.find_account(login)
-                        #additional
-                        print(result.reason)
-                        
+
+                    print(result.reason)    
+
                 except ServiceError as e:
                     print(f"ERROR: {e}")
                     continue
                     
             elif selection != 2:
-                # TODO: invalid selection error msg
                 print("Invalid selection!")
                 continue
 
@@ -132,27 +124,20 @@ class Cli:
         while True:
             numPortfolios = len(user_account.portfolios)
             portfolio_list = list(user_account.portfolios.values())
-
-            # TODO: User dashboard display
             print("-------------------DASHBOARD---------------------")
-            
-            # Greets the user and displays the balance
             print(f"Hello, {user_account.login}")
             print(f"Current Balance: ${user_account.balance:,.2f}\n")
 
-            # Portfolio list
             for i in range(numPortfolios):
                 print(f"{i + 1}. {portfolio_list[i].name}")
-                
-            # TODO: Display selection options
+
             print(f"{numPortfolios + 1}. Add Funds")
             print(f"{numPortfolios + 2}. Create Portfolio")
             print(f"{numPortfolios + 3}. Remove Portfolio")
             print(f"{numPortfolios + 4}. Logout")
-            print(f"{numPortfolios + 5}. Exit")
-            
-            # TODO: Selection input receiver
+            print(f"{numPortfolios + 5}. Exit application")
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if 0 < selection <= numPortfolios:
@@ -170,7 +155,6 @@ class Cli:
             elif selection == numPortfolios + 5:
                 self.serv.exit_app()
             else:
-                # TODO: invalid selection error msg
                 print('Invalid selection!')
                 
     
@@ -184,25 +168,19 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_funding_menu(self, user_account) -> None:
-        # TODO: Account Funding display
         print("------------ Fund Account ------------")
-            
-        # TODO: Funds input reciever
-        funds_request = input("Enter amount: "); print()
-        funds_request = self.san.sanitize_funds_request(funds_request)
 
+        funds_request = input("Enter amount: "); print()
+
+        funds_request = self.san.sanitize_funds_request(funds_request)
+    
         result = self.validator.fund_validator(funds_request)
 
-        
-            
-
         while True:
-            # TODO: Display selection options
             print("1. Confirm")
             print("2. Cancel")
-
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -214,14 +192,12 @@ class Cli:
                 try:
 
                     self.serv.fund_account(user_account, funds_request)
-                    # TODO: Msg that indicates a action was successfully performed
                     print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")
                     continue
             elif selection != 2:
-                # TODO: invalid selection error msg
                 print("Invalid selection!")
                 continue
 
@@ -240,10 +216,7 @@ class Cli:
     #   -Cli; returns to user dashboard
     # RAISES: None
     def display_portfolio_modification_menu(self, user_account, create : bool) -> None:
-        # TODO: Portfolio creation display
         print("-------------- Portfolio Modification Menu ------------------")
-
-        # TODO: Portfolio name input receiver
 
         name_request = input("Enter portfolio name: ").strip()
         name_request = self.san.sanitize_portfolio_name(name_request)
@@ -251,12 +224,10 @@ class Cli:
         result = self.validator.portfolio_validator(user_account, name_request, create)
 
         while True:
-            # TODO: Display selection options
             print("1. Confirm")
             print("2. Cancel")
-
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -269,13 +240,10 @@ class Cli:
 
                     if create:
                         self.serv.create_portfolio(user_account, name_request)
-                        # TODO: Msg that indicates a action was successfully performed
-                        print(result.reason)
-                        
                     else:
                         self.serv.remove_portfolio(user_account, name_request)
-                        # TODO: Msg that indicates a action was successfully performed
-                        print(result.reason)
+
+                    print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")
@@ -302,18 +270,14 @@ class Cli:
         while True:
             packaged_data = self.serv.package_portfolio_data(portfolio)
          
-            # TODO: Portfolio contents display
             print(f"-------------------{portfolio.name}-----------------------")
-            
-            # TODO: Display selection options
             print("1. Buy Stock")
             print("2. Sell Stock")
             print("3. Go Back")
             print("4. Logout")
-            print("5. Exit")
+            print("5. Exit application")
 
             self.vis.display_pie_chart(packaged_data)
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
             selection = self.san.sanitize_selection(selection)
 
@@ -330,7 +294,6 @@ class Cli:
             elif selection == 5:
                 self.serv.exit_app()
             else:
-                # TODO: invalid selection error msg
                 print("Invalid Selection!")
            
 
@@ -347,10 +310,8 @@ class Cli:
     #   -Cli; returns to portfolio menu
     # RAISES: None 
     def display_stock_transaction_menu(self, portfolio, purchase : bool) -> None:
-        # TODO: Transaction menu display
         print("------------- Stock Transaction ---------------")
-            
-        # TODO: shares_request input receiver (ticker & quantity)
+           
         ticker = input("Enter stock ticker (e.g., AAPL): ")
         quantity = input(f"Enter number of shares to {'buy' if purchase else 'sell'}: "); print()
             
@@ -360,12 +321,10 @@ class Cli:
         result = self.validator.shares_request_validator(portfolio, shares_request, self.user_account.balance, purchase)
             
         while True:
-            # TODO: Display selection options
             print("1. Submit")
             print("2. Cancel")
-
-            # TODO: Selection input receiver
             selection = input("Select option: "); print()
+
             selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
@@ -378,19 +337,16 @@ class Cli:
 
                     if purchase:
                         self.serv.execute_buy(self.user_account, portfolio, shares_request)
-                        # TODO: Msg that indicates a action was successfully performed
-                        print(result.reason)
                     else:
                         self.serv.execute_sell(self.user_account, portfolio, shares_request)
-                        # TODO: Msg that indicates a action was successfully performed
-                        print(result.reason)
+
+                    print(result.reason)
 
                 except ServiceError as e:
                     print(f"ERROR: {e}")
                     continue
 
             elif selection != 2:
-                # TODO: invalid selection error msg
                 print("Invalid selection!")
                 continue
 
