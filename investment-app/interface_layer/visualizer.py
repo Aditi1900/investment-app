@@ -25,14 +25,7 @@ class Visualizer:
         df = pd.DataFrame(portfolio_data)
         
         # TODO: use matplotlib to display the data
-        self.ax.pie(
-            df['quantity'],
-            labels=df['ticker'],
-            
-            #formats percentages as whole numbers followed by a percentage symbol e.g. 33% etc.
-            autopct='%1.0f%%'
-        )
-
+        self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
         self.ax.set_title("Portfolio Distribution")
 
         plt.show(block=False)
