@@ -1,4 +1,6 @@
+from enum import verify
 import re
+import bcrypt
 from typing import NamedTuple
 
 from integration_layer import ExternalApi as eapi
@@ -25,14 +27,15 @@ class Validator:
     # OUTPUT:
     #   -return(Result); account validation result True or False with description
     # PRECONDITION:
-    #   -credentials; login and password are non-empty strings
     #   -new; is True or False
     # POSTCONDITION:
     #   -Result; True if credentials match stored record, or password >= 6 chars (new)
     # RAISES: None
     def account_validator(self, credentials : tuple[str, str], new : bool) -> Result:
-        # TODO: Validate account credentials using service method
-        # TODO: Add any other validation you want, if you want to enforce certain additional constraints
+
+        def password_match(plain : str, hashed : str) -> bool:
+            return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
+
         login, password = credentials
         
         if login == '' and password != '' and not password.isspace():
@@ -53,7 +56,7 @@ class Validator:
         if new and not account_exists and len(password) < 6:
             return Result(False, "Password must be six characters or more.\n")
         
-        if not new and account_exists and password != stored_password:
+        if not new and account_exists and not password_match(password, stored_password):
             return Result(False, "Invalid password.\n")
 
         if not new and not account_exists:

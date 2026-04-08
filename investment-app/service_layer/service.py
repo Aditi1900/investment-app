@@ -1,4 +1,5 @@
 import sys
+import bcrypt
 
 from collections import defaultdict
 from common.errors import DatabaseError, ServiceError
@@ -13,6 +14,17 @@ class Service:
     def __init__(self, database):
         self.db = database
 
+    @staticmethod
+    def secure_creds(credentials : tuple[str, str]) -> str:
+        password = credentials[1]
+        salt = bcrypt.gensalt()
+
+        password = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+        credentials = credentials[0], password.decode('utf-8')
+
+        return credentials
+
 
     # INPUT: 
     #   -credentials(tuple[str,str]); user login and password
@@ -24,8 +36,10 @@ class Service:
     # RAISES: 
     #   -ServiceError; database call fails
     def create_account(self, credentials : tuple[str, str]) -> None:
+        credentials = self.secure_creds(credentials)
+
         try:
-        # TODO: Add user to the database
+        # TODO: Add user to the database   
             self.db.insert_user(credentials)
         except DatabaseError as e:
             raise ServiceError("Failed to create account") from e
