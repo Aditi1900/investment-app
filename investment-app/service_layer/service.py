@@ -284,7 +284,7 @@ class Service:
         packaged_data = []
 
         for stock in portfolio.stocks.values():
-            packaged_data.append({"ticker": stock.ticker, "quantity": random.randint(1, stock.quantity)})
+            packaged_data.append({"ticker": stock.ticker, "quantity": stock.quantity + random.randint(1,3)})
 
         return packaged_data
 
