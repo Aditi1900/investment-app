@@ -83,5 +83,5 @@ class App:
     
 
 if __name__ == "__main__" :
-    investment_app = App(testing = True, frontend = False)
+    investment_app = App(testing = True, frontend = True)
     investment_app.run()

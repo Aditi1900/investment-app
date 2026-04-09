@@ -10,7 +10,7 @@ from common.errors import DatabaseError
 class Database:
     def __init__(self, source):
         self.source = source
-        self.conn = sqlite.connect(source)
+        self.conn = sqlite.connect(source, check_same_thread = False, timeout = 30)
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.build_database()
 
