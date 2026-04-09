@@ -15,36 +15,33 @@ class Visualizer:
         self.ani = None
 
     # INPUT:
-    #   -portfolio_data(list[dict[str|int]]); formatted portfolio data
+    #   -package_portfolio_data(callable); portfolio data formatter returns list[dict[str|int]]
     # OUTPUT: None
     # PRECONDITION:
-    #   -portfolio_data; non-empty, each dict contains 'ticker'(str) and 'quantity'(int)
+    #   -package_portfolio_data; returns list, each dict contains 'ticker'(str) and 'quantity'(int)
     # POSTCONDITION:
-    #   -self.fig; pie chart rendered with ticker labels and quantity distribution
+    #   -self.fig, self.ax, self.ani; constructed and active if no chart exists and data is non-empty, otherwise unchanged
     #   -execution; chart display does not block program
     # RAISES: None
     def display_pie_chart(self, package_portfolio_data : callable) -> None:
-        if not package_portfolio_data():
-            return
-
-        if self.fig is None:
+        if self.fig is None and package_portfolio_data():
             self.fig, self.ax = plt.subplots()
             self.fig.canvas.mpl_connect('close_event', self.clean_up)
 
-        def update(frame):
-            portfolio_data = package_portfolio_data()
+            def update(frame):
+                portfolio_data = package_portfolio_data()
 
-            self.ax.clear()
+                self.ax.clear()
 
-            if not portfolio_data:
-                return
+                if not portfolio_data:
+                    return
 
-            df = pd.DataFrame(portfolio_data)
-            self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
-            self.ax.set_title("Portfolio Distribution")
+                df = pd.DataFrame(portfolio_data)
+                self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
+                self.ax.set_title("Portfolio Distribution")
 
-        self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)
-        plt.show(block=False)    
+            self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)
+            plt.show(block=False)    
 
 
     # INPUT: 
