@@ -1,8 +1,7 @@
-from enum import verify
 import re
-import bcrypt
-from typing import NamedTuple
 
+from typing import NamedTuple
+from common.security import password_match
 from integration_layer import ExternalApi as eapi
 
 # PURPOSE: 
@@ -33,8 +32,7 @@ class Validator:
     # RAISES: None
     def account_validator(self, credentials : tuple[str, str], new : bool) -> Result:
 
-        def password_match(plain : str, hashed : str) -> bool:
-            return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
+        
 
         login, password = credentials
         

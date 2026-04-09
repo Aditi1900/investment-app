@@ -1,9 +1,9 @@
 import sys
-import bcrypt
 import random
 
 from collections import defaultdict
 from common.errors import DatabaseError, ServiceError
+from common.security import secure_creds
 from integration_layer import ExternalApi as eapi
 from domain_models import User, Portfolio, Stock
 
@@ -22,31 +22,11 @@ class Service:
     # PRECONDITION:
     #   -credentials; login and password are non-empty strings, see Validator.account_validator() POSTCONDITION
     # POSTCONDITION: 
-    #   -credentials; password is properly hashed and repacked into credentials with the hashed string replacement
-    # RAISES: None
-    @staticmethod
-    def secure_creds(credentials : tuple[str, str]) -> tuple[str, str]:
-        password = credentials[1]
-        salt = bcrypt.gensalt()
-
-        password = bcrypt.hashpw(password.encode('utf-8'), salt)
-
-        credentials = credentials[0], password.decode('utf-8')
-
-        return credentials
-
-
-    # INPUT: 
-    #   -credentials(tuple[str,str]); user login and password
-    # OUTPUT: None
-    # PRECONDITION:
-    #   -credentials; login and password are non-empty strings, see Validator.account_validator() POSTCONDITION
-    # POSTCONDITION: 
     #   -database; see Database.insert_user() POSTCONDITION
     # RAISES: 
     #   -ServiceError; database call fails
     def create_account(self, credentials : tuple[str, str]) -> None:
-        credentials = self.secure_creds(credentials)
+        credentials = secure_creds(credentials)
 
         try:
         # TODO: Add user to the database   
