@@ -267,32 +267,35 @@ class Cli:
     #   -Cli; navigates to stock transaction menu (buy/sell), returns on back, returns "logout" on logout, or exits
     # RAISES: None
     def display_portfolio_contents(self, portfolio) -> str | None:
+        
         while True:
-            num_stocks = len(portfolio.stocks)
-            stock_list = list(portfolio.stocks.values())
-            print(f"-------------------{portfolio.name}-----------------------")
-            for i in range(num_stocks):
-                print(f"|{stock_list[i].ticker} {stock_list[i].quantity}|")
+            title = f"-------------------{portfolio.name}-------------------"
+            print(title)
 
+            table = self.vis.construct_stock_table(portfolio, len(title))
+            print(table)
+
+            
+            self.vis.display_pie_chart(lambda: self.serv.package_portfolio_data(portfolio))
+            
             print("1. Buy Stock")
             print("2. Sell Stock")
             print("3. Go Back")
             print("4. Logout")
             print("5. Exit application")
-
-            self.vis.display_pie_chart(lambda: self.serv.package_portfolio_data(portfolio))
             selection = input("Select option: "); print()
-            selection = self.san.sanitize_selection(selection)
 
-            self.vis.close_chart()
+            selection = self.san.sanitize_selection(selection)
 
             if selection == 1:
                 self.display_stock_transaction_menu(portfolio, purchase=True)
             elif selection == 2:
                 self.display_stock_transaction_menu(portfolio, purchase=False)
             elif selection == 3:
+                self.vis.close_chart()
                 return
             elif selection == 4:
+                self.vis.close_chart()
                 return "logout"
             elif selection == 5:
                 self.serv.exit_app()
