@@ -37,7 +37,7 @@ class Visualizer:
                     return
 
                 df = pd.DataFrame(portfolio_data)
-                self.ax.pie(df['quantity'], labels=df['ticker'], autopct='%1.0f%%')
+                self.ax.pie(df['value'], labels=df['label'], autopct='%1.0f%%')
                 self.ax.set_title("Portfolio Distribution")
 
             self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)

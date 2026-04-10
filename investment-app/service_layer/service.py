@@ -1,7 +1,9 @@
+from calendar import c
 import sys
 import random
 
 from collections import defaultdict
+from common.chaos import Chaos, set_entropy
 from common.errors import DatabaseError, ServiceError
 from common.security import secure_creds
 from integration_layer import ExternalApi as eapi
@@ -271,11 +273,11 @@ class Service:
             
         return u_id
 
-
+    
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
-    #   -packaged_data(list[dict[str,str|int]]); explicit labeler for each stock pair "ticker", "quantity" labels  
+    #   -packaged_data(list[dict[str,str|int]]); explicit labeler for each stock pair "ticker", "value" labels  
     # PRECONDITION: None
     # POSTCONDITION:
     #   -packaged_data; represents a labeled set of all stocks in portfolio
@@ -284,7 +286,13 @@ class Service:
         packaged_data = []
 
         for stock in portfolio.stocks.values():
-            packaged_data.append({"ticker": stock.ticker, "quantity": stock.quantity + random.randint(1,3)})
+            price = eapi.get_stock_price(stock.ticker)
+            ticker, quantity = stock.ticker, stock.quantity
+
+            entropy = set_entropy(price, Chaos.HIGH)
+            value = quantity*price + random.uniform(*entropy)
+
+            packaged_data.append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
 
         return packaged_data
 

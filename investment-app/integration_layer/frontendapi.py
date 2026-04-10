@@ -1,3 +1,7 @@
+import asyncio
+import json
+
+from typing import AsyncGenerator
 from .routes import connect
 from common.errors import ValidationError
 
@@ -117,3 +121,22 @@ class FrontendApi:
             raise ValidationError(result.reason)
 
         return self.serv.execute_sell(user_account, portfolio, shares_request)
+
+
+    # INPUT:
+    #   -portfolio(Portfolio); a current user portfolio
+    # OUTPUT:
+    #   -return(AsyncGenerator); a async generator that yields live portfolio data
+    # PRECONDITION:
+    #   -portfolio; is not None
+    # POSTCONDITION:
+    #   -return; yields JSON serialized portfolio data every second until client disconnects
+    # RAISES: None
+    def make_data_stream(self, portfolio) -> AsyncGenerator:
+        async def stream():
+            while True:
+                yield json.dumps(self.serv.package_portfolio_data(portfolio)) + "\n"
+                await asyncio.sleep(1)
+
+        return stream()
+

@@ -3,6 +3,7 @@ from threading import Lock
 from collections import defaultdict
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from common.errors import ServiceError, ValidationError
 from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
 
@@ -406,3 +407,31 @@ def get_user(session_id : str) -> dict[str, UserData]:
     response = {"user": UserData.convert(user)}
 
     return response
+
+
+# INPUT:
+#   -session_id(str); a session id
+#   -portfolio_name(str); current portfolio name
+# OUTPUT:
+#   -return(StreamingResponse); a streaming response object
+# PRECONDITION: None
+# POSTCONDITION:
+#   -StreamingResponse; streams each yielded chunk of the async generator directly to client
+# RAISES:
+#   -HTTPException(401); unauthorized, user session does not exist
+#   -HTTPException(404); portfolio is not found   
+@router.get("/live_data")
+async def get_live_portfolio_data(session_id : str, portfolio_name : str):
+    user = find_sessions_user(session_id)
+
+    if user is None:
+        raise HTTPException(status_code = 401, detail = "Invalid session")
+
+    portfolio = user.portfolios.get(portfolio_name)
+
+    if portfolio is None:
+        raise HTTPException(status_code = 404, detail = "Portfolio not found")
+
+    live_data = frontend_api.make_data_stream(portfolio)
+
+    return StreamingResponse(live_data, media_type = "application/x-ndjson")

@@ -1,5 +1,6 @@
 import yfinance as yf
-
+import logging
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 # PURPOSE:
 #   -ExternalApi provides a external finance fetching abstraction
@@ -17,8 +18,8 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def get_stock_price(ticker : str) -> float:
-        # TODO: Pull stock price data given a ticker
-        return 100
+        price = yf.Ticker(ticker).fast_info['last_price']
+        return price
 
 
     # INPUT:
@@ -32,8 +33,13 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
-        # TODO: Call the api to identify if the ticker actually exists
-        return True
+
+        try:
+            exist = yf.Ticker(ticker).fast_info['last_price'] is not None
+        except Exception:
+            exist = False
+
+        return exist
 
 
     # INPUT:
@@ -47,5 +53,5 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def get_float(ticker : str) -> int:
-        #TODO: Call the api to identify the maximum amount of shares the market has to offer
-        return 1_000_000_000
+        max_shares = yf.Ticker(ticker).info['floatShares']
+        return max_shares

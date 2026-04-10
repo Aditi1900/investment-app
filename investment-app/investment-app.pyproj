@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="bootstrap.py" />
+    <Compile Include="common\chaos.py" />
     <Compile Include="common\security.py" />
     <Compile Include="domain_models\portfolio.py" />
     <Compile Include="domain_models\stock.py" />
