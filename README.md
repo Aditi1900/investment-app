@@ -1,74 +1,66 @@
 # System Architecture
 
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-architecture.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-architecture.png" alt="Architecture Diagram">
+  <source type="image/svg+xml" srcset="images/investment-app-architecture.svg">
+  <img src="images/investment-app-architecture.png" alt="Architecture Diagram">
 </picture>
 
 ## Database Architecture
 
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-database.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-database.png" alt="Database Crow Diagram">
+  <source type="image/svg+xml" srcset="images/investment-app-database.svg">
+  <img src="images/investment-app-database.png" alt="Database Crow Diagram">
 </picture>
+
+---
 
 # Feature Pipelines
 
 Core feature pipelines with traversal through layers and main method calls excluding helper functions.
 
----
-
 ## Create Account
+
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-pipelines-create-account.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
+  <source type="image/svg+xml" srcset="images/investment-app-pipelines-create-account.svg">
+  <img src="images/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
 </picture>
 
 ## Find Account
+
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-pipelines-find-account.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
+  <source type="image/svg+xml" srcset="images/investment-app-pipelines-find-account.svg">
+  <img src="images/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
 </picture>
 
 ## Fund Account
+
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-pipelines-fund-account.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
+  <source type="image/svg+xml" srcset="images/investment-app-pipelines-fund-account.svg">
+  <img src="images/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
 </picture>
 
-## Create/Remove Portfolio
+## Create / Remove Portfolio
+
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-pipelines-create_or_remove-portfolio.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
+  <source type="image/svg+xml" srcset="images/investment-app-pipelines-create_or_remove-portfolio.svg">
+  <img src="images/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
 </picture>
 
-## Execute Buy/Sell
+## Execute Buy / Sell
+
 <picture>
-    <!--Mermaid SVG default -->
-    <source type="image/svg+xml" srcset="images/investment-app-pipelines-execute_buy_or_sell.svg">
-    <!--Fallback PNG for mobile / non-supporting views -->
-    <img src="images/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
+  <source type="image/svg+xml" srcset="images/investment-app-pipelines-execute_buy_or_sell.svg">
+  <img src="images/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
 </picture>
+
+---
 
 # Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
 
----
-
 ## Classes
+
 ```python
 # PURPOSE:
 #    - <ClassName> provides <X> abstraction
@@ -76,6 +68,7 @@ Fields marked **"if N/A – None"** must still appear with the literal value `No
 ```
 
 ## Functions
+
 ```python
 # INPUT: if N/A - None
 #    - <param_name>(type); <what it represents>
@@ -90,8 +83,6 @@ Fields marked **"if N/A – None"** must still appear with the literal value `No
 def function_name(param_name: type) -> type:
     return var_name
 ```
-
----
 
 ## Style Rules
 
@@ -115,8 +106,6 @@ def function_name(param_name: type) -> type:
 | `User` | Represents a user account; holds login, balance, and a collection of portfolios |
 | `Portfolio` | Represents a named collection of stocks |
 | `Stock` | Represents a stock holding; ticker and quantity |
-
----
 
 ## Request Models
 
@@ -163,8 +152,6 @@ JSON request bodies sent to the Frontend API.
 }
 ```
 
----
-
 ## Response Models
 
 JSON response bodies returned by the Frontend API.
@@ -186,6 +173,7 @@ JSON response bodies returned by the Frontend API.
     }
 }
 ```
+
 > `stocks` values follow the `StockData` schema above.
 
 **UserData**
@@ -198,4 +186,5 @@ JSON response bodies returned by the Frontend API.
     }
 }
 ```
+
 > `portfolios` values follow the `PortfolioData` schema above.
