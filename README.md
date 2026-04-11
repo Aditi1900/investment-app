@@ -74,6 +74,8 @@ uv run investment-app -t -v 10
 uv run investment-app -s -v 5
 ```
 
+---
+
 # System Architecture
 
 <picture>
