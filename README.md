@@ -53,49 +53,34 @@ uv run investment-app
 Core feature pipelines with traversal through layers and main method calls excluding helper functions.
 
 ## Create Account
-<details>
-    <summary>Create Account Pipline Diagram</summary>
-    <picture>
-      <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create-account.svg">
-      <img src="diagrams/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
-    </picture>
-</details>
+<picture>
+  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create-account.svg">
+  <img src="diagrams/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
+</picture>
 
 ## Find Account
-<details>
-    <summary>Find Account Pipline Diagram</summary>
-    <picture>
-      <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-find-account.svg">
-      <img src="diagrams/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
-    </picture>
-</details>
+<picture>
+  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-find-account.svg">
+  <img src="diagrams/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
+</picture>
 
 ## Fund Account
-<details>
-    <summary>Fund Account Pipline Diagram</summary>
-    <picture>
-      <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-fund-account.svg">
-      <img src="diagrams/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
-    </picture>
-</details>
+<picture>
+  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-fund-account.svg">
+  <img src="diagrams/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
+</picture>
 
 ## Create / Remove Portfolio
-<details>
-    <summary>Create/Remove Portfolio Pipline Diagram</summary>
-    <picture>
-      <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create_or_remove-portfolio.svg">
-      <img src="diagrams/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
-    </picture>
-</details>
+<picture>
+  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create_or_remove-portfolio.svg">
+  <img src="diagrams/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
+</picture>
 
 ## Execute Buy / Sell
-<details>
-    <summary>Execute Buy/Sell Pipline Diagram</summary>
-    <picture>
-      <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-execute_buy_or_sell.svg">
-      <img src="diagrams/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
-    </picture>
-</details>
+<picture>
+  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-execute_buy_or_sell.svg">
+  <img src="diagrams/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
+</picture>
 
 ---
 
