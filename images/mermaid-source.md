@@ -56,6 +56,37 @@ flowchart TD
     linkStyle 15 stroke:#FF6D00,fill:none
     linkStyle 16 stroke:#FF6D00,fill:none
 ```
+## Database Architecture
+```mermaid
+erDiagram
+	direction LR
+	USERS {
+		INTEGER id PK ""  
+		TEXT login UK ""  
+		TEXT password  ""  
+		REAL balance  ""  
+	}
+
+	PORTFOLIOS {
+		INTEGER id PK ""  
+		INTEGER user_id FK ""  
+		TEXT name  ""  
+	}
+
+	STOCKS {
+		INTEGER id PK ""  
+		INTEGER portfolio_id FK ""  
+		TEXT ticker  ""  
+		INTEGER quantity  ""  
+	}
+
+	USERS||--o{PORTFOLIOS:"has"
+	PORTFOLIOS||--o{STOCKS:"contains"
+
+	style USERS fill:#E1BEE7,stroke:#AA00FF
+	style PORTFOLIOS stroke:#FF6D00,fill:#FFE0B2
+	style STOCKS stroke:#00C853,fill:#C8E6C9
+```
 
 # Feature Piplines
 

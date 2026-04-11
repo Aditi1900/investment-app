@@ -1,9 +1,19 @@
 # System Architecture
+
 <picture>
     <!--Mermaid SVG default -->
     <source type="image/svg+xml" srcset="images/investment-app-architecture.svg">
     <!--Fallback PNG for mobile / non-supporting views -->
     <img src="images/investment-app-architecture.png" alt="Architecture Diagram">
+</picture>
+
+## Database Architecture
+
+<picture>
+    <!--Mermaid SVG default -->
+    <source type="image/svg+xml" srcset="images/investment-app-database.svg">
+    <!--Fallback PNG for mobile / non-supporting views -->
+    <img src="images/investment-app-database.png" alt="Database Crow Diagram">
 </picture>
 
 # Feature Pipelines
