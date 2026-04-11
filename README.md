@@ -24,7 +24,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Restart your terminal, then:
 
 ````bash
-git clone <repo-url>
+git clone https://github.com/LoganOBerk/investment-app.git
 cd investment-app
 uv sync
 uv run investment-app
