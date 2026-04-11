@@ -1,9 +1,7 @@
-from calendar import c
 import sys
-import random
 
 from collections import defaultdict
-from common.chaos import Chaos, set_entropy
+from common.entropy import inject_volatility
 from common.errors import DatabaseError, ServiceError
 from common.security import secure_creds
 from integration_layer import ExternalApi as eapi
@@ -289,8 +287,7 @@ class Service:
             price = eapi.get_stock_price(stock.ticker)
             ticker, quantity = stock.ticker, stock.quantity
 
-            entropy = set_entropy(price, Chaos.HIGH)
-            value = quantity*price + random.uniform(*entropy)
+            value = quantity*price + inject_volatility(price)
 
             packaged_data.append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
 

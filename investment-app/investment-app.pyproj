@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>d8c6b813-0337-4970-aa65-7baff20b5b20</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>bootstrap.py</StartupFile>
+    <StartupFile>config\bootstrap.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -48,6 +48,7 @@
     <Folder Include="interface_layer\" />
     <Folder Include="interface_layer\__pycache__\" />
     <Folder Include="common\" />
+    <Folder Include="config\" />
     <Folder Include="sanitization_layer\" />
     <Folder Include="persistence_layer\" />
     <Folder Include="persistence_layer\__pycache__\" />
@@ -57,9 +58,10 @@
     <Folder Include="validation_layer\__pycache__\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bootstrap.py" />
-    <Compile Include="common\chaos.py" />
+    <Compile Include="config\bootstrap.py" />
+    <Compile Include="common\entropy.py" />
     <Compile Include="common\security.py" />
+    <Compile Include="config\__init__.py" />
     <Compile Include="domain_models\portfolio.py" />
     <Compile Include="domain_models\stock.py" />
     <Compile Include="domain_models\user.py" />
@@ -75,6 +77,7 @@
     <Compile Include="interface_layer\frontend.py" />
     <Compile Include="interface_layer\visualizer.py" />
     <Compile Include="interface_layer\__init__.py" />
+    <Compile Include="investment_app.py" />
     <Compile Include="persistence_layer\database.py" />
     <Compile Include="persistence_layer\__init__.py" />
     <Compile Include="sanitization_layer\sanitizer.py" />
