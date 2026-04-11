@@ -9,7 +9,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Restart your terminal, then:
 
 ````powershell
-git clone <repo-url>
+git clone https://github.com/LoganOBerk/investment-app.git
 cd investment-app
 uv sync
 uv run investment-app
