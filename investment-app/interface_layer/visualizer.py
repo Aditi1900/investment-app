@@ -14,6 +14,7 @@ class Visualizer:
         self.ax = None
         self.ani = None
 
+        
     # INPUT:
     #   -package_portfolio_data(callable); portfolio data formatter returns list[dict[str|int]]
     # OUTPUT: None
