@@ -282,14 +282,17 @@ class Service:
     # RAISES: None
     def package_portfolio_data(self, portfolio : Portfolio) -> list[dict[str, str | int]]:
         packaged_data = []
+        total = 0
 
         for stock in portfolio.stocks.values():
             price = eapi.get_stock_price(stock.ticker)
             ticker, quantity = stock.ticker, stock.quantity
 
             value = quantity*price + inject_volatility(price)
-
+            total += value
             packaged_data.append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
+
+        packaged_data.append(f"${total:,.2f}")
 
         return packaged_data
 

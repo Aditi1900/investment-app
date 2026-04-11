@@ -31,6 +31,8 @@ class Visualizer:
             def update(frame):
                 portfolio_data = package_portfolio_data()
 
+                total = portfolio_data.pop()
+
                 self.ax.clear()
 
                 if not portfolio_data:
@@ -38,7 +40,8 @@ class Visualizer:
 
                 df = pd.DataFrame(portfolio_data)
                 self.ax.pie(df['value'], labels=df['label'], autopct='%1.0f%%')
-                self.ax.set_title("Portfolio Distribution")
+                self.ax.set_title(f"Portfolio Distribution")
+                self.ax.set_xlabel(f"Total portfolio value: {total}")
 
             self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)
             plt.show(block=False)    
