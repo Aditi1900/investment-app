@@ -36,7 +36,6 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
-
         try:
             exist = yf.Ticker(ticker).fast_info['last_price'] is not None
         except Exception:
@@ -63,3 +62,23 @@ class ExternalApi:
             max_shares = inf
 
         return max_shares
+
+
+    # INPUT:
+    #   -tickers(list[str]); a list of stock ticker symbols
+    # OUTPUT:
+    #   -ticker_package(dict[str,float]); live stock prices for all tickers in list
+    # PRECONDITION:
+    #   -tickers; exist in open market
+    # POSTCONDITION:
+    #   -ticker_package; holds current market prices for tickers and the ticker symbol related
+    # RAISES: None
+    @staticmethod
+    def get_stock_prices(tickers: list[str]) -> dict[str, float]:
+        ticker_package = {}
+        ticker_dat = yf.Tickers(" ".join(tickers))
+        
+        for t in tickers:
+            ticker_package[t] = ticker_dat.tickers[t].fast_info["last_price"]
+
+        return ticker_package

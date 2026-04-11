@@ -282,12 +282,14 @@ class Service:
         packaged_data = {"total": "$0.00", "holdings" : []}
         total = 0
 
-        for stock in portfolio.stocks.values():
-            price = eapi.get_stock_price(stock.ticker)
-            ticker, quantity = stock.ticker, stock.quantity
+        holdings = eapi.get_stock_prices(list(portfolio.stocks.keys()))
 
-            value = quantity*price + inject_volatility(price)
+        for ticker, stock in portfolio.stocks.items():
+            price = holdings[ticker]
+
+            value = stock.quantity * price + inject_volatility(price)
             total += value
+
             packaged_data["holdings"].append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
 
         packaged_data["total"] = f"${total:,.2f}"
