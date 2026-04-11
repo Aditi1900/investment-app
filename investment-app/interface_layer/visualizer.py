@@ -18,30 +18,28 @@ class Visualizer:
     #   -package_portfolio_data(callable); portfolio data formatter returns list[dict[str|int]]
     # OUTPUT: None
     # PRECONDITION:
-    #   -package_portfolio_data; returns list, each dict contains 'ticker'(str) and 'quantity'(int)
+    #   -package_portfolio_data; returns list, each dict contains 'ticker'(str), 'value'(float), 'label'(str) and the last item is portfolio total(float)
     # POSTCONDITION:
     #   -self.fig, self.ax, self.ani; constructed and active if no chart exists and data is non-empty, otherwise unchanged
     #   -execution; chart display does not block program
     # RAISES: None
     def display_pie_chart(self, package_portfolio_data : callable) -> None:
-        if self.fig is None and package_portfolio_data():
+        if self.fig is None and package_portfolio_data()["holdings"]:
             self.fig, self.ax = plt.subplots()
             self.fig.canvas.mpl_connect('close_event', self.clean_up)
 
             def update(frame):
                 portfolio_data = package_portfolio_data()
 
-                total = portfolio_data.pop()
-
                 self.ax.clear()
 
-                if not portfolio_data:
+                if not portfolio_data["holdings"]:
                     return
 
-                df = pd.DataFrame(portfolio_data)
+                df = pd.DataFrame(portfolio_data["holdings"])
                 self.ax.pie(df['value'], labels=df['label'], autopct='%1.0f%%')
                 self.ax.set_title(f"Portfolio Distribution")
-                self.ax.set_xlabel(f"Total portfolio value: {total}")
+                self.ax.set_xlabel(f"Total portfolio value: {portfolio_data['total']}")
 
             self.ani = animation.FuncAnimation(self.fig, update, interval=1000, cache_frame_data=False)
             plt.show(block=False)    

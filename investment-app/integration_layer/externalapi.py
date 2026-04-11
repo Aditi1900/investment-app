@@ -1,6 +1,9 @@
-import yfinance as yf
 import logging
+from math import inf
+import yfinance as yf
+
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
 
 # PURPOSE:
 #   -ExternalApi provides a external finance fetching abstraction
@@ -53,5 +56,10 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def get_float(ticker : str) -> int:
-        max_shares = yf.Ticker(ticker).info['floatShares']
+
+        try:
+            max_shares = yf.Ticker(ticker).info['floatShares']
+        except Exception:
+            max_shares = inf
+
         return max_shares

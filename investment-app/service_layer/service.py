@@ -275,13 +275,13 @@ class Service:
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
-    #   -packaged_data(list[dict[str,str|int]]); explicit labeler for each stock pair "ticker", "value" labels  
+    #   -packaged_data(dict[str, str | list]); portfolios holdings and total value at the moment  
     # PRECONDITION: None
     # POSTCONDITION:
-    #   -packaged_data; represents a labeled set of all stocks in portfolio
+    #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolio : Portfolio) -> list[dict[str, str | int]]:
-        packaged_data = []
+    def package_portfolio_data(self, portfolio : Portfolio) -> dict[str, str | list]:
+        packaged_data = {"total": "$0.00", "holdings" : []}
         total = 0
 
         for stock in portfolio.stocks.values():
@@ -290,9 +290,9 @@ class Service:
 
             value = quantity*price + inject_volatility(price)
             total += value
-            packaged_data.append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
+            packaged_data["holdings"].append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
 
-        packaged_data.append(f"${total:,.2f}")
+        packaged_data["total"] = f"${total:,.2f}"
 
         return packaged_data
 
