@@ -1,3 +1,37 @@
+# Setup
+
+## Windows
+
+````powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+````
+
+Restart your terminal, then:
+
+````powershell
+git clone <repo-url>
+cd investment-app
+uv sync
+uv run investment-app
+````
+
+## Linux / Mac
+
+````bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+````
+
+Restart your terminal, then:
+
+````bash
+git clone <repo-url>
+cd investment-app
+uv sync
+uv run investment-app
+````
+
+---
+
 # System Architecture
 
 <picture>
