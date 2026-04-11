@@ -3,7 +3,7 @@ import json
 
 from typing import AsyncGenerator
 from .routes import connect
-from common.errors import ValidationError
+from ..common.errors import ValidationError
 
 
 # PURPOSE:

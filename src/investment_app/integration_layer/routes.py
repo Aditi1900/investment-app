@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from common.errors import ServiceError, ValidationError
+from ..common.errors import ServiceError, ValidationError
 from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
 
 frontend_api = None

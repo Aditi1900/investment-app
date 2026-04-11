@@ -1,11 +1,11 @@
 import sys
 
 from collections import defaultdict
-from common.entropy import inject_volatility
-from common.errors import DatabaseError, ServiceError
-from common.security import secure_creds
-from integration_layer import ExternalApi as eapi
-from domain_models import User, Portfolio, Stock
+from ..common.entropy import inject_volatility
+from ..common.errors import DatabaseError, ServiceError
+from ..common.security import secure_creds
+from ..integration_layer import ExternalApi as eapi
+from ..domain_models import User, Portfolio, Stock
 
 
 # PURPOSE:

@@ -1,4 +1,4 @@
-from common.errors import ServiceError
+from ..common.errors import ServiceError
 
 
 # PURPOSE: 

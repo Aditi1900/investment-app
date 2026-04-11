@@ -1,5 +1,5 @@
-from config import App
-from common.entropy import set_volatile_percent
+from .config import App
+from .common.entropy import set_volatile_percent
 from argparse import ArgumentParser, Namespace
 
 # INPUT: None
@@ -21,8 +21,12 @@ def retrieve_args() -> Namespace:
     return args 
 
 
-if __name__ == "__main__" :
+def main():
     args = retrieve_args()
 
     investment_app = App(testing = args.t, frontend = args.s)
     investment_app.run()
+
+
+if __name__ == "__main__" :
+    main()

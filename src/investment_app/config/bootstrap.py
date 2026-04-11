@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from interface_layer import Cli, Visualizer, Frontend
-from sanitization_layer import Sanitizer
-from validation_layer import Validator
-from service_layer import Service
-from persistence_layer import Database
+from ..interface_layer import Cli, Visualizer, Frontend
+from ..sanitization_layer import Sanitizer
+from ..validation_layer import Validator
+from ..service_layer import Service
+from ..persistence_layer import Database
 
 
 # PURPOSE:
@@ -60,8 +60,10 @@ class App:
     # RAISES: None
     def establish_path(self, db_source : str) -> Path:
         base_dir = Path(__file__).parent
+        while not (base_dir / 'pyproject.toml').exists():
+            base_dir = base_dir.parent
 
-        db_dir = base_dir / 'app_data'
+        db_dir = base_dir / "data"
 
         db_dir.mkdir(exist_ok = True)
 

@@ -1,8 +1,8 @@
 import re
 
 from typing import NamedTuple
-from common.security import password_match
-from integration_layer import ExternalApi as eapi
+from ..common.security import password_match
+from ..integration_layer import ExternalApi as eapi
 
 # PURPOSE: 
 #   -Result provides description abstraction

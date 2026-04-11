@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-matplotlib
-pandas
-pydantic
-yfinance
-bcrypt
-tabulate
