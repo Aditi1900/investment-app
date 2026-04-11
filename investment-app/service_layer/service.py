@@ -29,8 +29,9 @@ class Service:
         credentials = secure_creds(credentials)
 
         try:
-        # TODO: Add user to the database   
+          
             self.db.insert_user(credentials)
+
         except DatabaseError as e:
             raise ServiceError("Failed to create account") from e
 
@@ -46,12 +47,12 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def find_account(self, login : str) -> User:
-        # TODO: Create user object
         try:
+
             user = User()
-        # TODO: Populate user object
             self.populate_user_account(user, login)
             return user
+
         except DatabaseError as e:
             raise ServiceError("Failed to find account") from e
 
@@ -70,8 +71,9 @@ class Service:
     #   -ServiceError; database call fails
     def fund_account(self, user_account : User, funds_request : float) -> None:
         try:
-        #TODO: update database funds
+        
             self.db.update_funds(user_account.id, funds_request)
+
         except DatabaseError as e:
             raise ServiceError("Failed to update funds") from e
 
@@ -92,11 +94,12 @@ class Service:
     #   -ServiceError; database call fails
     def create_portfolio(self, user_account : User, portfolio_name : str) -> None:
         try:
+
             p_id = self.db.insert_portfolio(user_account.id, portfolio_name)
+
         except DatabaseError as e:
             raise ServiceError("Failed to create portfolio") from e
 
-        # TODO: add new empty portfolio to user_account object
         user_account.add_portfolio(portfolio_name)
         user_account.portfolios[portfolio_name].id = p_id
 
@@ -115,9 +118,10 @@ class Service:
     #   -ServiceError; database call fails
     def remove_portfolio(self, user_account : User, portfolio_name : str) -> None:
         try:
-        #TODO: call remove function for removing portfolio from database
+
             portfolio = user_account.portfolios[portfolio_name]
             self.db.delete_portfolio(portfolio.id)
+
         except DatabaseError as e:
             raise ServiceError("Failed to remove portfolio") from e
 
@@ -140,28 +144,25 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def execute_buy(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
-        # TODO: call api to get stock price
-        # TODO: subtract funds from user account
         
         ticker, quantity = shares_request
 
         price = eapi.get_stock_price(ticker)
         total_cost = price * quantity
 
-        
-
         s_id = None
 
         try:
+
             self.db.update_funds(user_account.id, -total_cost)
             user_account.sub_funds(total_cost)
 
             if portfolio.has_stock(ticker):
-                # TODO: update the database
                 stock = portfolio.stocks[ticker]
                 self.db.update_stock(stock.id, quantity)
             else:
                  s_id = self.db.insert_stock(portfolio.id, shares_request)
+
         except DatabaseError as e:
             raise ServiceError("Failed to execute buy") from e
 
@@ -187,15 +188,11 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def execute_sell(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
-        # TODO: call api to get stock price
-        # TODO: add funds to user account
         
         ticker, quantity = shares_request
 
         price = eapi.get_stock_price(ticker)
         total_value = price * quantity
-
-        
 
         try:
             
@@ -205,11 +202,10 @@ class Service:
             stock = portfolio.stocks[ticker]
 
             if portfolio.has_stock(ticker) and quantity == portfolio.stocks[ticker].quantity:
-                # TODO: remove from the database
                 self.db.delete_stock(stock.id)
             else:
-                # TODO: update the database
                 self.db.update_stock(stock.id, -quantity)
+
         except DatabaseError as e:
             raise ServiceError("Failed to execute sell") from e
 
@@ -227,7 +223,9 @@ class Service:
     #   -ServiceError; database call fails
     def identify_user(self, login : str) -> int:
         try:
+
             user_dat = self.db.pull_user(login)
+
         except DatabaseError as e:
             raise ServiceError("Failed to match credentials") from e
 
