@@ -71,7 +71,7 @@ class Cli:
         print(f"---------------{'SIGNUP' if new else 'LOGIN'}---------------")
         login = input('Enter your login: ')
         password = input('Enter your password: ')
-        print(f"---------------{'------' if new else '-----'}---------------")
+        print(f"---------------{'------' if new else '-----'}---------------\n")
 
         creds = login, password
         creds = self.san.sanitize_credentials(creds)
@@ -327,7 +327,7 @@ class Cli:
         result = self.validator.shares_request_validator(portfolio, shares_request, self.user_account.balance, purchase)
             
         while True:
-            print("1. Submit")
+            print("1. Confirm")
             print("2. Cancel")
             selection = input("Select option: "); print()
 

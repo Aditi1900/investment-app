@@ -21,7 +21,7 @@ class ExternalApi:
     # RAISES: None
     @staticmethod
     def get_stock_price(ticker : str) -> float:
-        price = yf.Ticker(ticker).fast_info['last_price']
+        price = yf.Ticker(ticker).fast_info.last_price
         return price
 
 
@@ -37,7 +37,7 @@ class ExternalApi:
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
         try:
-            exist = yf.Ticker(ticker).fast_info['last_price'] is not None
+            exist = yf.Ticker(ticker).fast_info.last_price is not None
         except Exception:
             exist = False
 
@@ -51,17 +51,12 @@ class ExternalApi:
     # PRECONDITION:
     #   -ticker; exists in open market
     # POSTCONDITION:
-    #   -max_shares; total float shares available in open market for ticker
+    #   -max_shares; total float shares available in open market for ticker, otherwise inf
     # RAISES: None
     @staticmethod
     def get_float(ticker : str) -> int:
-
-        try:
-            max_shares = yf.Ticker(ticker).info['floatShares']
-        except Exception:
-            max_shares = inf
-
-        return max_shares
+        max_shares = yf.Ticker(ticker).fast_info.get('floatShares')
+        return max_shares if max_shares is not None else inf
 
 
     # INPUT:
@@ -79,6 +74,6 @@ class ExternalApi:
         ticker_dat = yf.Tickers(" ".join(tickers))
         
         for t in tickers:
-            ticker_package[t] = ticker_dat.tickers[t].fast_info["last_price"]
+            ticker_package[t] = ticker_dat.tickers[t].fast_info.last_price
 
         return ticker_package
