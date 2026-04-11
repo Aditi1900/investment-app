@@ -14,9 +14,9 @@ from .common.entropy import set_volatile_percent
 #   -SystemExit; on invalid argument insertion
 def retrieve_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument('-t', action = "store_true", help = "sets program to testing mode")
-    parser.add_argument('-s', action = "store_true", help = "program is served on port 0.0.0.0:8000")
-    parser.add_argument('-v', type = set_volatile_percent, help = "artificial volatility (percent)")
+    parser.add_argument('-t', "--test", action = "store_true", help = "sets program to testing mode")
+    parser.add_argument('-s', "--serve", action = "store_true", help = "program is served on port 0.0.0.0:8000")
+    parser.add_argument('-v', "--vol", type = set_volatile_percent, metavar = "%", help = "artificial volatility (percent)")
 
     args = parser.parse_args()
 
