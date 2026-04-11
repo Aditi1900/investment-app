@@ -1,4 +1,5 @@
 # Setup
+> Estimated setup time: 30 seconds – 1 minute
 
 ## Windows
 
