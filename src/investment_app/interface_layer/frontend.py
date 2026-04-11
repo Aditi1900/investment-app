@@ -1,7 +1,7 @@
 import uvicorn
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from ..integration_layer import FrontendApi, router
 
 

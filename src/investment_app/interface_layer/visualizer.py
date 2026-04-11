@@ -1,8 +1,8 @@
-from matplotlib.backend_bases import CloseEvent
-import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from tabulate import tabulate
+import matplotlib.pyplot as plt
+from matplotlib.backend_bases import CloseEvent
 import pandas as pd
+from tabulate import tabulate
 
 
 # PURPOSE:

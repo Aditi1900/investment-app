@@ -1,6 +1,8 @@
+from argparse import ArgumentParser, Namespace
+
 from .config import App
 from .common.entropy import set_volatile_percent
-from argparse import ArgumentParser, Namespace
+
 
 # INPUT: None
 # OUTPUT:

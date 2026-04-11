@@ -1,5 +1,6 @@
 from .stock import Stock
 
+
 # PURPOSE:
 #   -Portfolio provides a portfolio abstraction
 #   -encapsulates data related to a portfolio and provides methods for manipulating or evaluating a portfolio

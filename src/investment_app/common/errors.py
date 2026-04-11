@@ -1,4 +1,3 @@
-
 # PURPOSE: 
 #   -DatabaseError provides a central database error abstraction
 #   -Allows for exceptions to be re-raised as a general errortype for persistence layer

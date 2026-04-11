@@ -1,11 +1,16 @@
 import secrets
-from threading import Lock
 from collections import defaultdict
+from threading import Lock
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+
 from ..common.errors import ServiceError, ValidationError
-from .pydmodels import LogoutRequest, CredsRequest, FundsRequest, PortfolioRequest, TransactionRequest, StockData, PortfolioData, UserData 
+from .pydmodels import (
+    LogoutRequest, CredsRequest, FundsRequest,
+    PortfolioRequest, TransactionRequest,
+    StockData, PortfolioData, UserData
+) 
 
 frontend_api = None
 router = APIRouter()
@@ -16,6 +21,7 @@ user_sessions : defaultdict[int,set] = defaultdict(set)
 active_users : dict[int, object] = {}
 
 session_lock = Lock()
+
 
 # INPUT:
 #   -api(FrontendApi); functional interface

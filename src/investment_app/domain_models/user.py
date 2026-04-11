@@ -1,5 +1,7 @@
 from threading import Lock
+
 from .portfolio import Portfolio
+
 
 # PURPOSE:
 #   -User provides a user account abstraction

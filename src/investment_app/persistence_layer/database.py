@@ -1,7 +1,7 @@
 import sqlite3 as sqlite
 from sqlite3 import Error as SqliteError
-from ..common.errors import DatabaseError
 
+from ..common.errors import DatabaseError
 
 
 # PURPOSE: 
