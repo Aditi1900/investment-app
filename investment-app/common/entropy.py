@@ -1,10 +1,20 @@
+import random
 from argparse import ArgumentTypeError
 
-import random
 
 _volatile_percent = 0
 
 
+# INPUT: 
+#   -percent(int); an integer representing a percentage of volatility
+# OUTPUT:
+#   -percent(int); a percentage 1-100
+# PRECONDITION:
+#   -_volatile_percent; is initialized as a global variable
+# POSTCONDITION: 
+#   -_volatile_percent; is set to the requested percentage
+# RAISES:
+#   -ArgumentTypeError; when percent is outside range 1-100
 def set_volatile_percent(percent : int):
     global _volatile_percent 
 
@@ -21,7 +31,15 @@ def set_volatile_percent(percent : int):
     return percent
 
 
-def inject_volatility(price : float):
+# INPUT: 
+#   -price(float); a specific stock price
+# OUTPUT:
+#   -artificial_volatility(float); a random float between +/-(_volatile_percent% of price)
+# PRECONDITION: None
+# POSTCONDITION: 
+#   -artificial volatility; a random float is generated in range of a percentage of the stock
+# RAISES: None
+def inject_volatility(price : float) -> float:
    
     volatile_range = price/100 * _volatile_percent
 
