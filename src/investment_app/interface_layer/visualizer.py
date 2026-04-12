@@ -26,7 +26,7 @@ class Visualizer:
     # RAISES: None
     def display_pie_chart(self, package_portfolio_data : callable) -> None:
         if self.fig is None and package_portfolio_data()["holdings"]:
-            self.fig, self.ax = plt.subplots(figsize = (9.33,7))
+            self.fig, self.ax = plt.subplots()
             self.fig.canvas.mpl_connect('close_event', self.clean_up)
 
             def update(frame):
