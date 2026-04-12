@@ -1,3 +1,10 @@
+# Stockify Introduction
+
+Stockify is a simulated investment platform that lets users build portfolios, execute trades, and observe how their picks perform under realistic market volatility. 
+By removing the risk of real financial loss, it gives beginners a confidence-building environment to learn trading fundamentals; 
+including how portfolio drift develops over time when positions go unmanaged.
+
+
 # Setup
 
 ## Windows
