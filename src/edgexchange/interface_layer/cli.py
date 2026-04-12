@@ -35,7 +35,7 @@ class Cli:
             self.user_account = None
 
             print("==============================")
-            print("Welcome to Stockify!")
+            print("Welcome to EdgeXchange!")
             print("==============================\n")
 
             print("1. Create an account")
