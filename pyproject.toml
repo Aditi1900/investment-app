@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "Investment_App"
+name = "Stockify"
 version = "0.1.0"
 description = "An app that allows for making mock investments with real market data."
 readme = "README.md"
@@ -20,4 +20,4 @@ dependencies = [
 ]
 
 [project.scripts]
-investment-app = "investment_app.investment_app:main"
+stockify = "stockify.stockify:main"

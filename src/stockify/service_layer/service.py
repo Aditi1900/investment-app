@@ -287,8 +287,7 @@ class Service:
         for ticker, stock in portfolio.stocks.items():
             price = holdings[ticker]
 
-            value = stock.quantity * price
-            value += inject_volatility(value)
+            value = stock.quantity * (price + inject_volatility(price))
             total += value
 
             packaged_data["holdings"].append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})

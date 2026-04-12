@@ -75,6 +75,11 @@ class ExternalApi:
         ticker_dat = yf.Tickers(" ".join(tickers))
         
         for t in tickers:
-            ticker_package[t] = ticker_dat.tickers[t].fast_info.last_price
+            price = ticker_dat.tickers[t].fast_info.last_price
+
+            if not price:
+                price = ExternalApi.get_stock_price(t)
+
+            ticker_package[t] = price
 
         return ticker_package

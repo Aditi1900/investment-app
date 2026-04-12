@@ -35,7 +35,7 @@ class Cli:
             self.user_account = None
 
             print("==============================")
-            print("Welcome to our Investment App!")
+            print("Welcome to Stockify!")
             print("==============================\n")
 
             print("1. Create an account")
