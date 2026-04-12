@@ -34,16 +34,16 @@ def set_volatile_percent(percent : int):
 # INPUT: 
 #   -price(float); a specific stock price
 # OUTPUT:
-#   -artificial_volatility(float); a float drawn from gaussian distribution (_volatile_percent% of price) / 2, clamped to -price
+#   -artificial_volatility(float); a float drawn randomly +/-(_volatile_percent% of price)
 # PRECONDITION: None
 # POSTCONDITION: 
-#   -artificial volatility; a float that falls within the gaussian distribution is produced, 95% are +/-(_volatile_percent% of price)
+#   -artificial volatility; a float that falls within +/-(_volatile_percent% of price)
 # RAISES: None
 def inject_volatility(price : float) -> float:
    
     volatile_range = price/100 * _volatile_percent
 
-    artificial_volatility = max(random.gauss(0, volatile_range/2), -price)
+    artificial_volatility = random.uniform(-volatile_range, volatile_range)
     
     return artificial_volatility
     
