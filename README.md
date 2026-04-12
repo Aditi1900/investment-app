@@ -1,6 +1,6 @@
-# Stockify Introduction
+# EdgeXchange Introduction
 
-Stockify is a simulated investment platform that lets users build portfolios, execute trades, and observe how their picks perform under realistic market volatility. 
+EdgeXchange is a simulated investment platform that lets users build portfolios, execute trades, and observe how their picks perform under realistic market volatility. 
 By removing the risk of real financial loss, it gives beginners a confidence-building environment to learn trading fundamentals; 
 including how portfolio drift develops over time when positions go unmanaged.
 
@@ -16,10 +16,10 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Restart your terminal, then:
 
 ````powershell
-git clone https://github.com/LoganOBerk/stockify.git
-cd stockify
+git clone https://github.com/LoganOBerk/edgexchange.git
+cd edgexchange
 uv sync
-uv run stockify
+uv run edgexchange
 ````
 
 ## Linux / Mac
@@ -31,10 +31,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Restart your terminal, then:
 
 ````bash
-git clone https://github.com/LoganOBerk/stockify.git
-cd stockify
+git clone https://github.com/LoganOBerk/edgexchange.git
+cd edgexchange
 uv sync
-uv run stockify
+uv run edgexchange
 ````
 
 ---
@@ -44,13 +44,13 @@ uv run stockify
 Run the app with no flags for default behavior — an interactive CLI with database enabled and no artificial volatility.
 
 ```bash
-uv run stockify
+uv run edgexchange
 ```
 
 ## Arguments
 
 ```
-usage: stockify [-h] [-t] [-s] [-v %]
+usage: edgexchange [-h] [-t] [-s] [-v %]
 
 options:
   -h, --help   show this help message and exit
@@ -69,16 +69,16 @@ options:
 
 ```bash
 # Default — CLI mode, live database, no volatility
-uv run stockify
+uv run edgexchange
 
 # Switch to web server instead of CLI
-uv run stockify -s
+uv run edgexchange -s
 
 # Development mode with test database and volatility
-uv run stockify -t -v 10
+uv run edgexchange -t -v 10
 
 # Serve on network with volatility for demos
-uv run stockify -s -v 5
+uv run edgexchange -s -v 5
 ```
 
 ---
@@ -86,15 +86,15 @@ uv run stockify -s -v 5
 # System Architecture
 
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-architecture.svg">
-  <img src="diagrams/stockify-architecture.png" alt="Architecture Diagram">
+  <source type="image/svg+xml" srcset="diagrams/system-architecture.svg">
+  <img src="diagrams/system-architecture.png" alt="Architecture Diagram">
 </picture>
 
 ## Database Architecture
 
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-database.svg">
-  <img src="diagrams/stockify-database.png" alt="Database Crow Diagram">
+  <source type="image/svg+xml" srcset="diagrams/system-database.svg">
+  <img src="diagrams/system-database.png" alt="Database Crow Diagram">
 </picture>
 
 ---
@@ -105,32 +105,32 @@ Core feature pipelines with traversal through layers and main method calls exclu
 
 ## Create Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-create-account.svg">
-  <img src="diagrams/stockify-pipelines-create-account.png" alt="Create Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/system-pipelines-create-account.svg">
+  <img src="diagrams/system-pipelines-create-account.png" alt="Create Account Pipe">
 </picture>
 
 ## Find Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-find-account.svg">
-  <img src="diagrams/stockify-pipelines-find-account.png" alt="Find Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/system-pipelines-find-account.svg">
+  <img src="diagrams/system-pipelines-find-account.png" alt="Find Account Pipe">
 </picture>
 
 ## Fund Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-fund-account.svg">
-  <img src="diagrams/stockify-pipelines-fund-account.png" alt="Fund Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/system-pipelines-fund-account.svg">
+  <img src="diagrams/system-pipelines-fund-account.png" alt="Fund Account Pipe">
 </picture>
 
 ## Create / Remove Portfolio
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-create_or_remove-portfolio.svg">
-  <img src="diagrams/stockify-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
+  <source type="image/svg+xml" srcset="diagrams/system-pipelines-create_or_remove-portfolio.svg">
+  <img src="diagrams/system-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
 </picture>
 
 ## Execute Buy / Sell
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-execute_buy_or_sell.svg">
-  <img src="diagrams/stockify-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
+  <source type="image/svg+xml" srcset="diagrams/system-pipelines-execute_buy_or_sell.svg">
+  <img src="diagrams/system-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
 </picture>
 
 ---
