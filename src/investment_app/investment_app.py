@@ -26,7 +26,7 @@ def retrieve_args() -> Namespace:
 def main():
     args = retrieve_args()
 
-    investment_app = App(testing = args.t, frontend = args.s)
+    investment_app = App(testing = args.test, frontend = args.serve)
     investment_app.run()
 
 
