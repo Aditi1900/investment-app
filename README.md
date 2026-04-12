@@ -9,10 +9,10 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Restart your terminal, then:
 
 ````powershell
-git clone https://github.com/LoganOBerk/investment-app.git
-cd investment-app
+git clone https://github.com/LoganOBerk/stockify.git
+cd stockify
 uv sync
-uv run investment-app
+uv run stockify
 ````
 
 ## Linux / Mac
@@ -24,10 +24,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Restart your terminal, then:
 
 ````bash
-git clone https://github.com/LoganOBerk/investment-app.git
-cd investment-app
+git clone https://github.com/LoganOBerk/stockify.git
+cd stockify
 uv sync
-uv run investment-app
+uv run stockify
 ````
 
 ---
@@ -37,13 +37,13 @@ uv run investment-app
 Run the app with no flags for default behavior — an interactive CLI with database enabled and no artificial volatility.
 
 ```bash
-uv run investment-app
+uv run stockify
 ```
 
 ## Arguments
 
 ```
-usage: investment-app [-h] [-t] [-s] [-v %]
+usage: stockify [-h] [-t] [-s] [-v %]
 
 options:
   -h, --help   show this help message and exit
@@ -62,16 +62,16 @@ options:
 
 ```bash
 # Default — CLI mode, live database, no volatility
-uv run investment-app
+uv run stockify
 
 # Switch to web server instead of CLI
-uv run investment-app -s
+uv run stockify -s
 
 # Development mode with test database and volatility
-uv run investment-app -t -v 10
+uv run stockify -t -v 10
 
 # Serve on network with volatility for demos
-uv run investment-app -s -v 5
+uv run stockify -s -v 5
 ```
 
 ---
@@ -79,15 +79,15 @@ uv run investment-app -s -v 5
 # System Architecture
 
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-architecture.svg">
-  <img src="diagrams/investment-app-architecture.png" alt="Architecture Diagram">
+  <source type="image/svg+xml" srcset="diagrams/stockify-architecture.svg">
+  <img src="diagrams/stockify-architecture.png" alt="Architecture Diagram">
 </picture>
 
 ## Database Architecture
 
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-database.svg">
-  <img src="diagrams/investment-app-database.png" alt="Database Crow Diagram">
+  <source type="image/svg+xml" srcset="diagrams/stockify-database.svg">
+  <img src="diagrams/stockify-database.png" alt="Database Crow Diagram">
 </picture>
 
 ---
@@ -98,32 +98,32 @@ Core feature pipelines with traversal through layers and main method calls exclu
 
 ## Create Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create-account.svg">
-  <img src="diagrams/investment-app-pipelines-create-account.png" alt="Create Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-create-account.svg">
+  <img src="diagrams/stockify-pipelines-create-account.png" alt="Create Account Pipe">
 </picture>
 
 ## Find Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-find-account.svg">
-  <img src="diagrams/investment-app-pipelines-find-account.png" alt="Find Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-find-account.svg">
+  <img src="diagrams/stockify-pipelines-find-account.png" alt="Find Account Pipe">
 </picture>
 
 ## Fund Account
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-fund-account.svg">
-  <img src="diagrams/investment-app-pipelines-fund-account.png" alt="Fund Account Pipe">
+  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-fund-account.svg">
+  <img src="diagrams/stockify-pipelines-fund-account.png" alt="Fund Account Pipe">
 </picture>
 
 ## Create / Remove Portfolio
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-create_or_remove-portfolio.svg">
-  <img src="diagrams/investment-app-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
+  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-create_or_remove-portfolio.svg">
+  <img src="diagrams/stockify-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
 </picture>
 
 ## Execute Buy / Sell
 <picture>
-  <source type="image/svg+xml" srcset="diagrams/investment-app-pipelines-execute_buy_or_sell.svg">
-  <img src="diagrams/investment-app-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
+  <source type="image/svg+xml" srcset="diagrams/stockify-pipelines-execute_buy_or_sell.svg">
+  <img src="diagrams/stockify-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
 </picture>
 
 ---
