@@ -55,8 +55,8 @@ class App:
     # PRECONDITION:
     #	-db_source; non-empty string ending with '.db'
     # POSTCONDITION:
-    #	-'app_data/'; subdirectory exists relative to __file__
-    #	-db_path; points to db_source inside 'app_data/'
+    #	-'data/'; subdirectory exists relative to pyproject.toml
+    #	-db_path; points to db_source inside 'data/'
     # RAISES: None
     def establish_path(self, db_source : str) -> Path:
         base_dir = Path(__file__).parent
