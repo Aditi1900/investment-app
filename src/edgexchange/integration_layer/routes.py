@@ -216,14 +216,13 @@ def fund(req : FundsRequest) -> dict[str, UserData]:
 
         with user.lock:
             frontend_api.fund_account(user, req.funds_requested)
-       
+            response = {"user" : UserData.convert(user)}
+    
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
-
-    response = {"user" : UserData.convert(user)}
 
     return response
 
@@ -253,14 +252,13 @@ def create_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
         
         with user.lock:
             frontend_api.create_portfolio(user, req.name)
-        
+            response = {"user" : UserData.convert(user)}
+    
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
-
-    response = {"user" : UserData.convert(user)}
 
     return response
 
@@ -290,14 +288,13 @@ def remove_portfolio(req : PortfolioRequest) -> dict[str, UserData]:
 
         with user.lock:
             frontend_api.remove_portfolio(user, req.name)
-        
+            response = {"user" : UserData.convert(user)}    
+    
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
-
-    response = {"user" : UserData.convert(user)}    
 
     return response 
 
@@ -336,14 +333,13 @@ def buy(req : TransactionRequest) -> dict[str, PortfolioData]:
                 raise HTTPException(status_code = 404, detail = "Portfolio not found")
 
             frontend_api.execute_buy(user, portfolio, shares_requested)
-        
+            response = {"portfolio" : PortfolioData.convert(portfolio)}
+            
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
-
-    response = {"portfolio" : PortfolioData.convert(portfolio)}
 
     return response
 
@@ -380,14 +376,15 @@ def sell(req : TransactionRequest) -> dict[str, PortfolioData]:
                 raise HTTPException(status_code = 404, detail = "Portfolio not found")
 
             frontend_api.execute_sell(user, portfolio, shares_requested)
-        
+            response = {"portfolio" : PortfolioData.convert(portfolio)}
+            
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
     except ServiceError as e:
         raise HTTPException(status_code = 500, detail = str(e))
 
-    response = {"portfolio" : PortfolioData.convert(portfolio)}
+
 
     return response 
 
