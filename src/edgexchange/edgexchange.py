@@ -26,8 +26,8 @@ def retrieve_args() -> Namespace:
 def main():
     args = retrieve_args()
 
-    stockify = App(testing = args.test, frontend = args.serve)
-    stockify.run()
+    application = App(testing = args.test, frontend = args.serve)
+    application.run()
 
 
 if __name__ == "__main__" :
