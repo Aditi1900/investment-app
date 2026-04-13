@@ -33,8 +33,6 @@ class Validator:
     # RAISES: None
     def account_validator(self, credentials : tuple[str, str], new : bool) -> Result:
 
-        
-
         login, password = credentials
         
         if login == '' and password != '' and not password.isspace():
@@ -82,10 +80,7 @@ class Validator:
     # RAISES: None
     @staticmethod
     def portfolio_validator(user_account, portfolio_name : str, create : bool) -> Result:
-        # TODO: Validate that portfolio_name doesnt already exist
-        # TODO: Add any other validation you want, AKA empty name insert
-        # TODO: ensure creation only is allowed when portfolio doesnt exist and removal is only allowed when it does
-
+        
         in_account = portfolio_name in user_account.portfolios
         portfolio_empty = not user_account.portfolios[portfolio_name].stocks if in_account else False 
 
@@ -178,10 +173,10 @@ class Validator:
     # RAISES: None
     @staticmethod
     def fund_validator(funds_request : float) -> Result:
-        # TODO: validate that the funds are positive and reasonable within discrecion
+       
         if funds_request is None:
             return Result(False, "Funds requested must be a valid number.\n")
-        # ensures funds requested are in valid range zero - one-million
+       
         if funds_request >= 1_000_000 or funds_request <= 0:
             return Result(False, "Funds request must be between 1-999,999.\n")
 

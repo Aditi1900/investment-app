@@ -80,7 +80,7 @@ class Service:
         user_account.add_funds(funds_request)
         
 
-    # INPUT:  -----------------------------------------------------
+    # INPUT:
     #   -user_account(User); current user account
     #   -portfolio_name(str); name of portfolio to create
     # OUTPUT: None
