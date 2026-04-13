@@ -34,7 +34,7 @@ class App:
         if testing:
             db_path = ':memory:'
         else:
-            db_path = self.establish_path('investment-app.db')
+            db_path = self.establish_path('edgexchange.db')
 
         self.san = Sanitizer()
         self.db = Database(db_path)
