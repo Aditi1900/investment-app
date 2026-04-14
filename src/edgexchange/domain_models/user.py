@@ -18,14 +18,16 @@ class User:
 
     # INPUT:
     #   -portfolio_name(str); a name for a portfolio
+    #   -p_id(int); a unique portfolio id
     # OUTPUT: None
     # PRECONDITION:
     #   -portfolio_name; not empty and not already in self.portfolios
+    #   -p_id; a unique identification number thats not None
     # POSTCONDITION:
-    #   -self.portfolios; new empty Portfolio keyed by portfolio_name
+    #   -self.portfolios; new empty Portfolio keyed by portfolio_name is inserted
     # RAISES: None
-    def add_portfolio(self, portfolio_name : str) -> None:
-        self.portfolios[portfolio_name] = Portfolio(name = portfolio_name)
+    def add_portfolio(self, portfolio_name : str, p_id : int) -> None:
+        self.portfolios[portfolio_name] = Portfolio(id = p_id, name = portfolio_name)
 
 
     # INPUT:

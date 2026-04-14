@@ -102,8 +102,7 @@ class Service:
         except DatabaseError as e:
             raise ServiceError("Failed to create portfolio") from e
 
-        user_account.add_portfolio(portfolio_name)
-        user_account.portfolios[portfolio_name].id = p_id
+        user_account.add_portfolio(portfolio_name, p_id)
 
 
     # INPUT:
@@ -168,10 +167,7 @@ class Service:
         except DatabaseError as e:
             raise ServiceError("Failed to execute buy") from e
 
-        portfolio.buy_shares(shares_request)
-
-        if s_id is not None:
-            portfolio.stocks[ticker].id = s_id
+        portfolio.buy_shares(shares_request, s_id)
         
 
     # INPUT: 
