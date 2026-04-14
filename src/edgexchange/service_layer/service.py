@@ -1,7 +1,6 @@
 import sys
 from collections import defaultdict
 
-from ..common.entropy import inject_volatility
 from ..common.errors import DatabaseError, ServiceError
 from ..common.security import secure_creds
 from ..domain_models import User, Portfolio, Stock
@@ -287,7 +286,7 @@ class Service:
         for ticker, stock in portfolio.stocks.items():
             price = holdings[ticker]
 
-            value = stock.quantity * (price + inject_volatility(price))
+            value = stock.quantity * price
             total += value
 
             packaged_data["holdings"].append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})

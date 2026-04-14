@@ -3,6 +3,8 @@ from math import inf
 
 import yfinance as yf
 
+from ..common.entropy import inject_volatility
+
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
@@ -23,6 +25,7 @@ class ExternalApi:
     @staticmethod
     def get_stock_price(ticker : str) -> float:
         price = yf.Ticker(ticker).fast_info.last_price
+        price += inject_volatility(price)
         return price
 
 
@@ -76,6 +79,7 @@ class ExternalApi:
         
         for t in tickers:
             price = ticker_dat.tickers[t].fast_info.last_price
+            price += inject_volatility(price)
 
             if not price:
                 price = ExternalApi.get_stock_price(t)
