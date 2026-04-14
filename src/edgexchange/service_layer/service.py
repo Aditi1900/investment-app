@@ -47,14 +47,16 @@ class Service:
     # RAISES:
     #   -ServiceError; database call fails
     def find_account(self, login : str) -> User:
+        user = User()
+
         try:
 
-            user = User()
             self.populate_user_account(user, login)
-            return user
 
         except DatabaseError as e:
             raise ServiceError("Failed to find account") from e
+
+        return user
 
 
     # INPUT:
