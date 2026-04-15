@@ -369,6 +369,14 @@ class Database:
             raise DatabaseError(f"update_funds failed: {e}") from e
 
     
+    # INPUT: None
+    # OUTPUT: None
+    # PRECONDITION:
+    #   self.conn; is a valid open database connection
+    # POSTCONDITION:
+    #   -database; is updated with transaction changes or rolled back
+    # RAISES:
+    #   -Exception; any exception is raised that occurs in context block
     @contextmanager
     def transaction(self):
         try:
