@@ -197,6 +197,7 @@ class Service:
         total_value = price * quantity
 
         try:
+
             with self.db.transaction():
                 self.db.update_funds(user_account.id, total_value)
 
