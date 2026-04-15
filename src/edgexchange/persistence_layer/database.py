@@ -1,5 +1,6 @@
 import sqlite3 as sqlite
 from sqlite3 import Error as SqliteError
+from contextlib import contextmanager
 
 from ..common.errors import DatabaseError
 
@@ -93,7 +94,6 @@ class Database:
             cursor.execute(pull_user, (login,))
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"pull_user failed: {e}") from e
         
         user_data = cursor.fetchone()
@@ -125,7 +125,6 @@ class Database:
             cursor.execute(pull_portfolios, (user_id,))
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"pull_portfolios failed: {e}") from e
 
         user_portfolios = cursor.fetchall()
@@ -158,7 +157,6 @@ class Database:
             cursor.execute(pull_stocks, (user_id,))
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"pull_stocks failed: {e}") from e
 
         user_stocks = cursor.fetchall()
@@ -188,10 +186,8 @@ class Database:
         try:
 
             cursor.execute(insert_user, credentials)
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"insert_user failed: {e}") from e
 
         u_id = cursor.lastrowid
@@ -223,10 +219,8 @@ class Database:
         try:
 
             cursor.execute(insert_portfolio, (user_id, portfolio_name))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"insert_portfolio failed: {e}") from e
 
         p_id = cursor.lastrowid
@@ -254,10 +248,8 @@ class Database:
         try:
 
             cursor.execute(delete_portfolio, (portfolio_id,))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"delete_portfolio failed: {e}") from e
 
 
@@ -287,10 +279,8 @@ class Database:
         try:
 
             cursor.execute(insert_stock, (portfolio_id, ticker, quantity))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"insert_stock failed: {e}") from e
 
         s_id = cursor.lastrowid
@@ -318,10 +308,8 @@ class Database:
         try:
 
             cursor.execute(delete_stock, (stock_id,))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"delete_stock failed: {e}") from e
 
 
@@ -348,10 +336,8 @@ class Database:
         try:
 
             cursor.execute(update_stock, (quantity, stock_id))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"update_stock failed: {e}") from e
 
 
@@ -378,8 +364,16 @@ class Database:
         try:
 
             cursor.execute(update_funds, (funds_request, user_id))
-            self.conn.commit()
 
         except SqliteError as e:
-            self.conn.rollback()
             raise DatabaseError(f"update_funds failed: {e}") from e
+
+    
+    @contextmanager
+    def transaction(self):
+        try:
+            yield
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise

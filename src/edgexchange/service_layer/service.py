@@ -29,8 +29,8 @@ class Service:
         credentials = secure_creds(credentials)
 
         try:
-          
-            self.db.insert_user(credentials)
+            with self.db.transaction():
+                self.db.insert_user(credentials)
 
         except DatabaseError as e:
             raise ServiceError("Failed to create account") from e
@@ -73,8 +73,9 @@ class Service:
     #   -ServiceError; database call fails
     def fund_account(self, user_account : User, funds_request : float) -> None:
         try:
-        
-            self.db.update_funds(user_account.id, funds_request)
+
+            with self.db.transaction():
+                self.db.update_funds(user_account.id, funds_request)
 
         except DatabaseError as e:
             raise ServiceError("Failed to update funds") from e
@@ -97,7 +98,8 @@ class Service:
     def create_portfolio(self, user_account : User, portfolio_name : str) -> None:
         try:
 
-            p_id = self.db.insert_portfolio(user_account.id, portfolio_name)
+            with self.db.transaction():
+                p_id = self.db.insert_portfolio(user_account.id, portfolio_name)
 
         except DatabaseError as e:
             raise ServiceError("Failed to create portfolio") from e
@@ -121,7 +123,8 @@ class Service:
         try:
 
             portfolio = user_account.portfolios[portfolio_name]
-            self.db.delete_portfolio(portfolio.id)
+            with self.db.transaction():
+                self.db.delete_portfolio(portfolio.id)
 
         except DatabaseError as e:
             raise ServiceError("Failed to remove portfolio") from e
@@ -155,18 +158,19 @@ class Service:
 
         try:
 
-            self.db.update_funds(user_account.id, -total_cost)
-            user_account.sub_funds(total_cost)
-
-            if portfolio.has_stock(ticker):
-                stock = portfolio.stocks[ticker]
-                self.db.update_stock(stock.id, quantity)
-            else:
-                 s_id = self.db.insert_stock(portfolio.id, shares_request)
+            with self.db.transaction():
+                self.db.update_funds(user_account.id, -total_cost)
+            
+                if portfolio.has_stock(ticker):
+                    stock = portfolio.stocks[ticker]
+                    self.db.update_stock(stock.id, quantity)
+                else:
+                     s_id = self.db.insert_stock(portfolio.id, shares_request)
 
         except DatabaseError as e:
             raise ServiceError("Failed to execute buy") from e
 
+        user_account.sub_funds(total_cost)
         portfolio.buy_shares(shares_request, s_id)
         
 
@@ -193,20 +197,20 @@ class Service:
         total_value = price * quantity
 
         try:
-            
-            self.db.update_funds(user_account.id, total_value)
-            user_account.add_funds(total_value)
+            with self.db.transaction():
+                self.db.update_funds(user_account.id, total_value)
 
-            stock = portfolio.stocks[ticker]
+                stock = portfolio.stocks[ticker]
 
-            if portfolio.has_stock(ticker) and quantity == portfolio.stocks[ticker].quantity:
-                self.db.delete_stock(stock.id)
-            else:
-                self.db.update_stock(stock.id, -quantity)
+                if quantity == stock.quantity:
+                    self.db.delete_stock(stock.id)
+                else:
+                    self.db.update_stock(stock.id, -quantity)
 
         except DatabaseError as e:
             raise ServiceError("Failed to execute sell") from e
 
+        user_account.add_funds(total_value)
         portfolio.sell_shares(shares_request)
 
 
