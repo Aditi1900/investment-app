@@ -430,11 +430,10 @@ async def get_live_portfolio_data(session_id : str, portfolio_name : str):
     if user is None:
         raise HTTPException(status_code = 401, detail = "Invalid session")
         
-    async with user.lock:
-        portfolio = user.portfolios.get(portfolio_name)
+    portfolio = user.portfolios.get(portfolio_name)
     
-        if portfolio is None:
-            raise HTTPException(status_code = 404, detail = "Portfolio not found")
+    if portfolio is None:
+        raise HTTPException(status_code = 404, detail = "Portfolio not found")
     
     live_data = frontend_api.make_data_stream(portfolio)
 
