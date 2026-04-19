@@ -6,7 +6,7 @@ from .common.entropy import set_volatile_percent
 
 # INPUT: None
 # OUTPUT:
-#   -args(Namespace); entered system arguments, -t testing mode flag, -s frontend server flag
+#   -args(Namespace); entered system arguments, -t testing mode flag, -s frontend server flag, -v volatility amount
 # PRECONDITION: None
 # POSTCONDITION:
 #   -args; system arguments have been parsed from terminal
