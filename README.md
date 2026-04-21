@@ -7,7 +7,7 @@ including how portfolio drift develops over time when positions go unmanaged.
 
 # Setup
 
-Install Git: https://git-scm.com/install/\
+Install Git: https://git-scm.com/install/  \
 Install Nodejs: https://nodejs.org/en/download
 
 ## Windows
