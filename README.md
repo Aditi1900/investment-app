@@ -18,28 +18,19 @@ Before you begin, make sure the following are installed:
 
 ## Setup
 
-### Windows
+**1. Install uv**
 
+Windows:
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Restart your terminal, then:
-
-```powershell
-git clone https://github.com/LoganOBerk/edgexchange.git
-cd edgexchange
-uv sync
-uv run edgexchange
-```
-
-### Linux / Mac
-
+Linux / Mac:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Restart your terminal, then:
+**2. Restart your terminal, then clone and run:**
 
 ```bash
 git clone https://github.com/LoganOBerk/edgexchange.git
@@ -48,7 +39,7 @@ uv sync
 uv run edgexchange
 ```
 
-Open a **second terminal** and start the frontend:
+**3. Open a second terminal and start the frontend:**
 
 ```bash
 cd edgexchange/src/edgexchange/interface_layer/frontend
