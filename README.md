@@ -7,6 +7,10 @@ including how portfolio drift develops over time when positions go unmanaged.
 
 # Setup
 
+## Pre-requisites
+Installation of Git
+Installation of Nodejs
+
 ## Windows
 
 ````powershell
@@ -35,6 +39,12 @@ git clone https://github.com/LoganOBerk/edgexchange.git
 cd edgexchange
 uv sync
 uv run edgexchange
+````
+Frontend service(-s):
+````bash
+cd edgexchange/src/edgexchange/frontend
+npm install next
+npm run dev
 ````
 
 ---
