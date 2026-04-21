@@ -1,56 +1,66 @@
-# EdgeXchange Introduction
+# EdgeXchange
 
-EdgeXchange is a simulated investment platform that lets users build portfolios, execute trades, and observe how their picks perform under realistic market volatility. 
-By removing the risk of real financial loss, it gives beginners a confidence-building environment to learn trading fundamentals; 
-including how portfolio drift develops over time when positions go unmanaged.
-
-
-# Setup
-
-Install Git: https://git-scm.com/install  \
-Install Nodejs: https://nodejs.org/en/download
-
-## Windows
-
-````powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-````
-
-Restart your terminal, then:
-
-````powershell
-git clone https://github.com/LoganOBerk/edgexchange.git
-cd edgexchange
-uv sync
-uv run edgexchange
-````
-
-## Linux / Mac
-
-````bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-````
-
-Restart your terminal, then:
-
-````bash
-git clone https://github.com/LoganOBerk/edgexchange.git
-cd edgexchange
-uv sync
-uv run edgexchange
-````
-
-Open new terminal, then:
-````bash
-cd edgexchange/src/edgexchange/interface_layer/frontend
-npm install next
-npm run dev
-````
-Use http://localhost:3000 in browser.
+A simulated investment platform for learning trading fundamentals. Build portfolios, execute trades, and observe how your picks perform under realistic market volatility — without the risk of real financial loss.
 
 ---
 
-# Usage
+## Prerequisites
+
+Before you begin, make sure the following are installed:
+
+| Tool | Purpose | Download |
+|---|---|---|
+| Git | Clone the repository | https://git-scm.com/install |
+| Node.js | Run the frontend | https://nodejs.org/en/download |
+| uv | Python package manager | Installed in setup steps below |
+
+---
+
+## Setup
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Restart your terminal, then:
+
+```powershell
+git clone https://github.com/LoganOBerk/edgexchange.git
+cd edgexchange
+uv sync
+uv run edgexchange
+```
+
+### Linux / Mac
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Restart your terminal, then:
+
+```bash
+git clone https://github.com/LoganOBerk/edgexchange.git
+cd edgexchange
+uv sync
+uv run edgexchange
+```
+
+Open a **second terminal** and start the frontend:
+
+```bash
+cd edgexchange/src/edgexchange/interface_layer/frontend
+npm install next
+npm run dev
+```
+
+Open http://localhost:3000 in your browser.
+
+---
+
+## Usage
 
 Run the app with no flags for default behavior — an interactive CLI with database enabled and no artificial volatility.
 
@@ -58,7 +68,7 @@ Run the app with no flags for default behavior — an interactive CLI with datab
 uv run edgexchange
 ```
 
-## Arguments
+### Arguments
 
 ```
 usage: edgexchange [-h] [-t] [-s] [-v %]
@@ -76,7 +86,7 @@ options:
 | `-s, --serve` | Binds to all interfaces (`0.0.0.0`) on port `8000`, making the app accessible on your local network instead of the CLI. |
 | `-v, --vol <percent>` | Injects artificial volatility into stock prices by the given percentage. E.g. `-v 5` adds ±5% variance. |
 
-## Examples
+### Examples
 
 ```bash
 # Default — CLI mode, live database, no volatility
@@ -94,14 +104,14 @@ uv run edgexchange -s -v 5
 
 ---
 
-# System Architecture
+## System Architecture
 
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-architecture.svg">
   <img src="diagrams/system-architecture.png" alt="Architecture Diagram">
 </picture>
 
-## Database Architecture
+### Database Architecture
 
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-database.svg">
@@ -110,35 +120,35 @@ uv run edgexchange -s -v 5
 
 ---
 
-# Feature Pipelines
+## Feature Pipelines
 
 Core feature pipelines with traversal through layers and main method calls excluding helper functions.
 
-## Create Account
+### Create Account
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-pipelines-create-account.svg">
   <img src="diagrams/system-pipelines-create-account.png" alt="Create Account Pipe">
 </picture>
 
-## Find Account
+### Find Account
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-pipelines-find-account.svg">
   <img src="diagrams/system-pipelines-find-account.png" alt="Find Account Pipe">
 </picture>
 
-## Fund Account
+### Fund Account
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-pipelines-fund-account.svg">
   <img src="diagrams/system-pipelines-fund-account.png" alt="Fund Account Pipe">
 </picture>
 
-## Create / Remove Portfolio
+### Create / Remove Portfolio
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-pipelines-create_or_remove-portfolio.svg">
   <img src="diagrams/system-pipelines-create_or_remove-portfolio.png" alt="Create/Remove Portfolio Pipe">
 </picture>
 
-## Execute Buy / Sell
+### Execute Buy / Sell
 <picture>
   <source type="image/svg+xml" srcset="diagrams/system-pipelines-execute_buy_or_sell.svg">
   <img src="diagrams/system-pipelines-execute_buy_or_sell.png" alt="Execute Buy/Sell Pipe">
@@ -146,11 +156,11 @@ Core feature pipelines with traversal through layers and main method calls exclu
 
 ---
 
-# Program Documentation Guidelines
+## Program Documentation Guidelines
 
 Fields marked **"if N/A – None"** must still appear with the literal value `None` so readers know the field was considered.
 
-## Classes
+### Classes
 
 ```python
 # PURPOSE:
@@ -158,7 +168,7 @@ Fields marked **"if N/A – None"** must still appear with the literal value `No
 #    - <why the abstraction exists>
 ```
 
-## Functions
+### Functions
 
 ```python
 # INPUT: if N/A - None
@@ -175,7 +185,7 @@ def function_name(param_name: type) -> type:
     return var_name
 ```
 
-## Style Rules
+### Style Rules
 
 | Rule | Description |
 |---|---|
@@ -188,9 +198,9 @@ def function_name(param_name: type) -> type:
 
 ---
 
-# Program Models
+## Program Models
 
-## Types
+### Types
 
 | Type | Description |
 |---|---|
@@ -198,7 +208,7 @@ def function_name(param_name: type) -> type:
 | `Portfolio` | Represents a named collection of stocks |
 | `Stock` | Represents a stock holding; ticker and quantity |
 
-## Request Models
+### Request Models
 
 JSON request bodies sent to the Frontend API.
 
@@ -243,7 +253,7 @@ JSON request bodies sent to the Frontend API.
 }
 ```
 
-## Response Models
+### Response Models
 
 JSON response bodies returned by the Frontend API.
 
