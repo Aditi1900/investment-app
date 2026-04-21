@@ -8,7 +8,7 @@ including how portfolio drift develops over time when positions go unmanaged.
 # Setup
 
 ## Pre-requisites
-Installation of Git
+Installation of Git\
 Installation of Nodejs
 
 ## Windows
@@ -40,7 +40,7 @@ cd edgexchange
 uv sync
 uv run edgexchange
 ````
-Frontend service(-s):
+Serve frontend in seperate terminal:
 ````bash
 cd edgexchange/src/edgexchange/frontend
 npm install next
