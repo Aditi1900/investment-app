@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  /* Colors */
+  --color-border: hsl(214 20% 90%);
+  --color-input: hsl(214 20% 90%);
+  --color-ring: hsl(220 40% 13%);
+  --color-background: hsl(210 20% 98%);
+  --color-foreground: hsl(220 40% 13%);
+
+  --color-primary: hsl(220 40% 13%);
+  --color-primary-foreground: hsl(210 40% 98%);
+
+  --color-secondary: hsl(210 25% 95%);
+  --color-secondary-foreground: hsl(220 40% 13%);
+
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+
+  --color-muted: hsl(210 20% 96%);
+  --color-muted-foreground: hsl(215 16% 47%);
+
+  --color-accent: hsl(166 60% 45%);
+  --color-accent-foreground: hsl(0 0% 100%);
+
+  --color-success: hsl(152 60% 42%);
+  --color-success-foreground: hsl(0 0% 100%);
+
+  --color-warning: hsl(38 92% 50%);
+
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(220 40% 13%);
+
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(220 40% 13%);
+
+  --color-sidebar: hsl(0 0% 100%);
+  --color-sidebar-foreground: hsl(220 40% 13%);
+  --color-sidebar-primary: hsl(220 40% 13%);
+  --color-sidebar-primary-foreground: hsl(210 40% 98%);
+  --color-sidebar-accent: hsl(210 25% 95%);
+  --color-sidebar-accent-foreground: hsl(220 40% 13%);
+  --color-sidebar-border: hsl(214 20% 92%);
+  --color-sidebar-ring: hsl(220 40% 13%);
+
+  /* Border radius */
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Container */
+  --container-2xl: 1400px;
+
+  /* Animations */
+  --keyframes-accordion-down: { from { height: 0 } to { height: var(--radix-accordion-content-height) } };
+  --keyframes-accordion-up: { from { height: var(--radix-accordion-content-height) } to { height: 0 } };
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground;
+  }
+  .card-surface {
+    @apply bg-card rounded-xl border border-border;
+  }
+  .badge-positive {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    background: hsl(152 60% 42% / 0.1);
+    color: hsl(152 60% 42%);
+  }
+  .badge-negative {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    background: hsl(0 72% 51% / 0.1);
+    color: hsl(0 72% 51%);
+  }
+}
