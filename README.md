@@ -39,12 +39,14 @@ cd edgexchange
 uv sync
 uv run edgexchange
 ````
+
 Open new terminal, then:
 ````bash
 cd edgexchange/src/edgexchange/interface_layer/frontend
 npm install next
 npm run dev
 ````
+Use http://localhost:3000 in browser.
 
 ---
 
