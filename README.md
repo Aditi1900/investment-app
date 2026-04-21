@@ -39,10 +39,10 @@ uv sync
 uv run edgexchange
 ```
 
-**3. Open a second terminal and start the frontend:**
+**3. Open a second terminal in the repo directory and start the frontend:**
 
 ```bash
-cd edgexchange/src/edgexchange/interface_layer/frontend
+cd src/edgexchange/interface_layer/frontend
 npm install next
 npm run dev
 ```
