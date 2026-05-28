@@ -13,6 +13,25 @@ class LiveCache:
         self.cache = defaultdict(lambda : {"price" : None, "float" : None, "timestamp" : None})
 
 
+    def run(self):
+        while True:
+            expired = []
+            now = time.time()
+
+            for ticker, data in self.cache.items():
+                timestamp = data["timestamp"]
+                if timestamp is not None and now - timestamp > 1: expired.append(ticker)
+
+            for ticker in expired:
+                del self.cache[ticker]
+
+            time.sleep(1)
+
+
+    def boot(self):
+        pass
+
+
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective ExternalApi.get_stock_price() fields
     def get_stock_price(self, ticker : str) -> float:
         if self.cache[ticker]["price"] is None:
@@ -51,15 +70,17 @@ class LiveCache:
         cached_tickers = list(set(tickers) & set(self.cache))
         missing_tickers = list(set(tickers) - set(self.cache))
 
-        for ticker in cached_tickers:
-            ticker_package[ticker] = self.cache[ticker]["price"]
-        
         fresh = eapi.get_stock_prices(missing_tickers)
         
         for ticker, price in fresh.items():
             self.cache[ticker]["price"] = price
             self.cache[ticker]["timestamp"] = time.time()
 
+        for ticker in cached_tickers:
+            ticker_package[ticker] = self.cache[ticker]["price"]
+
         ticker_package |= fresh
 
         return ticker_package
+
+    

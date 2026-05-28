@@ -72,7 +72,8 @@ class ExternalApi:
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
-        ticker_dat = yf.Tickers(" ".join(tickers))
+
+        ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
         
         for t in tickers:
             price = ticker_dat.tickers[t].fast_info.last_price
