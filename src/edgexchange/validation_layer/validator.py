@@ -2,7 +2,7 @@ import re
 from typing import NamedTuple
 
 from ..common.security import password_match
-from ..integration_layer import ExternalApi as eapi
+from ..integration_layer import LiveCache as lcac
 
 
 # PURPOSE: 
@@ -130,7 +130,7 @@ class Validator:
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
            return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
         
-        if purchase and not eapi.does_ticker_exist(ticker):
+        if purchase and not lcac.does_ticker_exist(ticker):
            return Result(False, "This stock does not exist on the open market.\n")
         
         if not purchase and ticker not in portfolio.stocks:
@@ -141,7 +141,7 @@ class Validator:
         if quantity <= 0:
             return Result(False, "Requested quantity must be positive.\n")
 
-        if purchase and eapi.get_float(ticker) < quantity:
+        if purchase and lcac.get_float(ticker) < quantity:
            return Result(False, "Requested quantity exceeds available shares on open market.\n")
             
         if not purchase and portfolio.stocks[ticker].quantity < quantity:
@@ -150,7 +150,7 @@ class Validator:
 
         #Validate Balance
         if purchase: 
-            price = eapi.get_stock_price(ticker)
+            price = lcac.get_stock_price(ticker)
             total_cost = price * quantity
 
             if balance < total_cost:

@@ -1,86 +1,89 @@
 import time
+import threading
 
 from collections import defaultdict
 
 from .externalapi import ExternalApi as eapi
 
-# PURPOSE:
-#   -LiveCache provides a recent memory abstraction
-#   -allows system to store and re-access fresh stocks to reduce api calls 
+
+cache = defaultdict(lambda : {"price" : None, "float" : None, "timestamp" : None})
+
+def run():
+    while True:
+        expired = []
+        now = time.time()
+
+        for ticker, data in cache.items():
+            timestamp = data["timestamp"]
+            if timestamp is not None and now - timestamp > 1: expired.append(ticker)
+
+        for ticker in expired:
+            del cache[ticker]
+
+        time.sleep(1)
+
+threading.Thread(target = run, daemon = True).start()
+
+
+
 class LiveCache:
-    
-    def __init__(self):
-        self.cache = defaultdict(lambda : {"price" : None, "float" : None, "timestamp" : None})
-
-
-    def run(self):
-        while True:
-            expired = []
-            now = time.time()
-
-            for ticker, data in self.cache.items():
-                timestamp = data["timestamp"]
-                if timestamp is not None and now - timestamp > 1: expired.append(ticker)
-
-            for ticker in expired:
-                del self.cache[ticker]
-
-            time.sleep(1)
-
-
-    def boot(self):
-        pass
-
-
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective ExternalApi.get_stock_price() fields
-    def get_stock_price(self, ticker : str) -> float:
-        if self.cache[ticker]["price"] is None:
-            self.cache[ticker]["price"] = eapi.get_stock_price(ticker)
-            self.cache[ticker]["timestamp"] = time.time()
+    @staticmethod
+    def get_stock_price(ticker : str) -> float:
+        if cache[ticker]["price"] is None:
+            cache[ticker]["price"] = eapi.get_stock_price(ticker)
+            cache[ticker]["timestamp"] = time.time()
 
-        price = self.cache[ticker]["price"]
+        price = cache[ticker]["price"]
 
         return price
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective ExternalApi.get_stock_price() fields
+    @staticmethod
     def does_ticker_exist(self, ticker : str) -> bool:
         exist = True
 
-        if ticker not in self.cache:
+        if ticker not in cache:
             exist = eapi.does_ticker_exist(ticker)
 
         return exist
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective ExternalApi.get_stock_price() fields
-    def get_float(self, ticker : str) -> int:
-        if self.cache[ticker]["float"] is None:
-            self.cache[ticker]["float"] = eapi.get_float(ticker)
+    @staticmethod
+    def get_float(ticker : str) -> int:
+        if cache[ticker]["float"] is None:
+            cache[ticker]["float"] = eapi.get_float(ticker)
 
-        max_shares = self.cache[ticker]["float"]
+        max_shares = cache[ticker]["float"]
 
         return max_shares
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective ExternalApi.get_stock_price() fields
-    def get_stock_prices(self, tickers: list[str]) -> dict[str, float]:
+    @staticmethod
+    def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
 
-        cached_tickers = list(set(tickers) & set(self.cache))
-        missing_tickers = list(set(tickers) - set(self.cache))
+        cached_tickers = list(set(tickers) & set(cache))
+        missing_tickers = list(set(tickers) - set(cache))
 
         fresh = eapi.get_stock_prices(missing_tickers)
         
         for ticker, price in fresh.items():
-            self.cache[ticker]["price"] = price
-            self.cache[ticker]["timestamp"] = time.time()
+            cache[ticker]["price"] = price
+            cache[ticker]["timestamp"] = time.time()
 
         for ticker in cached_tickers:
-            ticker_package[ticker] = self.cache[ticker]["price"]
+            ticker_package[ticker] = cache[ticker]["price"]
 
         ticker_package |= fresh
 
         return ticker_package
+
+
+
+
 
     

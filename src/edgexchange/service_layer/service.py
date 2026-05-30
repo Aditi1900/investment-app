@@ -5,7 +5,7 @@ from ..common.entropy import inject_volatility
 from ..common.errors import DatabaseError, ServiceError
 from ..common.security import secure_creds
 from ..domain_models import User, Portfolio, Stock
-from ..integration_layer import ExternalApi as eapi
+from ..integration_layer import LiveCache as lcac
 
 
 # PURPOSE:
@@ -151,7 +151,7 @@ class Service:
         
         ticker, quantity = shares_request
 
-        price = eapi.get_stock_price(ticker)
+        price = lcac.get_stock_price(ticker)
         total_cost = price * quantity
 
         s_id = None
@@ -193,7 +193,7 @@ class Service:
         
         ticker, quantity = shares_request
 
-        price = eapi.get_stock_price(ticker)
+        price = lcac.get_stock_price(ticker)
         total_value = price * quantity
 
         try:
@@ -285,7 +285,7 @@ class Service:
         packaged_data = {"total": "$0.00", "holdings" : []}
         total = 0
 
-        holdings = eapi.get_stock_prices(list(portfolio.stocks.keys()))
+        holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
 
         for ticker, stock in portfolio.stocks.items():
             price = holdings[ticker]
