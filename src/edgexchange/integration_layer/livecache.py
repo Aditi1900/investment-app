@@ -24,11 +24,15 @@ def run():
         with cache_lock:
             for ticker, data in cache.items():
                 timestamp = data["timestamp"]
-                if timestamp is not None and now - timestamp > 1: 
+                price = data["price"]
+
+                if timestamp is None or price is None:
+                    continue
+
+                if now - timestamp > 1: 
                     expired.append(ticker)
-                else: 
-                    if data["price"] is not None:
-                        data["price"] += inject_volatility(data["price"])
+                else:  
+                   data["price"] += inject_volatility(price)
 
             for ticker in expired:
                 del cache[ticker]
