@@ -11,11 +11,12 @@ from .externalapi import ExternalApi as eapi
 cache = defaultdict(lambda : {"price" : None, "float" : None, "timestamp" : None})
 cache_lock = Lock()
 
-# INPUT:
-# OUTPUT:
-# PRECONDITION:
+# INPUT: None
+# OUTPUT: None
+# PRECONDITION: None
 # POSTCONDITION:
-# RAISES:
+#   -cache; all tickers un-updated >1sec are removed, simulated volatility is injected here if any
+# RAISES: None
 def run():
     while True:
         expired = []
@@ -43,11 +44,7 @@ threading.Thread(target = run, daemon = True).start()
 #   -allows system to store and re-access fresh stocks to reduce api calls 
 class LiveCache:
 
-    # INPUT:
-    # OUTPUT:
-    # PRECONDITION:
-    # POSTCONDITION:
-    # RAISES:
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_stock_price()
     @staticmethod
     def get_stock_price(ticker : str) -> float:
         with cache_lock:
@@ -60,11 +57,7 @@ class LiveCache:
         return price
 
 
-    # INPUT:
-    # OUTPUT:
-    # PRECONDITION:
-    # POSTCONDITION:
-    # RAISES:
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.does_ticker_exist()
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
         exist = True
@@ -75,11 +68,7 @@ class LiveCache:
         return exist
 
 
-    # INPUT:
-    # OUTPUT:
-    # PRECONDITION:
-    # POSTCONDITION:
-    # RAISES: 
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_float()
     @staticmethod
     def get_float(ticker : str) -> int:
         
@@ -92,11 +81,7 @@ class LiveCache:
         return max_shares
 
 
-    # INPUT:
-    # OUTPUT:
-    # PRECONDITION:
-    # POSTCONDITION:
-    # RAISES:
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
