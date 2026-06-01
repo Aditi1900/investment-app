@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from edgexchange.integration_layer.livecache import LiveCache
-
 from ..interface_layer import Cli, Visualizer, Frontend
 from ..sanitization_layer import Sanitizer
 from ..validation_layer import Validator
