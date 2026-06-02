@@ -51,6 +51,7 @@ class LiveCache:
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_stock_price()
     @staticmethod
     def get_stock_price(ticker : str) -> float:
+
         with cache_lock:
             if cache[ticker]["price"] is None:
                 cache[ticker]["price"] = eapi.get_stock_price(ticker)
