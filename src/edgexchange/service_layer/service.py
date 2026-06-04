@@ -292,7 +292,7 @@ class Service:
             value = stock.quantity * price
             total += value
 
-            packaged_data["holdings"].append({"ticker": ticker, "value": value, "label": f"{ticker} (${value:,.2f})"})
+            packaged_data["holdings"].append({"ticker": ticker, "price" : price, "quantity" : stock.quantity, "value": value, "label": f"{ticker} (${value:,.2f})"})
 
         packaged_data["total"] = f"${total:,.2f}"
 

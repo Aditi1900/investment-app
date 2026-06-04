@@ -31,6 +31,12 @@ const cookie = {
     },
 };
 
+function clearSession() {
+    store.remove("session_id");
+    store.remove("user");
+    cookie.remove("session_id");
+}
+
 export function SessionProvider({ children }) {
     const router = useRouter();
 
@@ -38,33 +44,35 @@ export function SessionProvider({ children }) {
     const [user, setUser] = useState(null);
     const [ready, setReady] = useState(false);
 
-    // On mount, hydrate session and fetch fresh user data from backend
+    // On mount, validate stored session against the server
     useEffect(() => {
         const storedSession = store.get("session_id");
-        const storedUser = store.get("user");
 
-        if (storedSession) {
-            setSessionId(storedSession);
-            // Always fetch fresh user from backend to avoid stale localStorage
-            fetch(`${API_BASE}/user?session_id=${storedSession}`)
-                .then((res) => res.ok ? res.json() : null)
-                .then((data) => {
-                    if (data?.user) {
-                        setUser(data.user);
-                        store.set("user", JSON.stringify(data.user));
-                    } else if (storedUser) {
-                        try { setUser(JSON.parse(storedUser)); } catch { store.remove("user"); }
-                    }
-                })
-                .catch(() => {
-                    if (storedUser) {
-                        try { setUser(JSON.parse(storedUser)); } catch { store.remove("user"); }
-                    }
-                })
-                .finally(() => setReady(true));
-        } else {
+        if (!storedSession) {
             setReady(true);
+            return;
         }
+
+        fetch(`${API_BASE}/user?session_id=${storedSession}`)
+            .then((res) => {
+                if (!res.ok) throw new Error("invalid session");
+                return res.json();
+            })
+            .then((data) => {
+                if (data?.user) {
+                    setSessionId(storedSession);
+                    setUser(data.user);
+                    store.set("user", JSON.stringify(data.user));
+                } else {
+                    throw new Error("no user in response");
+                }
+            })
+            .catch(() => {
+                // Server rejected the session — clear everything and send to login
+                clearSession();
+                router.push("/login");
+            })
+            .finally(() => setReady(true));
     }, []);
 
     const login = async (loginVal, password) => {
@@ -85,9 +93,7 @@ export function SessionProvider({ children }) {
         } finally {
             setSessionId(null);
             setUser(null);
-            store.remove("session_id");
-            store.remove("user");
-            cookie.remove("session_id");
+            clearSession();
             router.push("/login");
         }
     };

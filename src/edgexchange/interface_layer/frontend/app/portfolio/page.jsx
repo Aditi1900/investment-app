@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus,
     Trash2,
@@ -9,7 +9,6 @@ import {
     ChevronRight,
     MoreVertical,
 } from "lucide-react";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
 import {
     Dialog,
     DialogContent,
@@ -22,8 +21,8 @@ import { toast } from "@/hooks/use-toast";
 import { useSession } from "@/context/SessionContext";
 import { createPortfolio, removePortfolio } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
-import { usePrices } from "@/hooks/use-prices";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const tabs = ["All Stocks", "Tech", "Finance", "ETF"];
 const sectorMap = {
     "All Stocks": [],
@@ -39,13 +38,6 @@ export default function Portfolio() {
         id: p.name,
         name: p.name,
         stocks: p.stocks || {},
-        holdings: Object.values(p.stocks || {}).map((s) => ({
-            ticker: s.ticker,
-            qty: s.quantity,
-            sector: "",
-            exchange: "",
-            name: s.ticker,
-        })),
     }));
 
     const [activeTab, setActiveTab] = useState("All Stocks");
@@ -54,24 +46,59 @@ export default function Portfolio() {
     const [removeOpen, setRemoveOpen] = useState(false);
     const [newName, setNewName] = useState("");
     const [newDesc, setNewDesc] = useState("");
+    const [liveData, setLiveData] = useState({});
 
     const current = portfolios.find((p) => p.id === activePortfolio) ?? portfolios[0];
 
-    // Collect all tickers across current portfolio for price fetching
-    const tickers = current?.holdings.map((h) => h.ticker) ?? [];
-    const { prices, loading: pricesLoading } = usePrices(tickers);
+    useEffect(() => {
+        if (!sessionId || portfolios.length === 0) return;
 
-    // Merge live prices into holdings
-    const enrichedHoldings = (current?.holdings ?? []).map((h) => {
-        const live = prices[h.ticker];
-        return {
-            ...h,
-            price: live?.price ?? 0,
-            change: live?.change ?? 0,
-            positive: live?.positive ?? true,
-            sparkline: live?.sparkline ?? [],
-        };
-    });
+        const controllers = portfolios.map((p) => {
+            const controller = new AbortController();
+            const url = `${BASE_URL}/live_data?session_id=${sessionId}&portfolio_name=${encodeURIComponent(p.name)}`;
+
+            fetch(url, { signal: controller.signal })
+                .then(async (res) => {
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const lines = decoder.decode(value).trim().split("\n");
+                        for (const line of lines) {
+                            if (line) {
+                                try {
+                                    const data = JSON.parse(line);
+                                    setLiveData((prev) => ({ ...prev, [p.name]: data }));
+                                } catch {
+                                    // skip malformed lines
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch((err) => {
+                    if (err.name !== "AbortError") console.error("Stream error", err);
+                });
+
+            return controller;
+        });
+
+        return () => controllers.forEach((c) => c.abort());
+    }, [sessionId, portfolios.map((p) => p.name).join(",")]);
+
+    const live = liveData[current?.name];
+    const enrichedHoldings = (live?.holdings ?? []).map((h) => ({
+        ticker: h.ticker ?? "",
+        qty: h.quantity ?? 0,
+        price: h.price ?? 0,
+        value: h.value ?? 0,
+        sector: "",
+        exchange: "",
+        name: h.ticker ?? "",
+    }));
+
+    const totalValue = live?.total ?? (enrichedHoldings.length === 0 ? "$0.00" : "Loading...");
 
     const filteredHoldings = enrichedHoldings.filter((h) => {
         if (activeTab === "All Stocks") return true;
@@ -79,8 +106,6 @@ export default function Portfolio() {
             h.sector.toLowerCase().includes(s.toLowerCase())
         );
     });
-
-    const totalValue = enrichedHoldings.reduce((sum, h) => sum + (h.price * h.qty), 0);
 
     const handleCreate = async () => {
         if (!newName.trim()) {
@@ -151,11 +176,7 @@ export default function Portfolio() {
                     </div>
                     <div className="text-right">
                         <div className="section-label">Total Valuation</div>
-                        <div className="text-3xl font-bold text-foreground">
-                            {pricesLoading && tickers.length > 0
-                                ? "Loading..."
-                                : `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                        </div>
+                        <div className="text-3xl font-bold text-foreground">{totalValue}</div>
                     </div>
                 </div>
 
@@ -196,7 +217,7 @@ export default function Portfolio() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-border">
-                                    {["Holding", "Current Price", "Quantity", "Total Value", "7D Performance", "% Change", "Actions"].map((h) => (
+                                    {["Holding", "Current Price", "Quantity", "Total Value", "Actions"].map((h) => (
                                         <th key={h} className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                             {h}
                                         </th>
@@ -213,38 +234,17 @@ export default function Portfolio() {
                                                 </div>
                                                 <div>
                                                     <div className="text-sm font-semibold text-foreground">{h.name}</div>
-                                                    <div className="text-xs text-muted-foreground">{h.sector || "—"} • {h.exchange || "—"}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-foreground">
-                                            {h.price > 0 ? `$${h.price.toFixed(2)}` : "—"}
+                                            {h.price != null && h.price > 0 ? `$${h.price.toFixed(2)}` : "—"}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-foreground">{h.qty.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-foreground">{h.qty != null ? h.qty.toLocaleString() : "—"}</td>
                                         <td className="px-6 py-4 text-sm font-semibold text-foreground">
-                                            {h.price > 0
-                                                ? `$${(h.price * h.qty).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                            {h.value != null && h.value > 0
+                                                ? `$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                                                 : "—"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-8 w-20">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={h.sparkline.map((v) => ({ v }))}>
-                                                        <Line
-                                                            type="monotone"
-                                                            dataKey="v"
-                                                            stroke={h.positive ? "hsl(152, 60%, 42%)" : "hsl(0, 72%, 51%)"}
-                                                            strokeWidth={1.5}
-                                                            dot={false}
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`text-sm font-semibold ${h.positive ? "text-emerald-500" : "text-red-500"}`}>
-                                                {h.positive ? "+" : ""}{h.change.toFixed(2)}%
-                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <button className="text-muted-foreground hover:text-foreground">
@@ -265,7 +265,7 @@ export default function Portfolio() {
 
                 {filteredHoldings.length > 0 && (
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>Showing {filteredHoldings.length} of {current?.holdings.length ?? 0} holdings</span>
+                        <span>Showing {filteredHoldings.length} of {enrichedHoldings.length} holdings</span>
                         <div className="flex items-center gap-1">
                             <button className="rounded-lg p-2 hover:bg-secondary"><ChevronLeft size={16} /></button>
                             <button className="h-9 w-9 rounded-lg bg-primary text-sm font-medium text-primary-foreground">1</button>
