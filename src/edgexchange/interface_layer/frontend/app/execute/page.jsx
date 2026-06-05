@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import {
     Search, ShieldCheck, ArrowRight, TrendingUp, TrendingDown,
@@ -44,6 +44,14 @@ export default function Execution() {
     const [quantity, setQuantity] = useState(0);
     const [selectedPortfolio, setSelectedPortfolio] = useState(portfolios[0]?.id ?? "");
 
+    // Debounce: resolve ticker 300ms after user stops typing
+    useEffect(() => {
+        const trimmed = searchInput.trim().toUpperCase();
+        if (!trimmed) { setTicker(""); return; }
+        const timeout = setTimeout(() => setTicker(trimmed), 300);
+        return () => clearTimeout(timeout);
+    }, [searchInput]);
+
     const { prices, loading: priceLoading } = usePrices(ticker ? [ticker] : []);
     const td = prices[ticker];
     const currentPrice = td?.price ?? null;
@@ -58,12 +66,6 @@ export default function Execution() {
     const estimatedTotal = currentPrice && quantity > 0
         ? (currentPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })
         : null;
-
-    const handleSearchKeyDown = (e) => {
-        if (e.key === "Enter" && searchInput.trim()) {
-            setTicker(searchInput.trim().toUpperCase());
-        }
-    };
 
     const handleQuantityChange = (e) => {
         const val = Number(e.target.value);
@@ -130,7 +132,7 @@ export default function Execution() {
                                     <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>
                                 )}
                                 {!ticker && (
-                                    <p className="text-xs text-muted-foreground">Press Enter to load stock data</p>
+                                    <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>
                                 )}
                             </div>
                         </div>
@@ -246,7 +248,6 @@ export default function Execution() {
                                     <input
                                         value={searchInput}
                                         onChange={(e) => setSearchInput(e.target.value.toUpperCase())}
-                                        onKeyDown={handleSearchKeyDown}
                                         placeholder="e.g. AAPL"
                                         className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
                                     />
@@ -262,6 +263,9 @@ export default function Execution() {
                                             </span>
                                         )}
                                     </p>
+                                )}
+                                {ticker && priceLoading && (
+                                    <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
                                 )}
                             </div>
 

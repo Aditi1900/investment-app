@@ -135,8 +135,8 @@ class FrontendApi:
     def make_data_stream(self, portfolio) -> AsyncGenerator:
         async def stream():
             while True:
-                yield json.dumps(self.serv.package_portfolio_data(portfolio)) + "\n"
                 await asyncio.sleep(1)
+                yield json.dumps(self.serv.package_portfolio_data(portfolio)) + "\n"
 
         return stream()
 

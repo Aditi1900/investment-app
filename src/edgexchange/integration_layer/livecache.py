@@ -92,8 +92,11 @@ class LiveCache:
         ticker_package = {}
 
         with cache_lock:
-            cached_tickers = list(set(tickers) & set(cache))
-            missing_tickers = list(set(tickers) - set(cache))
+            cached_tickers = [t for t in tickers if cache[t]["price"] is not None]
+            missing_tickers = [t for t in tickers if cache[t]["price"] is None]
+
+            for ticker in cached_tickers:
+                ticker_package[ticker] = cache[ticker]["price"]
 
         fresh = eapi.get_stock_prices(missing_tickers)
 
@@ -102,8 +105,7 @@ class LiveCache:
                 cache[ticker]["price"] = price
                 cache[ticker]["timestamp"] = time.time()
 
-            for ticker in cached_tickers:
-                ticker_package[ticker] = cache[ticker]["price"]
+            
 
         ticker_package |= fresh
 

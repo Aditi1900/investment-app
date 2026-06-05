@@ -1,5 +1,5 @@
 "use client";
-
+import { usePortfolio } from "@/context/PortfolioContext";
 import { useState, useEffect } from "react";
 import {
     Plus,
@@ -46,46 +46,9 @@ export default function Portfolio() {
     const [removeOpen, setRemoveOpen] = useState(false);
     const [newName, setNewName] = useState("");
     const [newDesc, setNewDesc] = useState("");
-    const [liveData, setLiveData] = useState({});
+    const { liveData } = usePortfolio();
 
     const current = portfolios.find((p) => p.id === activePortfolio) ?? portfolios[0];
-
-    useEffect(() => {
-        if (!sessionId || portfolios.length === 0) return;
-
-        const controllers = portfolios.map((p) => {
-            const controller = new AbortController();
-            const url = `${BASE_URL}/live_data?session_id=${sessionId}&portfolio_name=${encodeURIComponent(p.name)}`;
-
-            fetch(url, { signal: controller.signal })
-                .then(async (res) => {
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder();
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        const lines = decoder.decode(value).trim().split("\n");
-                        for (const line of lines) {
-                            if (line) {
-                                try {
-                                    const data = JSON.parse(line);
-                                    setLiveData((prev) => ({ ...prev, [p.name]: data }));
-                                } catch {
-                                    // skip malformed lines
-                                }
-                            }
-                        }
-                    }
-                })
-                .catch((err) => {
-                    if (err.name !== "AbortError") console.error("Stream error", err);
-                });
-
-            return controller;
-        });
-
-        return () => controllers.forEach((c) => c.abort());
-    }, [sessionId, portfolios.map((p) => p.name).join(",")]);
 
     const live = liveData[current?.name];
     const enrichedHoldings = (live?.holdings ?? []).map((h) => ({
