@@ -181,16 +181,26 @@ export default function Dashboard() {
                                                         }}
                                                     />
                                                 )}
+                                                <text
+                                                    x={80}
+                                                    y={75}
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
+                                                    style={{ fontSize: "22px", fontWeight: "700", fill: "currentColor" }}
+                                                >
+                                                    {p.isEmpty ? "—" : p.holdings.length}
+                                                </text>
+                                                <text
+                                                    x={80}
+                                                    y={97}
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
+                                                    style={{ fontSize: "9px", letterSpacing: "0.1em", fill: "currentColor", opacity: 0.5 }}
+                                                >
+                                                    {p.isEmpty ? "EMPTY" : p.topHolding?.ticker || "—"}
+                                                </text>
                                             </PieChart>
                                         )}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-2xl font-bold text-foreground">
-                                                {p.isLoading ? "" : p.isEmpty ? "—" : p.holdings.length}
-                                            </span>
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                                {p.isLoading ? "" : p.isEmpty ? "empty" : p.topHolding?.ticker || "—"}
-                                            </span>
-                                        </div>
                                     </div>
 
                                     <div className="space-y-2">
@@ -207,7 +217,7 @@ export default function Dashboard() {
                                                     <span className="text-foreground">{h.ticker}</span>
                                                 </div>
                                                 <span className="text-muted-foreground">
-                                                    ${Number(h.value).toFixed(2)}
+                                                    ${Number(h.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         ))}
