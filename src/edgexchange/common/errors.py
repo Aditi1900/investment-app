@@ -15,3 +15,9 @@ class ValidationError(Exception):
 #   -Allows for exceptions to be re-raised as a general errortype for service layer
 class ServiceError(Exception):
     pass
+
+# PURPOSE: 
+#   -FetchingError provides a central external fetching error abstraction
+#   -Allows for exceptions to be re-raised as a general errortype for any external fetches
+class FetchingError(Exception):
+    pass
