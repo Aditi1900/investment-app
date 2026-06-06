@@ -1,9 +1,11 @@
 import re
 from typing import NamedTuple
 
-from ..common.security import password_match
-from ..integration_layer import LiveCache as lcac
+from yfinance import live
 
+from ..common.security import password_match
+from ..common.errors import LiveCacheError
+from ..integration_layer import LiveCache as lcac
 
 # PURPOSE: 
 #   -Result provides description abstraction
@@ -130,9 +132,16 @@ class Validator:
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
            return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
         
-        if purchase and not lcac.does_ticker_exist(ticker):
-           return Result(False, "This stock does not exist on the open market.\n")
-        
+
+        try:
+
+            if purchase and not lcac.does_ticker_exist(ticker):
+                return Result(False, "This stock does not exist on the open market.\n")
+
+        except LiveCacheError as e:
+            return Result(False, "Stock choice could not be verified at this time.\n")
+
+
         if not purchase and ticker not in portfolio.stocks:
             return Result(False, "You do not own this stock.\n")
 

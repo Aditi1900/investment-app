@@ -21,3 +21,9 @@ class ServiceError(Exception):
 #   -Allows for exceptions to be re-raised as a general errortype for any external fetches
 class FetchingError(Exception):
     pass
+
+# PURPOSE: 
+#   -LiveCacheError provides a central live cache error abstraction
+#   -Allows for exceptions to be re-raised as a general errortype for any live cache issue
+class LiveCacheError(Exception):
+    pass

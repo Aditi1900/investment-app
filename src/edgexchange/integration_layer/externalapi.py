@@ -2,9 +2,8 @@ import logging
 from math import inf
 
 import yfinance as yf
-
+from ..common.errors import FetchingError 
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
-
 
 # PURPOSE:
 #   -ExternalApi provides a external finance fetching abstraction
@@ -39,8 +38,9 @@ class ExternalApi:
     def does_ticker_exist(ticker : str) -> bool:
         try:
             exist = yf.Ticker(ticker).fast_info.last_price is not None
-        except Exception:
-            exist = False
+
+        except Exception as e:
+            raise FetchingError(f"does_ticker_exist failed: {e}") from e
 
         return exist
 

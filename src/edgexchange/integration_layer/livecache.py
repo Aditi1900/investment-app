@@ -4,6 +4,7 @@ import threading
 from threading import Lock
 from collections import defaultdict
 
+from ..common.errors import FetchingError, LiveCacheError
 from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
@@ -67,8 +68,13 @@ class LiveCache:
     def does_ticker_exist(ticker : str) -> bool:
         exist = True
 
-        if ticker not in cache:
-            exist = eapi.does_ticker_exist(ticker)
+        try:
+
+            if ticker not in cache:
+                exist = eapi.does_ticker_exist(ticker)
+
+        except FetchingError as e:
+            raise LiveCacheError("Ticker search failed") from e
 
         return exist
 
