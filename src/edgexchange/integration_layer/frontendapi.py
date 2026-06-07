@@ -136,7 +136,13 @@ class FrontendApi:
         async def stream():
             while True:
                 await asyncio.sleep(1)
-                yield json.dumps(self.serv.package_portfolio_data(portfolio)) + "\n"
+
+                data = self.serv.package_portfolio_data(portfolio)
+
+                if data is None:
+                    continue
+
+                yield json.dumps(data) + "\n"
 
         return stream()
 

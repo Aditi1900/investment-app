@@ -49,21 +49,29 @@ threading.Thread(target = run, daemon = True).start()
 #   -allows system to store and re-access fresh stocks to reduce api calls 
 class LiveCache:
 
-    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_stock_price()
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_price()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.get_stock_price()
     @staticmethod
     def get_stock_price(ticker : str) -> float:
+        try:
 
-        with cache_lock:
-            if cache[ticker]["price"] is None:
-                cache[ticker]["price"] = eapi.get_stock_price(ticker)
-                cache[ticker]["timestamp"] = time.time()
+            with cache_lock:
+                if cache[ticker]["price"] is None:
+                    cache[ticker]["price"] = eapi.get_stock_price(ticker)
+                    cache[ticker]["timestamp"] = time.time()
 
-            price = cache[ticker]["price"]
+                price = cache[ticker]["price"]
+
+        except FetchingError as e:
+            raise LiveCacheError("Failed to find stocks price") from e
 
         return price
 
 
-    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.does_ticker_exist()
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.does_ticker_exist()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.does_ticker_exist()
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
         exist = True
@@ -79,20 +87,28 @@ class LiveCache:
         return exist
 
 
-    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_float()
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_float()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.get_float()
     @staticmethod
     def get_float(ticker : str) -> int:
-        
-        with cache_lock:
-            if cache[ticker]["float"] is None:
-                cache[ticker]["float"] = eapi.get_float(ticker)
+        try:
 
-            max_shares = cache[ticker]["float"]
+            with cache_lock:
+                if cache[ticker]["float"] is None:
+                    cache[ticker]["float"] = eapi.get_float(ticker)
+
+                max_shares = cache[ticker]["float"]
+
+        except FetchingError as e:
+            raise LiveCacheError("Float shares search failed") from e
 
         return max_shares
 
 
-    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION/RAISES: see respective fields in ExternalApi.get_stock_prices()
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_prices()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
@@ -104,7 +120,12 @@ class LiveCache:
             for ticker in cached_tickers:
                 ticker_package[ticker] = cache[ticker]["price"]
 
-        fresh = eapi.get_stock_prices(missing_tickers)
+        try:
+
+            fresh = eapi.get_stock_prices(missing_tickers)
+
+        except FetchingError as e:
+            raise LiveCacheError("Failed to fetch requested stock prices") from e
 
         with cache_lock:
             for ticker, price in fresh.items():

@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 
-from ..common.errors import DatabaseError, ServiceError
+from ..common.errors import DatabaseError, LiveCacheError, ServiceError
 from ..common.security import secure_creds
 from ..domain_models import User, Portfolio, Stock
 from ..integration_layer import LiveCache as lcac
@@ -145,17 +145,18 @@ class Service:
     #   -user_account; balance is decremented based on purchase cost
     #   -portfolio; stock with matching ticker is added with quantity or updated
     # RAISES:
-    #   -ServiceError; database call fails
+    #   -ServiceError; database call fails or LiveCache call fails
     def execute_buy(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
         
-        ticker, quantity = shares_request
-
-        price = lcac.get_stock_price(ticker)
-        total_cost = price * quantity
-
-        s_id = None
-
         try:
+
+            ticker, quantity = shares_request
+
+            price = lcac.get_stock_price(ticker)
+            total_cost = price * quantity
+
+            s_id = None
+
 
             with self.db.transaction():
                 self.db.update_funds(user_account.id, -total_cost)
@@ -164,9 +165,9 @@ class Service:
                     stock = portfolio.stocks[ticker]
                     self.db.update_stock(stock.id, quantity)
                 else:
-                     s_id = self.db.insert_stock(portfolio.id, shares_request)
+                    s_id = self.db.insert_stock(portfolio.id, shares_request)
 
-        except DatabaseError as e:
+        except (DatabaseError, LiveCacheError) as e:
             raise ServiceError("Failed to execute buy") from e
 
         user_account.sub_funds(total_cost)
@@ -187,15 +188,16 @@ class Service:
     #   -user_account; balance is incremented by sale value
     #   -portfolio; stock with matching ticker is updated or removed
     # RAISES:
-    #   -ServiceError; database call fails
+    #   -ServiceError; database call fails or LiveCache call fails
     def execute_sell(self, user_account : User, portfolio : Portfolio, shares_request : tuple[str, int]) -> None:
         
-        ticker, quantity = shares_request
-
-        price = lcac.get_stock_price(ticker)
-        total_value = price * quantity
-
         try:
+
+            ticker, quantity = shares_request
+
+            price = lcac.get_stock_price(ticker)
+            total_value = price * quantity
+
 
             with self.db.transaction():
                 self.db.update_funds(user_account.id, total_value)
@@ -207,7 +209,7 @@ class Service:
                 else:
                     self.db.update_stock(stock.id, -quantity)
 
-        except DatabaseError as e:
+        except (DatabaseError, LiveCacheError) as e:
             raise ServiceError("Failed to execute sell") from e
 
         user_account.add_funds(total_value)
@@ -275,16 +277,22 @@ class Service:
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
-    #   -packaged_data(dict[str, str | list]); portfolios holdings and total value at the moment  
+    #   -packaged_data(dict[str, str | list]); portfolios holdings and total value at the moment or None if the call fails
     # PRECONDITION: None
     # POSTCONDITION:
     #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolio : Portfolio) -> dict[str, str | list]:
+    def package_portfolio_data(self, portfolio : Portfolio) -> dict[str, str | list] | None:
         packaged_data = {"total": "$0.00", "holdings" : []}
         total = 0
 
-        holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
+        try:
+
+            holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
+
+        except LiveCacheError as e:
+            return None
+
 
         for ticker, stock in portfolio.stocks.items():
             price = holdings[ticker]

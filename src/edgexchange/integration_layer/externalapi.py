@@ -18,10 +18,17 @@ class ExternalApi:
     #   -ticker; exists in open market
     # POSTCONDITION:
     #   -price; current market price for ticker
-    # RAISES: None
+    # RAISES: 
+    #   -FetchingError; if yfinance call fails
     @staticmethod
     def get_stock_price(ticker : str) -> float:
-        price = yf.Ticker(ticker).fast_info.last_price
+        try:
+
+            price = yf.Ticker(ticker).fast_info.last_price
+
+        except Exception as e:
+            raise FetchingError(f"get_stock_price failed: {e}") from e
+
         return price
 
 
@@ -33,10 +40,12 @@ class ExternalApi:
     #   -ticker; matches format [A-Z]{1,5}
     # POSTCONDITION:
     #   -exist; True if ticker exists in open market, False otherwise
-    # RAISES: None
+    # RAISES: 
+    #   -FetchingError; if yfinance call fails
     @staticmethod
     def does_ticker_exist(ticker : str) -> bool:
         try:
+
             exist = yf.Ticker(ticker).fast_info.last_price is not None
 
         except Exception as e:
@@ -53,10 +62,17 @@ class ExternalApi:
     #   -ticker; exists in open market
     # POSTCONDITION:
     #   -max_shares; total float shares available in open market for ticker, otherwise inf
-    # RAISES: None
+    # RAISES: 
+    #   -FetchingError; if yfinance call fails
     @staticmethod
     def get_float(ticker : str) -> int:
-        max_shares = yf.Ticker(ticker).fast_info.get('floatShares')
+        try:
+
+            max_shares = yf.Ticker(ticker).fast_info.get('floatShares')
+
+        except Exception as e:
+            raise FetchingError(f"get_float failed: {e}") from e
+
         return max_shares if max_shares is not None else inf
 
 
@@ -68,13 +84,20 @@ class ExternalApi:
     #   -tickers; exist in open market
     # POSTCONDITION:
     #   -ticker_package; holds current market prices for tickers and the ticker symbol related
-    # RAISES: None
+    # RAISES: 
+    #   -FetchingError; if yfinance call fails
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
 
-        ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
+        try:
+
+            ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
         
+        except Exception as e:
+            raise FetchingError(f"get_stock_prices failed: {e}") from e
+
+
         for t in tickers:
             price = ticker_dat.tickers[t].fast_info.last_price
 
