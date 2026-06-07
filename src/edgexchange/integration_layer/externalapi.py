@@ -85,7 +85,7 @@ class ExternalApi:
     # POSTCONDITION:
     #   -ticker_package; holds current market prices for tickers and the ticker symbol related
     # RAISES: 
-    #   -FetchingError; if yfinance call fails
+    #   -FetchingError; if yfinance call fails at any point
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
         ticker_package = {}
