@@ -94,16 +94,18 @@ class ExternalApi:
 
             ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
         
+            for t in tickers:
+                price = ticker_dat.tickers[t].fast_info.last_price
+
+                if not price:
+                    price = yf.Ticker(t).fast_info.last_price
+
+                if not price:
+                    raise Exception(t)
+
+                ticker_package[t] = price
+
         except Exception as e:
             raise FetchingError(f"get_stock_prices failed: {e}") from e
-
-
-        for t in tickers:
-            price = ticker_dat.tickers[t].fast_info.last_price
-
-            if not price:
-                price = ExternalApi.get_stock_price(t)
-
-            ticker_package[t] = price
 
         return ticker_package
