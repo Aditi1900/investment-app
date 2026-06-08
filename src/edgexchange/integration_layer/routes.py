@@ -438,3 +438,20 @@ async def get_live_portfolio_data(session_id : str, portfolio_name : str):
     live_data = frontend_api.make_data_stream(portfolio)
 
     return StreamingResponse(live_data, media_type = "application/x-ndjson")
+
+
+
+
+
+@router.get("/quote")
+def get_quote(ticker : str):
+    try:
+
+        quote_info = frontend_api.quote_stock(ticker)
+
+    except ValidationError as e:
+        raise HTTPException(status_code = 400, detail = str(e))
+
+    response = {"quote" : quote_info}
+
+    return response

@@ -273,7 +273,7 @@ class Service:
             
         return u_id
 
-    
+
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
@@ -422,3 +422,10 @@ class Service:
     @staticmethod
     def exit_app() -> None:
         sys.exit(0)
+
+
+
+
+    def quote_stock(self, ticker : str):
+        stock_info = lcac.get_stock_info(ticker)
+        return stock_info 

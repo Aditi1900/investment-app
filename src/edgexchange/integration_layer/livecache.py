@@ -142,4 +142,10 @@ class LiveCache:
 
 
 
+    @staticmethod
+    def get_stock_info(ticker : str):
+        stock_info = eapi.get_stock_info(ticker)
+        return stock_info
+
+
     

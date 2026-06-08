@@ -105,6 +105,25 @@ class Validator:
             return Result(True, f"Portfolio {portfolio_name} successfully removed.\n")
 
 
+    
+    @staticmethod
+    def ticker_validator(ticker, quote, portfolio = None):
+        if not re.fullmatch(r"[A-Z]{1,5}", ticker):
+           return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
+        
+        try:
+
+            if quote and not lcac.does_ticker_exist(ticker):
+                return Result(False, "This stock does not exist on the open market.\n")
+            
+        except LiveCacheError as e:
+            return Result(False, "Stock choice could not be verified at this time.\n")
+
+        if not quote and ticker not in portfolio.stocks:
+            return Result(False, "You do not own this stock.\n")
+
+        return Result(True, "")
+
 
     # INPUT:
     #   -portfolio(Portfolio); user portfolio to update
@@ -125,28 +144,18 @@ class Validator:
 
         ticker, quantity = shares_request
 
-        if quantity is None:
-            return Result(False, "Quantity entered must be a valid number.\n")
-
+       
         #Validate ticker
-        if not re.fullmatch(r"[A-Z]{1,5}", ticker):
-           return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
-        
+        result = Validator.ticker_validator(ticker, purchase, portfolio)
 
-        try:
-
-            if purchase and not lcac.does_ticker_exist(ticker):
-                return Result(False, "This stock does not exist on the open market.\n")
-
-        except LiveCacheError as e:
-            return Result(False, "Stock choice could not be verified at this time.\n")
-
-
-        if not purchase and ticker not in portfolio.stocks:
-            return Result(False, "You do not own this stock.\n")
+        if not result.valid:
+            return result
 
 
         #Validate Quantity
+        if quantity is None:
+            return Result(False, "Quantity entered must be a valid number.\n")
+
         if quantity <= 0:
             return Result(False, "Requested quantity must be positive.\n")
 
@@ -164,6 +173,8 @@ class Validator:
 
             if balance < total_cost:
                 return Result(False, "Shares requested exceed current balance.\n")
+
+
 
         if purchase:
             return Result(True, f"{quantity} shares of {ticker} successfully purchased.\n")

@@ -146,3 +146,18 @@ class FrontendApi:
 
         return stream()
 
+
+
+
+
+
+
+    def quote_stock(self, ticker : str):
+        ticker = self.san.sanitize_ticker(ticker)
+
+        result = self.validator.ticker_validator(ticker, quote = True)
+        if not result.valid:
+            raise ValidationError(result.reason)
+
+        return self.serv.quote_stock(ticker)
+

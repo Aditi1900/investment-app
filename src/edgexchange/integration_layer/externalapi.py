@@ -49,7 +49,7 @@ class ExternalApi:
     @staticmethod
     def does_ticker_exist(ticker: str) -> bool:
 
-        try:
+        try: 
 
             exist = yf.Ticker(ticker).fast_info.last_price is not None
 
@@ -120,3 +120,11 @@ class ExternalApi:
             raise FetchingError(f"get_stock_prices failed: {e}") from e
 
         return ticker_package
+
+
+
+
+    @staticmethod
+    def get_stock_info(ticker : str):
+        stock_info = None
+        return stock_info
