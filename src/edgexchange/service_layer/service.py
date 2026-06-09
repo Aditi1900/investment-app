@@ -427,5 +427,11 @@ class Service:
 
 
     def quote_stock(self, ticker : str):
-        stock_info = lcac.get_stock_info(ticker)
+        try:
+
+            stock_info = lcac.get_stock_info(ticker)
+
+        except LiveCacheError as e:
+            raise ServiceError("Failed to get stock info") from e
+
         return stock_info 

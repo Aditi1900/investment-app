@@ -1,62 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 
-const API_BASE_PROXY = "https://api.allorigins.win/get?url=";
-const MAX_RETRIES = 3;
-const RETRY_BASE_MS = 500;
-
-async function fetchWithRetry(url, retries = MAX_RETRIES) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
-        } catch (err) {
-            if (attempt === retries) throw err;
-            await new Promise((r) => setTimeout(r, RETRY_BASE_MS * 2 ** attempt));
-        }
-    }
-}
+const API_BASE = "http://localhost:8000";
 
 async function fetchTickerData(ticker) {
     try {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
-        const json = await fetchWithRetry(`${API_BASE_PROXY}${encodeURIComponent(url)}`);
-        const data = JSON.parse(json.contents);
-        const result = data?.chart?.result?.[0];
-        const meta = result?.meta;
-        const quote = result?.indicators?.quote?.[0];
-        const closes = quote?.close ?? [];
-        const opens = quote?.open ?? [];
-        const highs = quote?.high ?? [];
-        const lows = quote?.low ?? [];
-        const volumes = quote?.volume ?? [];
-
-        const price = meta?.regularMarketPrice ?? null;
-        const prevClose = meta?.chartPreviousClose ?? closes[closes.length - 2] ?? price;
-        const change = price && prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
-        const sparkline = closes.filter(Boolean);
-        const lastIdx = closes.length - 1;
-
-        // Validate we actually got a price — if not, treat as failure
-        if (price == null) throw new Error("no price in response");
-
-        return {
-            price,
-            change: parseFloat(change.toFixed(2)),
-            positive: change >= 0,
-            sparkline,
-            open: opens[lastIdx] ?? null,
-            high: highs[lastIdx] ?? null,
-            low: lows[lastIdx] ?? null,
-            volume: volumes[lastIdx] ?? null,
-            companyName: meta?.longName ?? meta?.shortName ?? ticker,
-            exchange: meta?.exchangeName ?? null,
-            currency: meta?.currency ?? "USD",
-            fiftyTwoWeekHigh: meta?.fiftyTwoWeekHigh ?? null,
-            fiftyTwoWeekLow: meta?.fiftyTwoWeekLow ?? null,
-        };
+        const res = await fetch(`${API_BASE}/quote?ticker=${ticker}`);
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json.quote ?? null;
     } catch {
-        return null; // null = failed, caller decides what to do
+        return null;
     }
 }
 
@@ -79,9 +32,8 @@ export function usePrices(tickers) {
                 const next = { ...prev };
                 for (const [t, data] of results) {
                     if (data !== null) {
-                        next[t] = data; // fresh data
+                        next[t] = data;
                     }
-                    // if null, keep whatever was there before — no blank flash
                 }
                 prevPrices.current = next;
                 return next;

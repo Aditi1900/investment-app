@@ -448,10 +448,13 @@ def get_quote(ticker : str):
     try:
 
         quote_info = frontend_api.quote_stock(ticker)
+        response = {"quote" : quote_info}
 
     except ValidationError as e:
         raise HTTPException(status_code = 400, detail = str(e))
 
-    response = {"quote" : quote_info}
+    except ServiceError as e:
+        raise HTTPException(status_code = 500, detail = str(e))
 
+   
     return response

@@ -144,7 +144,13 @@ class LiveCache:
 
     @staticmethod
     def get_stock_info(ticker : str):
-        stock_info = eapi.get_stock_info(ticker)
+        try:
+
+            stock_info = eapi.get_stock_info(ticker)
+
+        except FetchingError as e:
+            raise LiveCacheError("Failed to fetch stock info") from e
+
         return stock_info
 
 

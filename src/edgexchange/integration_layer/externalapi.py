@@ -126,5 +126,33 @@ class ExternalApi:
 
     @staticmethod
     def get_stock_info(ticker : str):
-        stock_info = None
+        try:
+            t = yf.Ticker(ticker)
+            fi = t.fast_info
+            hist = t.history(period="5d", interval="1d")
+
+            if hist.empty:
+                raise Exception("Requested Ticker has no history")
+
+            closes = hist["Close"].tolist()
+            change = ((fi.last_price - fi.previous_close) / fi.previous_close) * 100
+
+            stock_info = {
+                "price": fi.last_price,
+                "change": round(change, 2),
+                "positive": change >= 0,
+                "sparkline": closes,
+                "open": hist["Open"].iloc[-1],
+                "high": hist["High"].iloc[-1],
+                "low": hist["Low"].iloc[-1],
+                "volume": int(hist["Volume"].iloc[-1]),
+                "exchange": fi.exchange,
+                "currency": fi.currency,
+                "fiftyTwoWeekHigh": fi.year_high,
+                "fiftyTwoWeekLow": fi.year_low,
+            }
+
+        except Exception as e:
+            raise FetchingError(f"get_stock_info failed: {e}") from e
+
         return stock_info
