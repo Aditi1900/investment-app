@@ -139,9 +139,9 @@ class LiveCache:
         return ticker_package
 
 
-
-
-
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_info()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.get_stock_info()
     @staticmethod
     def get_stock_info(ticker : str):
         try:

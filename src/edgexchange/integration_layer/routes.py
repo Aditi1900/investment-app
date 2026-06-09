@@ -424,7 +424,7 @@ def get_user(session_id : str) -> dict[str, UserData]:
 #   -HTTPException(401); unauthorized, user session does not exist
 #   -HTTPException(404); portfolio is not found   
 @router.get("/live_data")
-async def get_live_portfolio_data(session_id : str, portfolio_name : str):
+async def get_live_portfolio_data(session_id : str, portfolio_name : str) -> StreamingResponse:
     user = find_sessions_user(session_id)
 
     if user is None:
@@ -440,11 +440,20 @@ async def get_live_portfolio_data(session_id : str, portfolio_name : str):
     return StreamingResponse(live_data, media_type = "application/x-ndjson")
 
 
-
-
-
+# INPUT:
+#   -ticker(str); a stock ticker symbol
+# OUTPUT:
+#   -response(dict[str, dict]); stock quote JSON payload containing stock info fields
+# PRECONDITION:
+#   -router; exists as a valid router
+#   -frontend_api; contains control flow pipeline methods
+# POSTCONDITION:
+#   -response; contains detailed stock data for the requested ticker, check FrontendApi.quote_stock()
+# RAISES:
+#   -HTTPException(400); a ValidationError is raised, invalid ticker
+#   -HTTPException(500); a ServiceError is raised, server side error
 @router.get("/quote")
-def get_quote(ticker : str):
+def get_quote(ticker : str) -> dict[str, dict]:
     try:
 
         quote_info = frontend_api.quote_stock(ticker)

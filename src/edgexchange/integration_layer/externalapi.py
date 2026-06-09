@@ -123,9 +123,30 @@ class ExternalApi:
 
 
 
-
+    # INPUT:
+    #   -ticker(str); a stock ticker symbol
+    # OUTPUT:
+    #   -stock_info(dict); market data snapshot for ticker
+    # PRECONDITION:
+    #   -ticker; exists in open market with at least 1 day of price history
+    # POSTCONDITION:
+    #   -stock_info; contains the following keys:
+    #       -price(float); current market price
+    #       -change(float); percent change from previous close, rounded to 2 decimal places
+    #       -positive(bool); True if change >= 0, False otherwise
+    #       -sparkline(list[float]); closing prices over last 5 trading days
+    #       -open(float); opening price of the most recent trading day
+    #       -high(float); intraday high of the most recent trading day
+    #       -low(float); intraday low of the most recent trading day
+    #       -volume(int); share volume of the most recent trading day
+    #       -exchange(str); exchange ticker is listed on
+    #       -currency(str); currency prices are denominated in
+    #       -fiftyTwoWeekHigh(float); 52-week high price
+    #       -fiftyTwoWeekLow(float); 52-week low price
+    # RAISES:
+    #   -FetchingError; if yfinance call fails or ticker has no price history
     @staticmethod
-    def get_stock_info(ticker : str):
+    def get_stock_info(ticker : str) -> dict:
         try:
             t = yf.Ticker(ticker)
             fi = t.fast_info

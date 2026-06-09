@@ -274,6 +274,20 @@ class Service:
         return u_id
 
 
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in LiveCache.get_stock_info()
+    # RAISES: 
+    #   -ServiceError; propagated from LiveCache.get_stock_info()
+    def quote_stock(self, ticker : str):
+        try:
+
+            stock_info = lcac.get_stock_info(ticker)
+
+        except LiveCacheError as e:
+            raise ServiceError("Failed to get stock info") from e
+
+        return stock_info 
+
+
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
@@ -426,12 +440,4 @@ class Service:
 
 
 
-    def quote_stock(self, ticker : str):
-        try:
-
-            stock_info = lcac.get_stock_info(ticker)
-
-        except LiveCacheError as e:
-            raise ServiceError("Failed to get stock info") from e
-
-        return stock_info 
+    

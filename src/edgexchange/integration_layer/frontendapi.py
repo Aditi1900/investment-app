@@ -123,6 +123,19 @@ class FrontendApi:
         return self.serv.execute_sell(user_account, portfolio, shares_request)
 
 
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective Service.quote_stock() fields
+    # RAISES:
+    #   -ValidationError; see Validator.ticker_validator() POSTCONDITION (quote=True)
+    def quote_stock(self, ticker : str):
+        ticker = self.san.sanitize_ticker(ticker)
+
+        result = self.validator.ticker_validator(ticker, quote = True)
+        if not result.valid:
+            raise ValidationError(result.reason)
+
+        return self.serv.quote_stock(ticker)
+
+
     # INPUT:
     #   -portfolio(Portfolio); a current user portfolio
     # OUTPUT:
@@ -152,12 +165,5 @@ class FrontendApi:
 
 
 
-    def quote_stock(self, ticker : str):
-        ticker = self.san.sanitize_ticker(ticker)
-
-        result = self.validator.ticker_validator(ticker, quote = True)
-        if not result.valid:
-            raise ValidationError(result.reason)
-
-        return self.serv.quote_stock(ticker)
+    
 
