@@ -7,118 +7,88 @@ import { useRouter } from "next/navigation";
 const SessionContext = createContext(null);
 
 const isTesting = process.env.NEXT_PUBLIC_TESTING === "true";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE   = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Storage helpers — no-ops in test mode
 const store = {
-    set: (key, value) => {
-        if (!isTesting) localStorage.setItem(key, value);
-    },
-    get: (key) => {
-        if (isTesting) return null;
-        return localStorage.getItem(key);
-    },
-    remove: (key) => {
-        if (!isTesting) localStorage.removeItem(key);
-    },
+  set:    (k, v) => !isTesting && localStorage.setItem(k, v),
+  get:    (k)    => isTesting ? null : localStorage.getItem(k),
+  remove: (k)    => !isTesting && localStorage.removeItem(k),
 };
 
-const cookie = {
-    set: (key, value) => {
-        document.cookie = `${key}=${value}; path=/; SameSite=Lax`;
-    },
-    remove: (key) => {
-        document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-    },
+const clearSession = () => {
+  ["session_id", "user"].forEach(store.remove);
+  document.cookie = "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 };
 
-function clearSession() {
-    store.remove("session_id");
-    store.remove("user");
-    cookie.remove("session_id");
-}
+const setSessionCookie = (id) => {
+  document.cookie = `session_id=${id}; path=/; SameSite=Lax`;
+};
 
 export function SessionProvider({ children }) {
-    const router = useRouter();
+  const router = useRouter();
+  const [sessionId, setSessionId] = useState(null);
+  const [user,      setUser]      = useState(null);
+  const [ready,     setReady]     = useState(false);
 
-    const [sessionId, setSessionId] = useState(null);
-    const [user, setUser] = useState(null);
-    const [ready, setReady] = useState(false);
+  // Validate stored session on mount
+  useEffect(() => {
+    const stored = store.get("session_id");
+    if (!stored) return setReady(true);
 
-    // On mount, validate stored session against the server
-    useEffect(() => {
-        const storedSession = store.get("session_id");
+    fetch(`${API_BASE}/user?session_id=${stored}`)
+      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(({ user }) => {
+        if (!user) throw new Error();
+        setSessionId(stored);
+        setUser(user);
+        store.set("user", JSON.stringify(user));
+      })
+      .catch(() => { clearSession(); router.push("/login"); })
+      .finally(() => setReady(true));
+  }, []);
 
-        if (!storedSession) {
-            setReady(true);
-            return;
-        }
+  const persistUser = (id, user) => {
+    setSessionId(id);
+    setUser(user);
+    store.set("session_id", id);
+    store.set("user", JSON.stringify(user));
+    setSessionCookie(id);
+  };
 
-        fetch(`${API_BASE}/user?session_id=${storedSession}`)
-            .then((res) => {
-                if (!res.ok) throw new Error("invalid session");
-                return res.json();
-            })
-            .then((data) => {
-                if (data?.user) {
-                    setSessionId(storedSession);
-                    setUser(data.user);
-                    store.set("user", JSON.stringify(data.user));
-                } else {
-                    throw new Error("no user in response");
-                }
-            })
-            .catch(() => {
-                // Server rejected the session — clear everything and send to login
-                clearSession();
-                router.push("/login");
-            })
-            .finally(() => setReady(true));
-    }, []);
+  const login = async (login, password) => {
+    const data = await loginUser(login, password);
+    persistUser(data.session_id, data.user);
+    return data;
+  };
 
-    const login = async (loginVal, password) => {
-        const data = await loginUser(loginVal, password);
-        setSessionId(data.session_id);
-        setUser(data.user);
-        store.set("session_id", data.session_id);
-        store.set("user", JSON.stringify(data.user));
-        cookie.set("session_id", data.session_id);
-        return data;
-    };
+  const logout = async () => {
+    try { if (sessionId) await logoutUser(sessionId); } catch {}
+    setSessionId(null);
+    setUser(null);
+    clearSession();
+    router.push("/login");
+  };
 
-    const logout = async () => {
-        try {
-            if (sessionId) await logoutUser(sessionId);
-        } catch {
-            // session may already be invalid
-        } finally {
-            setSessionId(null);
-            setUser(null);
-            clearSession();
-            router.push("/login");
-        }
-    };
+  const register = async (login, password) => {
+    await registerUser(login, password);
+    router.push("/login");
+  };
 
-    const register = async (loginVal, password) => {
-        await registerUser(loginVal, password);
-        router.push("/login");
-    };
+  const refreshUser = (updatedUser) => {
+    setUser(updatedUser);
+    store.set("user", JSON.stringify(updatedUser));
+  };
 
-    const refreshUser = (updatedUser) => {
-        setUser(updatedUser);
-        store.set("user", JSON.stringify(updatedUser));
-    };
-
-    return (
-        <SessionContext.Provider
-            value={{ sessionId, user, setUser, refreshUser, login, logout, register, ready }}
-        >
-            {children}
-        </SessionContext.Provider>
-    );
+  return (
+    <SessionContext.Provider value={{ sessionId, user, setUser, refreshUser, login, logout, register, ready }}>
+      {children}
+    </SessionContext.Provider>
+  );
 }
 
 export const useSession = () => {
-    const ctx = useContext(SessionContext);
-    if (!ctx) throw new Error("useSession must be used within SessionProvider");
-    return ctx;
+  const ctx = useContext(SessionContext);
+  if (!ctx) throw new Error("useSession must be used within SessionProvider");
+  return ctx;
 };

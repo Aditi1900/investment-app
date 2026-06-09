@@ -1,51 +1,36 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const API_BASE = "http://localhost:8000";
 
-async function fetchTickerData(ticker) {
-    try {
-        const res = await fetch(`${API_BASE}/quote?ticker=${ticker}`);
-        if (!res.ok) return null;
-        const json = await res.json();
-        return json.quote ?? null;
-    } catch {
-        return null;
-    }
-}
+const fetchQuote = (ticker) =>
+  fetch(`${API_BASE}/quote?ticker=${ticker}`)
+    .then((res) => res.ok ? res.json() : null)
+    .then((json) => json?.quote ?? null)
+    .catch(() => null);
 
 export function usePrices(tickers) {
-    const [prices, setPrices] = useState({});
-    const [loading, setLoading] = useState(false);
-    const prevPrices = useRef({});
+  const [prices,  setPrices]  = useState({});
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (!tickers || tickers.length === 0) return;
-        const unique = [...new Set(tickers)];
-        setLoading(true);
+  useEffect(() => {
+    const unique = [...new Set(tickers)];
+    if (!unique.length) return;
 
-        const fetchAll = async () => {
-            const results = await Promise.all(
-                unique.map(async (t) => [t, await fetchTickerData(t)])
-            );
+    const fetchAll = async () => {
+      setLoading(true);
+      const results = await Promise.all(unique.map(async (t) => [t, await fetchQuote(t)]));
+      setPrices((prev) => {
+        const next = { ...prev };
+        for (const [t, data] of results) if (data) next[t] = data;
+        return next;
+      });
+      setLoading(false);
+    };
 
-            setPrices((prev) => {
-                const next = { ...prev };
-                for (const [t, data] of results) {
-                    if (data !== null) {
-                        next[t] = data;
-                    }
-                }
-                prevPrices.current = next;
-                return next;
-            });
+    fetchAll();
+    const interval = setInterval(fetchAll, 30_000);
+    return () => clearInterval(interval);
+  }, [tickers.join(",")]);
 
-            setLoading(false);
-        };
-
-        fetchAll();
-        const interval = setInterval(fetchAll, 30000);
-        return () => clearInterval(interval);
-    }, [tickers.join(",")]);
-
-    return { prices, loading };
+  return { prices, loading };
 }
