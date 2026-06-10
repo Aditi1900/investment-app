@@ -11,19 +11,17 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { fundAccount } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
-const COLORS = [
-    "hsl(220, 40%, 13%)",
-    "hsl(220, 30%, 35%)",
-    "hsl(214, 20%, 75%)",
-    "hsl(166, 60%, 45%)",
-    "hsl(38, 92%, 50%)",
-];
+const generateColors = (count) => 
+  Array.from({ length: count }, (_, i) => `hsl(${(i * 137.508) % 360}, 65%, 50%)`);
 
 const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
 function PortfolioCard({ portfolio: p }) {
-    const { name, totalValue, chartData, holdings, isEmpty, isLoading } = p;
-    const topHolder = holdings.length ? holdings.reduce((a, b) => b.value > a.value ? b : a) : null;
+    const { name, totalValue, chartData: _, holdings, isEmpty, isLoading } = p;
+    const topFour = [...holdings].sort((a, b) => b.value - a.value).slice(0, 4);
+    const topHolder = topFour[0] ?? null;
+    const COLORS = generateColors(holdings.length);
+    const chartData = isEmpty ? [{ name: "Empty", value: 1 }] : [...holdings].sort((a, b) => b.value - a.value).map((h) => ({ name: h.ticker, value: h.value }));
 
     return (
         <div className="card-surface p-6">
@@ -65,7 +63,7 @@ function PortfolioCard({ portfolio: p }) {
             </div>
 
             <div className="space-y-2">
-                {holdings.slice(0, 4).map((h, i) => (
+                {topFour.map((h, i) => (
                     <div key={h.ticker} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
