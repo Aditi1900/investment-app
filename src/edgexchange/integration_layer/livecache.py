@@ -9,7 +9,8 @@ from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
 
-cache = defaultdict(lambda : {"price" : None, "float" : None, "timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "timestamp" : None})
+persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Lock()
 
 # INPUT: None
@@ -94,11 +95,10 @@ class LiveCache:
     def get_float(ticker : str) -> int:
         try:
 
-            with cache_lock:
-                if cache[ticker]["float"] is None:
-                    cache[ticker]["float"] = eapi.get_float(ticker)
+            if persistent_cache[ticker]["float"] is None:
+                persistent_cache[ticker]["float"] = eapi.get_float(ticker)
 
-                max_shares = cache[ticker]["float"]
+            max_shares = persistent_cache[ticker]["float"]
 
         except FetchingError as e:
             raise LiveCacheError("Float shares search failed") from e
@@ -154,4 +154,19 @@ class LiveCache:
         return stock_info
 
 
+    # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_sector()
+    # RAISES: 
+    #   -LiveCacheError; propagated from ExternalApi.get_sector()
+    @staticmethod
+    def get_sector(ticker : str):
+        try:
+            with cache_lock:
+                if persistent_cache[ticker]["sector"] is None:
+                    persistent_cache[ticker]["sector"] = eapi.get_sector(ticker)
+            
+                sector = persistent_cache[ticker]["sector"]
+
+        except FetchingError as e:
+            raise LiveCacheError("Failed to fetch stock sector") from e
     
+        return sector

@@ -304,17 +304,23 @@ class Service:
 
             holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
 
+        
+            for ticker, stock in portfolio.stocks.items():
+                price = holdings[ticker]
+
+                value = stock.quantity * price
+                total += value
+
+                packaged_data["holdings"].append({
+                                                  "ticker": ticker, 
+                                                  "price" : price, 
+                                                  "quantity" : stock.quantity, 
+                                                  "value": value,
+                                                  "sector": lcac.get_sector(ticker),
+                                                  "label": f"{ticker} (${value:,.2f})"})
+
         except LiveCacheError as e:
             return None
-
-
-        for ticker, stock in portfolio.stocks.items():
-            price = holdings[ticker]
-
-            value = stock.quantity * price
-            total += value
-
-            packaged_data["holdings"].append({"ticker": ticker, "price" : price, "quantity" : stock.quantity, "value": value, "label": f"{ticker} (${value:,.2f})"})
 
         packaged_data["total"] = f"${total:,.2f}"
 

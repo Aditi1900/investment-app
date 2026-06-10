@@ -11,17 +11,57 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { fundAccount } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
-const generateColors = (count) => 
-  Array.from({ length: count }, (_, i) => `hsl(${(i * 137.508) % 360}, 65%, 50%)`);
+// Stereotype-driven sector hues
+const SECTOR_HUE = {
+    "Technology": 142,  // green  — growth, innovation
+    "Financial Services": 45,  // gold   — money, wealth
+    "Healthcare": 0,  // red    — medical, emergency
+    "Energy": 35,  // amber  — oil, fire
+    "Consumer Cyclical": 25,  // orange — retail, spending
+    "Consumer Defensive": 80,  // olive  — staples, stability
+    "Industrials": 210,  // steel blue — manufacturing
+    "Basic Materials": 55,  // yellow — raw earth, mining
+    "Real Estate": 160,  // teal   — property, land
+    "Communication Services": 270,  // purple — media, telecom
+    "Utilities": 195,  // sky    — water, power
+};
+
+const generateSectorColors = (holdings) => {
+    const sectorGroups = {};
+    holdings.forEach((h, i) => {
+        const sector = h.sector ?? "Other";
+        if (!sectorGroups[sector]) sectorGroups[sector] = [];
+        sectorGroups[sector].push(i);
+    });
+
+    const colors = {};
+    holdings.forEach((h, i) => {
+        const sector = h.sector ?? "Other";
+        const hue = SECTOR_HUE[sector] ?? (
+            [...(h.ticker ?? "?")].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
+        );
+        const group = sectorGroups[sector];
+        const posInGroup = group.indexOf(i);
+        const count = group.length;
+        const lightness = count === 1 ? 52 : 42 + (posInGroup / (count - 1)) * 22;
+        colors[h.ticker] = `hsl(${hue}, 55%, ${lightness.toFixed(1)}%)`;
+    });
+
+    return colors;
+};
 
 const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
 function PortfolioCard({ portfolio: p }) {
-    const { name, totalValue, chartData: _, holdings, isEmpty, isLoading } = p;
+    const { name, totalValue, holdings, isEmpty, isLoading } = p;
     const topFour = [...holdings].sort((a, b) => b.value - a.value).slice(0, 4);
     const topHolder = topFour[0] ?? null;
-    const COLORS = generateColors(holdings.length);
-    const chartData = isEmpty ? [{ name: "Empty", value: 1 }] : [...holdings].sort((a, b) => b.value - a.value).map((h) => ({ name: h.ticker, value: h.value }));
+
+    const sectorColors = generateSectorColors(holdings);
+    const sortedHoldings = [...holdings].sort((a, b) => b.value - a.value);
+    const chartData = isEmpty
+        ? [{ name: "Empty", value: 1 }]
+        : sortedHoldings.map((h) => ({ name: h.ticker, value: h.value, color: sectorColors[h.ticker] }));
 
     return (
         <div className="card-surface p-6">
@@ -44,11 +84,13 @@ function PortfolioCard({ portfolio: p }) {
                 ) : (
                     <PieChart width={160} height={160}>
                         <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" animationBegin={0} animationDuration={600} animationEasing="ease-out">
-                            {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                            {chartData.map((entry, i) => (
+                                <Cell key={i} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
+                            ))}
                         </Pie>
                         {!isEmpty && (
                             <Tooltip
-                                formatter={(val, name) => [`$${Number(val).toFixed(2)}`, name]}
+                                formatter={(val, name) => [`$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, name]}
                                 contentStyle={{ backgroundColor: "hsl(0 0% 100%)", border: "1px solid hsl(214 20% 90%)", borderRadius: "8px", fontSize: "11px" }}
                             />
                         )}
@@ -63,10 +105,10 @@ function PortfolioCard({ portfolio: p }) {
             </div>
 
             <div className="space-y-2">
-                {topFour.map((h, i) => (
+                {topFour.map((h) => (
                     <div key={h.ticker} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: sectorColors[h.ticker] }} />
                             <span className="text-foreground">{h.ticker}</span>
                         </div>
                         <span className="text-muted-foreground">${Number(h.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -97,7 +139,6 @@ export default function Dashboard() {
             holdings,
             isEmpty,
             isLoading: !live,
-            chartData: isEmpty ? [{ name: "Empty", value: 1 }] : holdings.map((h) => ({ name: h.ticker, value: h.value })),
         };
     });
 
@@ -122,7 +163,6 @@ export default function Dashboard() {
                     <p className="text-muted-foreground">Hello, {user?.login ?? "User"}</p>
                 </div>
 
-                {/* Available Funds */}
                 <div className="card-surface flex items-center justify-between p-6">
                     <div className="flex items-center gap-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
@@ -140,7 +180,6 @@ export default function Dashboard() {
                     </button>
                 </div>
 
-                {/* Portfolio Allocations */}
                 <div>
                     <div className="section-label mb-4">Portfolio Allocations</div>
                     {portfolios.length === 0 ? (
@@ -154,7 +193,6 @@ export default function Dashboard() {
                     )}
                 </div>
 
-                {/* Add Funds Dialog */}
                 <Dialog open={addFundsOpen} onOpenChange={setAddFundsOpen}>
                     <DialogContent>
                         <DialogHeader>

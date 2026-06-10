@@ -177,3 +177,25 @@ class ExternalApi:
             raise FetchingError(f"get_stock_info failed: {e}") from e
 
         return stock_info
+
+
+    # INPUT:
+    #   -ticker(str); a stock ticker symbol
+    # OUTPUT:
+    #   -sector(str); market sector the ticker belongs to
+    # PRECONDITION:
+    #   -ticker; exists in open market
+    # POSTCONDITION:
+    #   -sector; GICS sector name for ticker (e.g. "Technology"), or "Unknown" if unavailable
+    # RAISES:
+    #   -FetchingError; if yfinance call fails
+    @staticmethod
+    def get_sector(ticker: str) -> str:
+        try:
+
+            sector = yf.Ticker(ticker).info.get("sector") or "Unknown"
+        
+        except Exception as e:
+            raise FetchingError("Failed to fetch sector") from e
+
+        return sector

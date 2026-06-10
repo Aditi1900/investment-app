@@ -10,14 +10,6 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { createPortfolio, removePortfolio } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
-const tabs = ["All Stocks", "Tech", "Finance", "ETF"];
-const sectorMap = {
-    "All Stocks": [],
-    Tech: ["Technology", "Semiconductors"],
-    Finance: ["Finance", "Banking"],
-    ETF: ["ETF"],
-};
-
 export default function Portfolio() {
     const { user, setUser, sessionId } = useSession();
     const { liveData } = usePortfolio();
@@ -39,14 +31,28 @@ export default function Portfolio() {
         qty: h.quantity ?? 0,
         price: h.price ?? 0,
         value: h.value ?? 0,
-        sector: "",
+        sector: typeof h.sector === "string" && h.sector !== "Unknown" ? h.sector : "Other",
         name: h.ticker ?? "",
     }));
 
+    // Derive tabs dynamically — known sectors first, "Other" pinned to end if present
+    const knownSectors = Array.from(new Set(
+        holdings.map((h) => h.sector).filter((s) => s && s !== "Other")
+    ));
+    const hasOther = holdings.some((h) => h.sector === "Other");
+    const presentSectors = [
+        "All Stocks",
+        ...knownSectors,
+        ...(hasOther ? ["Other"] : []),
+    ];
+
+    // Reset tab to "All Stocks" if active tab no longer exists in current portfolio
+    const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
+
     const totalValue = live?.total ?? (holdings.length === 0 ? "$0.00" : "Loading...");
-    const filteredHoldings = activeTab === "All Stocks"
+    const filteredHoldings = resolvedTab === "All Stocks"
         ? holdings
-        : holdings.filter((h) => sectorMap[activeTab]?.some((s) => h.sector.toLowerCase().includes(s.toLowerCase())));
+        : holdings.filter((h) => h.sector === resolvedTab);
 
     const handleCreate = async () => {
         try {
@@ -102,15 +108,15 @@ export default function Portfolio() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
                         <Filter size={14} /> Filters
                     </button>
-                    {tabs.map((t) => (
+                    {presentSectors.map((t) => (
                         <button
                             key={t}
                             onClick={() => setActiveTab(t)}
-                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${activeTab === t ? "bg-card border border-border text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${resolvedTab === t ? "bg-card border border-border text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             {t}
                         </button>
@@ -130,7 +136,7 @@ export default function Portfolio() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-border">
-                                    {["Holding", "Current Price", "Quantity", "Total Value", "Actions"].map((h) => (
+                                    {["Holding", "Sector", "Current Price", "Quantity", "Total Value", "Actions"].map((h) => (
                                         <th key={h} className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                                     ))}
                                 </tr>
@@ -143,6 +149,13 @@ export default function Portfolio() {
                                                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-[10px] font-bold text-foreground">{h.ticker}</div>
                                                 <div className="text-sm font-semibold text-foreground">{h.name}</div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {h.sector !== "Other" && (
+                                                <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground">
+                                                    {h.sector}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-foreground">{h.price > 0 ? `$${h.price.toFixed(2)}` : "—"}</td>
                                         <td className="px-6 py-4 text-sm text-foreground">{h.qty.toLocaleString()}</td>
