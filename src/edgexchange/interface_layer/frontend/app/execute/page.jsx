@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-    Search, ShieldCheck, ArrowRight, TrendingUp, TrendingDown,
-} from "lucide-react";
+import { Search, ShieldCheck, ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { toast } from "@/hooks/use-toast";
 import { useSession } from "@/context/SessionContext";
-import { executeBuy, executeSell } from "@/lib/api";
+import { executeBuy, executeSell, getUser } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 import { usePrices } from "@/hooks/use-prices";
 
@@ -28,14 +26,11 @@ export default function Execution() {
     const searchParams = useSearchParams();
     const { user, setUser, sessionId } = useSession();
 
-    const funds = user?.balance || 0;
-    const portfolios = Object.values(user?.portfolios || {}).map((p) => ({
+    const funds = user?.balance ?? 0;
+    const portfolios = Object.values(user?.portfolios ?? {}).map((p) => ({
         id: p.name,
         name: p.name,
-        holdings: Object.values(p.stocks || {}).map((s) => ({
-            ticker: s.ticker,
-            qty: s.quantity,
-        })),
+        holdings: Object.values(p.stocks ?? {}).map((s) => ({ ticker: s.ticker, qty: s.quantity })),
     }));
 
     const [side, setSide] = useState("buy");
@@ -44,7 +39,7 @@ export default function Execution() {
     const [quantity, setQuantity] = useState(0);
     const [selectedPortfolio, setSelectedPortfolio] = useState(portfolios[0]?.id ?? "");
 
-    // Debounce: resolve ticker 300ms after user stops typing
+    // Debounce ticker resolution 300ms after user stops typing
     useEffect(() => {
         const trimmed = searchInput.trim().toUpperCase();
         if (!trimmed) { setTicker(""); return; }
@@ -67,49 +62,16 @@ export default function Execution() {
         ? (currentPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })
         : null;
 
-    const handleQuantityChange = (e) => {
-        const val = Number(e.target.value);
-        setQuantity(val < 0 ? 0 : val);
-    };
-
     const handleExecute = async () => {
-        if (!ticker.trim()) {
-            toast({ title: "No ticker entered", description: "Please enter a stock ticker.", variant: "destructive" });
-            return;
-        }
-        if (quantity <= 0) {
-            toast({ title: "Invalid quantity", description: "Please enter a valid number of shares.", variant: "destructive" });
-            return;
-        }
-        if (!selectedPortfolio) {
-            toast({ title: "No portfolio selected", description: "Please select a portfolio.", variant: "destructive" });
-            return;
-        }
-        if (isBuy && funds <= 0) {
-            toast({ title: "No funds available", description: "Please add funds to your account first.", variant: "destructive" });
-            return;
-        }
         try {
             const fn = isBuy ? executeBuy : executeSell;
-            const data = await fn(sessionId, selectedPortfolio, ticker, quantity);
-            setUser((prev) => ({
-                ...prev,
-                portfolios: { ...prev.portfolios, [selectedPortfolio]: data.portfolio },
-            }));
-            const userRes = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/user?session_id=${sessionId}`
-            );
-            if (userRes.ok) {
-                const userData = await userRes.json();
-                setUser(userData.user);
-            }
-            toast({
-                title: `${isBuy ? "Buy" : "Sell"} Order Placed`,
-                description: `${isBuy ? "Bought" : "Sold"} ${quantity} shares of ${ticker}.`,
-            });
+            await fn(sessionId, selectedPortfolio, ticker, quantity);
+            const { user: updatedUser } = await getUser(sessionId);
+            setUser(updatedUser);
+            toast({ title: `${isBuy ? "Bought" : "Sold"} ${quantity} shares of ${ticker}.` });
             setQuantity(0);
         } catch (err) {
-            toast({ title: "Trade failed", description: err.message, variant: "destructive" });
+            toast({ title: err.message, variant: "destructive" });
         }
     };
 
@@ -119,7 +81,6 @@ export default function Execution() {
                 <div className="grid gap-8 lg:grid-cols-5">
                     {/* Left: Stock Info */}
                     <div className="space-y-6 lg:col-span-3">
-                        {/* Header */}
                         <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground">
                                 {ticker || "—"}
@@ -128,16 +89,11 @@ export default function Execution() {
                                 <h1 className="text-2xl font-bold text-foreground">
                                     {ticker ? (priceLoading ? ticker : companyName) : "Enter a ticker"}
                                 </h1>
-                                {ticker && td?.exchange && (
-                                    <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>
-                                )}
-                                {!ticker && (
-                                    <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>
-                                )}
+                                {ticker && td?.exchange && <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>}
+                                {!ticker && <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>}
                             </div>
                         </div>
 
-                        {/* Price */}
                         <div className="flex items-baseline gap-3">
                             <span className="text-4xl font-bold text-foreground">
                                 {currentPrice != null ? `$${currentPrice.toFixed(2)}` : "—"}
@@ -150,7 +106,6 @@ export default function Execution() {
                             )}
                         </div>
 
-                        {/* Chart */}
                         {chartData.length > 1 && (
                             <div className="card-surface p-4">
                                 <div className="mb-2 text-xs text-muted-foreground">5-Day Price</div>
@@ -166,28 +121,15 @@ export default function Execution() {
                                             <XAxis dataKey="i" hide />
                                             <Tooltip
                                                 formatter={(v) => [`$${Number(v).toFixed(2)}`, "Price"]}
-                                                contentStyle={{
-                                                    backgroundColor: "hsl(0 0% 100%)",
-                                                    border: "1px solid hsl(214 20% 90%)",
-                                                    borderRadius: "8px",
-                                                    fontSize: "11px",
-                                                }}
+                                                contentStyle={{ backgroundColor: "hsl(0 0% 100%)", border: "1px solid hsl(214 20% 90%)", borderRadius: "8px", fontSize: "11px" }}
                                             />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="v"
-                                                stroke={isPositive ? "#10b981" : "#ef4444"}
-                                                strokeWidth={2}
-                                                fill="url(#priceGrad)"
-                                                dot={false}
-                                            />
+                                            <Area type="monotone" dataKey="v" stroke={isPositive ? "#10b981" : "#ef4444"} strokeWidth={2} fill="url(#priceGrad)" dot={false} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
                         )}
 
-                        {/* OHLCV Stats */}
                         <div className="grid grid-cols-4 gap-4">
                             {[
                                 { label: "Open", value: fmt(td?.open) },
@@ -202,7 +144,6 @@ export default function Execution() {
                             ))}
                         </div>
 
-                        {/* 52 week range */}
                         {(td?.fiftyTwoWeekLow || td?.fiftyTwoWeekHigh) && (
                             <div className="card-surface p-4">
                                 <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">52-Week Range</div>
@@ -212,9 +153,7 @@ export default function Execution() {
                                         {currentPrice && td.fiftyTwoWeekLow && td.fiftyTwoWeekHigh && (
                                             <div
                                                 className="absolute top-0 h-1.5 rounded-full bg-primary"
-                                                style={{
-                                                    width: `${Math.min(100, Math.max(0, ((currentPrice - td.fiftyTwoWeekLow) / (td.fiftyTwoWeekHigh - td.fiftyTwoWeekLow)) * 100))}%`,
-                                                }}
+                                                style={{ width: `${Math.min(100, Math.max(0, ((currentPrice - td.fiftyTwoWeekLow) / (td.fiftyTwoWeekHigh - td.fiftyTwoWeekLow)) * 100))}%` }}
                                             />
                                         )}
                                     </div>
@@ -228,16 +167,10 @@ export default function Execution() {
                     <div className="space-y-4 lg:col-span-2">
                         <div className={`card-surface space-y-5 border-t-4 p-6 ${isBuy ? "border-t-emerald-500" : "border-t-red-500"}`}>
                             <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border">
-                                <button
-                                    onClick={() => setSide("buy")}
-                                    className={`py-2.5 text-sm font-semibold transition-colors ${isBuy ? "bg-emerald-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}
-                                >
+                                <button onClick={() => setSide("buy")} className={`py-2.5 text-sm font-semibold transition-colors ${isBuy ? "bg-emerald-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
                                     <span className="flex items-center justify-center gap-1.5"><TrendingUp size={14} /> BUY</span>
                                 </button>
-                                <button
-                                    onClick={() => setSide("sell")}
-                                    className={`py-2.5 text-sm font-semibold transition-colors ${!isBuy ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}
-                                >
+                                <button onClick={() => setSide("sell")} className={`py-2.5 text-sm font-semibold transition-colors ${!isBuy ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
                                     <span className="flex items-center justify-center gap-1.5"><TrendingDown size={14} /> SELL</span>
                                 </button>
                             </div>
@@ -264,9 +197,7 @@ export default function Execution() {
                                         )}
                                     </p>
                                 )}
-                                {ticker && priceLoading && (
-                                    <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
-                                )}
+                                {ticker && priceLoading && <p className="mt-1 text-xs text-muted-foreground">Loading...</p>}
                             </div>
 
                             <div>
@@ -276,9 +207,7 @@ export default function Execution() {
                                     onChange={(e) => setSelectedPortfolio(e.target.value)}
                                     className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-sm font-medium text-foreground outline-none"
                                 >
-                                    {portfolios.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
+                                    {portfolios.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                                 </select>
                             </div>
 
@@ -288,7 +217,7 @@ export default function Execution() {
                                     type="number"
                                     min={0}
                                     value={quantity}
-                                    onChange={handleQuantityChange}
+                                    onChange={(e) => setQuantity(Number(e.target.value))}
                                     className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-2xl font-bold text-foreground outline-none"
                                 />
                                 <div className="mt-1 flex justify-between text-xs text-muted-foreground">
@@ -325,8 +254,7 @@ export default function Execution() {
 
                             <button
                                 onClick={handleExecute}
-                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${isBuy ? "bg-emerald-500 hover:bg-emerald-600" : "bg-red-500 hover:bg-red-600"
-                                    }`}
+                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${isBuy ? "bg-emerald-500 hover:bg-emerald-600" : "bg-red-500 hover:bg-red-600"}`}
                             >
                                 {isBuy ? "BUY" : "SELL"} <ArrowRight size={16} />
                             </button>
