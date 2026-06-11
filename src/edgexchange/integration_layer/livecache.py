@@ -60,7 +60,6 @@ def run():
                 cache[ticker]["quote"] = None
                 cache[ticker]["quote_timestamp"] = None
 
-
         time.sleep(1)
 
 threading.Thread(target = run, daemon = True).start()
@@ -78,6 +77,7 @@ class LiveCache:
     @staticmethod
     def get_stock_price(ticker : str) -> float:
         try:
+
             with cache_lock:
                 price = cache[ticker]["price"]
             
@@ -87,7 +87,6 @@ class LiveCache:
                 with cache_lock:
                     cache[ticker]["price"] = price
                     cache[ticker]["timestamp"] = time.time()
-
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
@@ -137,6 +136,7 @@ class LiveCache:
     @staticmethod
     def get_sector(ticker : str):
         try:
+
             if persistent_cache[ticker]["sector"] is None:
                 persistent_cache[ticker]["sector"] = eapi.get_sector(ticker)
             
@@ -154,6 +154,7 @@ class LiveCache:
     @staticmethod
     def get_stock_info(ticker: str):
         try:
+
             with cache_lock:
                 stock_info = cache[ticker]["quote"]
 
@@ -195,10 +196,8 @@ class LiveCache:
                     cache[ticker]["price"] = price
                     cache[ticker]["timestamp"] = time.time()
 
-            
-
+        
             ticker_package |= fresh
-
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch requested stock prices") from e
