@@ -9,7 +9,7 @@ from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
 
-cache = defaultdict(lambda : {"price" : None, "timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Lock()
 
@@ -21,7 +21,8 @@ cache_lock = Lock()
 # RAISES: None
 def run():
     while True:
-        expired = []
+        expired_p = []
+        expired_q = []
         now = time.time()
         with cache_lock:
             for ticker, data in cache.items():
@@ -32,12 +33,28 @@ def run():
                     continue
 
                 if now - timestamp > 1: 
-                    expired.append(ticker)
+                    expired_p.append(ticker)
                 else:  
                    data["price"] += inject_volatility(price)
 
-            for ticker in expired:
-                del cache[ticker]
+                
+                quote = data["quote"]
+                quote_timestamp = data["quote_timestamp"]
+
+                if quote is None or quote_timestamp is None:
+                    continue
+
+                if now - quote_timestamp > 120:
+                    expired_q.append(ticker)
+
+
+            for ticker in expired_p:
+                cache[ticker]["price"] = None
+                cache[ticker]["timestamp"] = None
+
+            for ticker in expired_q:
+                cache[ticker]["quote"] = None
+                cache[ticker]["quote_timestamp"] = None
 
         time.sleep(1)
 
@@ -143,10 +160,17 @@ class LiveCache:
     # RAISES: 
     #   -LiveCacheError; propagated from ExternalApi.get_stock_info()
     @staticmethod
-    def get_stock_info(ticker : str):
+    def get_stock_info(ticker: str):
         try:
+            with cache_lock:
+                stock_info = cache[ticker]["quote"]
 
-            stock_info = eapi.get_stock_info(ticker)
+            if stock_info is None:
+                stock_info = eapi.get_stock_info(ticker)
+
+                with cache_lock:
+                    cache[ticker]["quote"] = stock_info
+                    cache[ticker]["quote_timestamp"] = time.time()
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e

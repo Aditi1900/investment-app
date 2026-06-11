@@ -11,19 +11,18 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { fundAccount } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
-// Stereotype-driven sector hues
 const SECTOR_HUE = {
-    "Technology": 142,  // green  — growth, innovation
-    "Financial Services": 45,  // gold   — money, wealth
-    "Healthcare": 0,  // red    — medical, emergency
-    "Energy": 35,  // amber  — oil, fire
-    "Consumer Cyclical": 25,  // orange — retail, spending
-    "Consumer Defensive": 80,  // olive  — staples, stability
-    "Industrials": 210,  // steel blue — manufacturing
-    "Basic Materials": 55,  // yellow — raw earth, mining
-    "Real Estate": 160,  // teal   — property, land
-    "Communication Services": 270,  // purple — media, telecom
-    "Utilities": 195,  // sky    — water, power
+    "Technology": 142,
+    "Financial Services": 45,
+    "Healthcare": 0,
+    "Energy": 35,
+    "Consumer Cyclical": 25,
+    "Consumer Defensive": 80,
+    "Industrials": 210,
+    "Basic Materials": 55,
+    "Real Estate": 160,
+    "Communication Services": 270,
+    "Utilities": 195,
 };
 
 const generateSectorColors = (holdings) => {
@@ -64,7 +63,7 @@ function PortfolioCard({ portfolio: p }) {
         : sortedHoldings.map((h) => ({ name: h.ticker, value: h.value, color: sectorColors[h.ticker] }));
 
     return (
-        <div className="card-surface p-6">
+        <div className="card-surface p-5 sm:p-6">
             <div className="flex items-center justify-between">
                 <div>
                     <div className="text-lg font-bold text-foreground">{name}</div>
@@ -157,15 +156,16 @@ export default function Dashboard() {
 
     return (
         <AppLayout>
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Dashboard</h1>
                     <p className="text-muted-foreground">Hello, {user?.login ?? "User"}</p>
                 </div>
 
-                <div className="card-surface flex items-center justify-between p-6">
+                {/* Funds card — stacks vertically on mobile */}
+                <div className="card-surface flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary">
                             <Building2 size={20} className="text-foreground" />
                         </div>
                         <div>
@@ -175,7 +175,10 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <button onClick={() => setAddFundsOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">
+                    <button
+                        onClick={() => setAddFundsOpen(true)}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground sm:w-auto"
+                    >
                         <span className="text-lg">⊕</span> Add Funds
                     </button>
                 </div>
@@ -187,23 +190,23 @@ export default function Dashboard() {
                             No portfolios yet. Create one on the Portfolio page.
                         </div>
                     ) : (
-                        <div className="grid gap-6 md:grid-cols-3">
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {portfolios.map((p) => <PortfolioCard key={p.id} portfolio={p} />)}
                         </div>
                     )}
                 </div>
 
                 <Dialog open={addFundsOpen} onOpenChange={setAddFundsOpen}>
-                    <DialogContent>
+                    <DialogContent className="w-[calc(100%-2rem)] max-w-lg rounded-xl sm:w-full">
                         <DialogHeader>
                             <DialogTitle>Add Funds</DialogTitle>
                             <DialogDescription>Enter the amount you&apos;d like to deposit into your account.</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 pt-2">
                             <Input type="number" placeholder="Enter amount (USD)" value={fundAmount} onChange={(e) => setFundAmount(e.target.value)} min="0" step="0.01" />
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
                                 {QUICK_AMOUNTS.map((amt) => (
-                                    <button key={amt} onClick={() => setFundAmount(String(amt))} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary">
+                                    <button key={amt} onClick={() => setFundAmount(String(amt))} className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary sm:py-1.5">
                                         ${amt.toLocaleString()}
                                     </button>
                                 ))}

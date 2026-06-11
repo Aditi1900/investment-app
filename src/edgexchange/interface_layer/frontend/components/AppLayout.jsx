@@ -1,40 +1,68 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AppSidebar from "../components/Sidebar";
-import { Bell, Settings, User } from "lucide-react";
+import { Bell, Settings, User, Menu } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
 
 export default function AppLayout({ children }) {
     const router = useRouter();
     const { ready, user } = useSession();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     if (!ready) return null;
     if (!user) return null;
 
     return (
         <div className="flex h-screen overflow-hidden bg-background">
-            <AppSidebar />
+            {/* Mobile overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
 
-            <div className="flex flex-1 flex-col overflow-hidden">
-                <header className="flex h-16 items-center justify-end border-b border-border bg-card px-6">
-                    <div className="flex items-center gap-4">
-                        <button>
+            {/* Sidebar — fixed on mobile, static in flex flow on desktop */}
+            <div
+                className={`fixed inset-y-0 left-0 z-30 transition-transform duration-200
+                    lg:static lg:z-auto lg:translate-x-0 lg:w-56 lg:shrink-0
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+            >
+                <AppSidebar onClose={() => setSidebarOpen(false)} />
+            </div>
+
+            <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+                <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
+                    {/* Hamburger — visible on mobile only */}
+                    <button
+                        className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-secondary lg:hidden"
+                        onClick={() => setSidebarOpen(true)}
+                        aria-label="Open menu"
+                    >
+                        <Menu size={20} />
+                    </button>
+
+                    {/* Right actions */}
+                    <div className="ml-auto flex items-center gap-4">
+                        <button aria-label="Notifications">
                             <Bell size={18} />
                         </button>
-                        <button>
+                        <button aria-label="Settings">
                             <Settings size={18} />
                         </button>
                         <button
                             onClick={() => router.push("/dashboard")}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary"
+                            aria-label="Profile"
                         >
                             <User size={16} />
                         </button>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6">
                     {children}
                 </main>
             </div>

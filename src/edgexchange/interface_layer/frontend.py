@@ -11,7 +11,7 @@ from ..integration_layer import FrontendApi, router
 class Frontend:
     def __init__(self, service, sanitizer, validator):
 
-        origins = ["http://localhost:3000"]
+        origins = ["*"]
 
         FrontendApi(service, sanitizer, validator).link_routes()
 

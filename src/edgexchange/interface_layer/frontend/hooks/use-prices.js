@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = "http://10.0.0.16:8000";
 
 const fetchQuote = (ticker) =>
   fetch(`${API_BASE}/quote?ticker=${ticker}`)
