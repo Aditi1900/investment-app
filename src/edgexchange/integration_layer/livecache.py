@@ -54,7 +54,7 @@ def run():
         if new_tickers:
             try:
 
-                fresh = update_cache(new_tickers)
+                update_cache(new_tickers)
 
             except FetchingError:
                 pass
@@ -256,8 +256,7 @@ class LiveCache:
                     ticker_package[ticker] = cache[ticker]["price"]
 
             if missing_tickers:
-                fresh = update_cache(missing_tickers)
-                ticker_package |= fresh
+                ticker_package |= update_cache(missing_tickers)
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch requested stock prices") from e
