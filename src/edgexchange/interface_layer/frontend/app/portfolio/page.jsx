@@ -47,7 +47,10 @@ export default function Portfolio() {
 
     const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
 
-    const totalValue = live?.total ?? (holdings.length === 0 ? "$0.00" : "Loading...");
+    const totalValue = live?.total
+        ? `$${String(live.total).replace(/^\$+/, "")}`
+        : holdings.length === 0 ? "$0.00" : "Loading...";
+
     const filteredHoldings = resolvedTab === "All Stocks"
         ? holdings
         : holdings.filter((h) => h.sector === resolvedTab);
@@ -160,7 +163,7 @@ export default function Portfolio() {
                                         <td className="px-6 py-4 text-sm text-foreground">{h.price > 0 ? `$${h.price.toFixed(2)}` : "—"}</td>
                                         <td className="px-6 py-4 text-sm text-foreground">{h.qty.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm font-semibold text-foreground">
-                                            {h.value > 0 ? `$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
+                                            {h.value > 0 ? `$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
                                         </td>
                                         <td className="px-6 py-4">
                                             <button className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
