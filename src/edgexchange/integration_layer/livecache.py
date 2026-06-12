@@ -6,6 +6,7 @@ from collections import defaultdict, Counter
 
 from ..common.errors import FetchingError, LiveCacheError
 from ..common.entropy import inject_volatility
+from ..common.constants import PRICE_REFRESH_INTERVAL, QUOTE_REFRESH_INTERVAL
 from .externalapi import ExternalApi as eapi
 
 
@@ -73,7 +74,7 @@ def run():
                 if timestamp is None or price is None:
                     continue
 
-                if now - timestamp > 1:
+                if now - timestamp > PRICE_REFRESH_INTERVAL:
                     expired_p.append(ticker)
                 else:
                     data["price"] += inject_volatility(price)
@@ -85,7 +86,7 @@ def run():
                 if quote is None or quote_timestamp is None:
                     continue
 
-                if now - quote_timestamp > 30:
+                if now - quote_timestamp > QUOTE_REFRESH_INTERVAL:
                     expired_q.append(ticker)
 
             # Cache evictions
@@ -97,7 +98,7 @@ def run():
                 cache[ticker]["quote"] = None
                 cache[ticker]["quote_timestamp"] = None
 
-        time.sleep(1)
+        time.sleep(PRICE_REFRESH_INTERVAL)
 
 threading.Thread(target=run, daemon=True).start()
 

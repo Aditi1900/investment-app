@@ -3,6 +3,7 @@ import json
 from typing import AsyncGenerator
 
 from ..common.errors import ValidationError
+from ..common.constants import PRICE_REFRESH_INTERVAL
 from .routes import connect
 
 
@@ -151,7 +152,7 @@ class FrontendApi:
             try:
 
                 while True:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(PRICE_REFRESH_INTERVAL)
 
                     data = self.serv.package_portfolio_data(portfolio)
 

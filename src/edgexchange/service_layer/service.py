@@ -334,12 +334,13 @@ class Service:
                 total += value
 
                 packaged_data["holdings"].append({
-                                                  "ticker": ticker, 
-                                                  "price" : price, 
-                                                  "quantity" : stock.quantity, 
-                                                  "value": value,
-                                                  "sector": lcac.get_sector(ticker),
-                                                  "label": f"{ticker} (${value:,.2f})"})
+                    "ticker": ticker, 
+                    "price" : price, 
+                    "quantity" : stock.quantity, 
+                    "value": value,
+                    "sector": lcac.get_sector(ticker),
+                    "label": f"{ticker} (${value:,.2f})"
+                })
 
         except LiveCacheError as e:
             return None
