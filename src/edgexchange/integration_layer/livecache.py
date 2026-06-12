@@ -14,6 +14,7 @@ persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Lock()
 
 fetch_locks = {
+    "bulk" : Lock(),
     "price":  Lock(),
     "quote":  Lock(),
     "float":  Lock(),
@@ -193,7 +194,7 @@ class LiveCache:
 
         try:
 
-            with fetch_locks["price"]:
+            with fetch_locks["bulk"]:
                 with cache_lock:
                     cached_tickers = [t for t in tickers if cache[t]["price"] is not None]
                     missing_tickers = [t for t in tickers if cache[t]["price"] is None]
