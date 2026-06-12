@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from ..common.errors import ServiceError, ValidationError
+from ..common.constants import dynamic_system_refresh
 from .pydmodels import (
     LogoutRequest, CredsRequest, FundsRequest,
     PortfolioRequest, TransactionRequest,
@@ -17,7 +18,6 @@ router = APIRouter()
 
 active_sessions : dict[str, int] = {}
 user_sessions : defaultdict[int,set] = defaultdict(set)
-
 active_users : dict[int, object] = {}
 
 session_lock = Lock()
@@ -67,7 +67,10 @@ def start_session(user) -> str:
         session_id = generate_session_id()
         active_sessions[session_id] = user.id
         user_sessions[user.id].add(session_id)
-        active_users[user.id] = user
+
+        if active_users.get(user.id) is None:
+            active_users[user.id] = user
+            dynamic_system_refresh(len(active_users))
 
     return session_id
 
@@ -185,6 +188,7 @@ def logout(req : LogoutRequest) -> dict[str, str]:
         if not user_sessions[u_id]:
             active_users.pop(u_id, None)
             user_sessions.pop(u_id, None)
+            dynamic_system_refresh(len(active_users))
 
     response = {"message" : "logged out"}
 
