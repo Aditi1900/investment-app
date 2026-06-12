@@ -290,28 +290,6 @@ class Service:
 
     # INPUT:
     #   -portfolio(Portfolio); a user portfolio
-    # OUTPUT: None
-    # PRECONDITION: None
-    # POSTCONDITION:
-    #   -lcac; all tickers in portfolio are added to watched set
-    # RAISES: None
-    def start_watching(self, portfolio) -> None:
-        lcac.watch(list(portfolio.stocks.keys()))
-
-
-    # INPUT:
-    #   -portfolio(Portfolio); a user portfolio
-    # OUTPUT: None
-    # PRECONDITION: None
-    # POSTCONDITION:
-    #   -lcac; all tickers in portfolio are removed from watched set
-    # RAISES: None
-    def stop_watching(self, portfolio) -> None:
-        lcac.unwatch(list(portfolio.stocks.keys()))
-
-
-    # INPUT:
-    #   -portfolio(Portfolio); a user portfolio
     # OUTPUT:
     #   -packaged_data(dict[str, str | list]); portfolios holdings and total value at the moment or None if the call fails
     # PRECONDITION: None
