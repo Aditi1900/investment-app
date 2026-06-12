@@ -35,7 +35,6 @@ export default function Portfolio() {
         name: h.ticker ?? "",
     }));
 
-    // Derive tabs dynamically — known sectors first, "Other" pinned to end if present
     const knownSectors = Array.from(new Set(
         holdings.map((h) => h.sector).filter((s) => s && s !== "Other")
     ));
@@ -46,7 +45,6 @@ export default function Portfolio() {
         ...(hasOther ? ["Other"] : []),
     ];
 
-    // Reset tab to "All Stocks" if active tab no longer exists in current portfolio
     const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
 
     const totalValue = live?.total ?? (holdings.length === 0 ? "$0.00" : "Loading...");
@@ -84,12 +82,13 @@ export default function Portfolio() {
     return (
         <AppLayout>
             <div className="space-y-8">
-                <div className="flex items-start justify-between">
+                {/* Header: stacks on mobile, side-by-side on sm+ */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <div className="section-label">Asset Allocation</div>
                         <h1 className="mt-1 text-3xl font-bold text-foreground">{current?.name ?? "Portfolio"}</h1>
                         {portfolios.length > 1 && (
-                            <div className="mt-2 flex gap-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                                 {portfolios.map((p) => (
                                     <button
                                         key={p.id}
@@ -102,7 +101,7 @@ export default function Portfolio() {
                             </div>
                         )}
                     </div>
-                    <div className="text-right">
+                    <div className="sm:text-right">
                         <div className="section-label">Total Valuation</div>
                         <div className="text-3xl font-bold text-foreground">{totalValue}</div>
                     </div>
@@ -131,9 +130,10 @@ export default function Portfolio() {
                     </div>
                 </div>
 
-                <div className="card-surface overflow-hidden">
+                {/* Table: horizontally scrollable on mobile */}
+                <div className="card-surface overflow-x-auto">
                     {filteredHoldings.length > 0 ? (
-                        <table className="w-full">
+                        <table className="w-full min-w-[640px]">
                             <thead>
                                 <tr className="border-b border-border">
                                     {["Holding", "Sector", "Current Price", "Quantity", "Total Value", "Actions"].map((h) => (
@@ -146,7 +146,7 @@ export default function Portfolio() {
                                     <tr key={h.ticker} className="border-b border-border last:border-0 hover:bg-muted/30">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-[10px] font-bold text-foreground">{h.ticker}</div>
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-[10px] font-bold text-foreground">{h.ticker}</div>
                                                 <div className="text-sm font-semibold text-foreground">{h.name}</div>
                                             </div>
                                         </td>

@@ -2,7 +2,7 @@ import time
 import threading
 
 from threading import Lock
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from ..common.errors import FetchingError, LiveCacheError
 from ..common.entropy import inject_volatility
@@ -12,46 +12,83 @@ from .externalapi import ExternalApi as eapi
 cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Lock()
+ticker_locks = defaultdict(Lock)
+
+watched_tickers = Counter()
+watched_lock = Lock()
+
+
+
+# INPUT:
+#   -tickers(list[str]); list of ticker symbols to fetch and cache
+# OUTPUT:
+#   -dict[str, float]; mapping of ticker symbols to their fetched prices
+# PRECONDITION:
+#   -tickers; is non-empty
+# POSTCONDITION:
+#   -cache; prices and timestamps updated for all tickers in list
+# RAISES: None
+def update_cache(tickers : list[str]) -> dict[str, float]:
+    fresh = eapi.get_stock_prices(tickers)
+
+    with cache_lock:
+        for ticker, price in fresh.items():
+            cache[ticker]["price"] = price
+            cache[ticker]["timestamp"] = time.time()
+
+    return fresh;
+
 
 # INPUT: None
 # OUTPUT: None
 # PRECONDITION: None
 # POSTCONDITION:
-#   -cache; all tickers prices un-updated >1sec are removed (quotes removed >120sec), simulated volatility is injected here if any
+#   -cache; watched tickers are refreshed every cycle, quotes evicted >120sec, prices evicted >1sec for unwatched tickers, volatility injected for all fresh prices
 # RAISES: None
 def run():
     while True:
+        # Refresh all watched tickers in one bulk fetch
+        with watched_lock:
+            new_tickers = list(watched_tickers)
+
+        if new_tickers:
+            try:
+
+                fresh = update_cache(new_tickers)
+
+            except FetchingError:
+                pass
+
+
         expired_p = []
         expired_q = []
         now = time.time()
         with cache_lock:
             for ticker, data in cache.items():
-                
-                #Stock price eviction/refresh policy
+
+                # Stock price eviction/refresh policy
                 price = data["price"]
                 timestamp = data["timestamp"]
 
                 if timestamp is None or price is None:
                     continue
 
-                if now - timestamp > 1: 
+                if now - timestamp > 1:
                     expired_p.append(ticker)
-                else:  
-                   data["price"] += inject_volatility(price)
+                else:
+                    data["price"] += inject_volatility(price)
 
-                
-                #Stock info quote eviciton/refresh policy
+                # Stock info quote eviction/refresh policy
                 quote = data["quote"]
                 quote_timestamp = data["quote_timestamp"]
 
                 if quote is None or quote_timestamp is None:
                     continue
 
-                if now - quote_timestamp > 120:
+                if now - quote_timestamp > 30:
                     expired_q.append(ticker)
 
-
-            #Cache evictions
+            # Cache evictions
             for ticker in expired_p:
                 cache[ticker]["price"] = None
                 cache[ticker]["timestamp"] = None
@@ -62,31 +99,61 @@ def run():
 
         time.sleep(1)
 
-threading.Thread(target = run, daemon = True).start()
-
+threading.Thread(target=run, daemon=True).start()
 
 
 # PURPOSE:
 #   -LiveCache provides a cache access abstraction
-#   -allows system to store and re-access fresh stocks to reduce api calls 
+#   -allows system to store and re-access fresh stocks to reduce api calls
 class LiveCache:
 
+
+    # INPUT:
+    #   -tickers(list[str]); list of ticker symbols to watch
+    # OUTPUT: None
+    # PRECONDITION: None
+    # POSTCONDITION:
+    #   -watched_tickers; reference count incremented for each ticker in list
+    # RAISES: None
+    @staticmethod
+    def watch(tickers: list[str]) -> None:
+        with watched_lock:
+            for ticker in tickers:
+                watched_tickers[ticker] += 1
+
+
+    # INPUT:
+    #   -tickers(list[str]); list of ticker symbols to unwatch
+    # OUTPUT: None
+    # PRECONDITION: None
+    # POSTCONDITION:
+    #   -watched_tickers; reference count decremented for each ticker, removed when count reaches zero
+    # RAISES: None
+    @staticmethod
+    def unwatch(tickers: list[str]) -> None:
+        with watched_lock:
+            for ticker in tickers:
+                watched_tickers[ticker] -= 1
+                if watched_tickers[ticker] <= 0:
+                    del watched_tickers[ticker]
+
+
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_price()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_price()
     @staticmethod
-    def get_stock_price(ticker : str) -> float:
+    def get_stock_price(ticker: str) -> float:
         try:
-
-            with cache_lock:
-                price = cache[ticker]["price"]
-            
-            if price is None:
-                price = eapi.get_stock_price(ticker)
-
+            with ticker_locks[ticker]:
                 with cache_lock:
-                    cache[ticker]["price"] = price
-                    cache[ticker]["timestamp"] = time.time()
+                    price = cache[ticker]["price"]
+
+                if price is None:
+                    price = eapi.get_stock_price(ticker)
+
+                    with cache_lock:
+                        cache[ticker]["price"] = price
+                        cache[ticker]["timestamp"] = time.time()
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
@@ -95,10 +162,10 @@ class LiveCache:
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.does_ticker_exist()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.does_ticker_exist()
     @staticmethod
-    def does_ticker_exist(ticker : str) -> bool:
+    def does_ticker_exist(ticker: str) -> bool:
         exist = True
 
         try:
@@ -113,10 +180,10 @@ class LiveCache:
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_float()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.get_float()
     @staticmethod
-    def get_float(ticker : str) -> int:
+    def get_float(ticker: str) -> int:
         try:
 
             if persistent_cache[ticker]["float"] is None:
@@ -131,39 +198,40 @@ class LiveCache:
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_sector()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.get_sector()
     @staticmethod
-    def get_sector(ticker : str):
+    def get_sector(ticker: str):
         try:
 
             if persistent_cache[ticker]["sector"] is None:
                 persistent_cache[ticker]["sector"] = eapi.get_sector(ticker)
-            
+
             sector = persistent_cache[ticker]["sector"]
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock sector") from e
-    
+
         return sector
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_info()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_info()
     @staticmethod
     def get_stock_info(ticker: str):
         try:
 
-            with cache_lock:
-                stock_info = cache[ticker]["quote"]
-
-            if stock_info is None:
-                stock_info = eapi.get_stock_info(ticker)
-
+            with ticker_locks[ticker]:
                 with cache_lock:
-                    cache[ticker]["quote"] = stock_info
-                    cache[ticker]["quote_timestamp"] = time.time()
+                    stock_info = cache[ticker]["quote"]
+
+                if stock_info is None:
+                    stock_info = eapi.get_stock_info(ticker)
+
+                    with cache_lock:     
+                        cache[ticker]["quote"] = stock_info
+                        cache[ticker]["quote_timestamp"] = time.time()
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e
@@ -172,7 +240,7 @@ class LiveCache:
 
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective fields in ExternalApi.get_stock_prices()
-    # RAISES: 
+    # RAISES:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
@@ -187,24 +255,11 @@ class LiveCache:
                 for ticker in cached_tickers:
                     ticker_package[ticker] = cache[ticker]["price"]
 
-
-            fresh = eapi.get_stock_prices(missing_tickers)
-
-        
-            with cache_lock:
-                for ticker, price in fresh.items():
-                    cache[ticker]["price"] = price
-                    cache[ticker]["timestamp"] = time.time()
-
-        
-            ticker_package |= fresh
+            if missing_tickers:
+                fresh = update_cache(missing_tickers)
+                ticker_package |= fresh
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch requested stock prices") from e
 
         return ticker_package
-
-
-    
-
-    

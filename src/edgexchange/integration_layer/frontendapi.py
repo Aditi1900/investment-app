@@ -147,15 +147,21 @@ class FrontendApi:
     # RAISES: None
     def make_data_stream(self, portfolio) -> AsyncGenerator:
         async def stream():
-            while True:
-                await asyncio.sleep(1)
+            self.serv.start_watching(portfolio)
+            try:
 
-                data = self.serv.package_portfolio_data(portfolio)
+                while True:
+                    await asyncio.sleep(1)
 
-                if data is None:
-                    continue
+                    data = self.serv.package_portfolio_data(portfolio)
 
-                yield json.dumps(data) + "\n"
+                    if data is None:
+                        continue
+
+                    yield json.dumps(data) + "\n"
+
+            finally:
+                self.serv.stop_watching(portfolio)
 
         return stream()
 

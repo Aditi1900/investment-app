@@ -39,7 +39,6 @@ export default function Execution() {
     const [quantity, setQuantity] = useState(0);
     const [selectedPortfolio, setSelectedPortfolio] = useState(portfolios[0]?.id ?? "");
 
-    // Debounce ticker resolution 300ms after user stops typing
     useEffect(() => {
         const trimmed = searchInput.trim().toUpperCase();
         if (!trimmed) { setTicker(""); return; }
@@ -82,11 +81,11 @@ export default function Execution() {
                     {/* Left: Stock Info */}
                     <div className="space-y-6 lg:col-span-3">
                         <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground">
                                 {ticker || "—"}
                             </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
+                            <div className="min-w-0">
+                                <h1 className="truncate text-2xl font-bold text-foreground">
                                     {ticker ? (priceLoading ? ticker : companyName) : "Enter a ticker"}
                                 </h1>
                                 {ticker && td?.exchange && <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>}
@@ -130,7 +129,8 @@ export default function Execution() {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-4 gap-4">
+                        {/* Stats grid: 2 cols on mobile, 4 on sm+ */}
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                             {[
                                 { label: "Open", value: fmt(td?.open) },
                                 { label: "High", value: fmt(td?.high) },
@@ -139,7 +139,7 @@ export default function Execution() {
                             ].map(({ label, value }) => (
                                 <div key={label} className="card-surface p-4">
                                     <div className="section-label">{label}</div>
-                                    <div className="mt-1 text-lg font-bold text-foreground">{value}</div>
+                                    <div className="mt-1 truncate text-lg font-bold text-foreground">{value}</div>
                                 </div>
                             ))}
                         </div>
