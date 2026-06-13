@@ -61,14 +61,16 @@ def run():
                     expired_q.append(ticker)
 
             #Cache evictions
+            for ticker in expired_p:
+                cache[ticker]["price"] = None
+                cache[ticker]["timestamp"] = None
+
             for ticker in expired_q:
                 cache[ticker]["quote"] = None
                 cache[ticker]["quote_timestamp"] = None
 
-        with fetch_locks["bulk"], cache_lock:
-            for ticker in expired_p:
-                cache[ticker]["price"] = None
-                cache[ticker]["timestamp"] = None
+        
+            
 
                 
 
