@@ -60,16 +60,17 @@ def run():
                 if now - quote_timestamp > QUOTE_REFRESH_INTERVAL:
                     expired_q.append(ticker)
 
-        with fetch_locks["bulk"]:
-            with cache_lock:
-                #Cache evictions
-                for ticker in expired_p:
-                    cache[ticker]["price"] = None
-                    cache[ticker]["timestamp"] = None
+            #Cache evictions
+            for ticker in expired_q:
+                cache[ticker]["quote"] = None
+                cache[ticker]["quote_timestamp"] = None
 
-                for ticker in expired_q:
-                    cache[ticker]["quote"] = None
-                    cache[ticker]["quote_timestamp"] = None
+        with fetch_locks["bulk"], cache_lock:
+            for ticker in expired_p:
+                cache[ticker]["price"] = None
+                cache[ticker]["timestamp"] = None
+
+                
 
         time.sleep(1)
 
