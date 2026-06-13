@@ -3,9 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backend_bases import CloseEvent
 import pandas as pd
 from tabulate import tabulate
-
-from ..common import constants
-
+from ..common.constants import PRICE_REFRESH_INTERVAL
 
 # PURPOSE:
 #   -Visualizer provides a data visualization abstraction
@@ -44,7 +42,7 @@ class Visualizer:
                 self.ax.set_title(f"Portfolio Distribution")
                 self.ax.set_xlabel(f"Total portfolio value: {portfolio_data['total']}")
 
-            self.ani = animation.FuncAnimation(self.fig, update, interval= constants.PRICE_REFRESH_INTERVAL*1000, cache_frame_data=False)
+            self.ani = animation.FuncAnimation(self.fig, update, interval= PRICE_REFRESH_INTERVAL*1000, cache_frame_data=False)
             plt.show(block=False)    
 
 
