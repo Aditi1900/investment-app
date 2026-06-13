@@ -1,5 +1,5 @@
-PRICE_REFRESH_INTERVAL = 5
-QUOTE_REFRESH_INTERVAL = 15
+PRICE_REFRESH_INTERVAL = 1
+QUOTE_REFRESH_INTERVAL = 3
 
 # INPUT:
 #   -user_count(int); number of users currently accessing the system

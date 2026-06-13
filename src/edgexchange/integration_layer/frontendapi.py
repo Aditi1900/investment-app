@@ -3,7 +3,7 @@ import json
 from typing import AsyncGenerator
 
 from ..common.errors import ValidationError
-from ..common.constants import PRICE_REFRESH_INTERVAL
+from ..common import constants
 from .routes import connect
 
 
@@ -149,7 +149,7 @@ class FrontendApi:
     def make_data_stream(self, portfolio) -> AsyncGenerator:
         async def stream():
             while True:
-                await asyncio.sleep(PRICE_REFRESH_INTERVAL)
+                await asyncio.sleep(constants.PRICE_REFRESH_INTERVAL)
 
                 data = self.serv.package_portfolio_data(portfolio)
 
