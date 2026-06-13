@@ -60,15 +60,16 @@ def run():
                 if now - quote_timestamp > QUOTE_REFRESH_INTERVAL:
                     expired_q.append(ticker)
 
+        with fetch_locks["bulk"]:
+            with cache_lock:
+                #Cache evictions
+                for ticker in expired_p:
+                    cache[ticker]["price"] = None
+                    cache[ticker]["timestamp"] = None
 
-            #Cache evictions
-            for ticker in expired_p:
-                cache[ticker]["price"] = None
-                cache[ticker]["timestamp"] = None
-
-            for ticker in expired_q:
-                cache[ticker]["quote"] = None
-                cache[ticker]["quote_timestamp"] = None
+                for ticker in expired_q:
+                    cache[ticker]["quote"] = None
+                    cache[ticker]["quote_timestamp"] = None
 
         time.sleep(1)
 
@@ -89,15 +90,15 @@ class LiveCache:
         try:
 
             with fetch_locks["price"]:
-                with cache_lock:
-                    price = cache[ticker]["price"]
-                
-                if price is None:
-                    price = eapi.get_stock_price(ticker)
-
                     with cache_lock:
-                        cache[ticker]["price"] = price
-                        cache[ticker]["timestamp"] = time.time()
+                        price = cache[ticker]["price"]
+                
+                    if price is None:
+                        price = eapi.get_stock_price(ticker)
+
+                        with cache_lock:
+                            cache[ticker]["price"] = price
+                            cache[ticker]["timestamp"] = time.time()
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
