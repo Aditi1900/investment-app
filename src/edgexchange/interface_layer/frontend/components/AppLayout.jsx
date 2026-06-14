@@ -11,12 +11,16 @@ export default function AppLayout({ children }) {
     const { ready, user } = useSession();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    if (!ready) return null;
+    if (!ready) return (
+        <div className="flex h-screen items-center justify-center bg-background">
+            <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
+        </div>
+    );
+
     if (!user) return null;
 
     return (
         <div className="flex h-screen overflow-hidden bg-background">
-            {/* Mobile overlay */}
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 z-20 bg-black/40 lg:hidden"
@@ -24,7 +28,6 @@ export default function AppLayout({ children }) {
                 />
             )}
 
-            {/* Sidebar — fixed on mobile, static in flex flow on desktop */}
             <div
                 className={`fixed inset-y-0 left-0 z-30 transition-transform duration-200
                     lg:static lg:z-auto lg:translate-x-0 lg:w-56 lg:shrink-0
@@ -35,7 +38,6 @@ export default function AppLayout({ children }) {
 
             <div className="flex flex-1 flex-col overflow-hidden min-w-0">
                 <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
-                    {/* Hamburger — visible on mobile only */}
                     <button
                         className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-secondary lg:hidden"
                         onClick={() => setSidebarOpen(true)}
@@ -44,7 +46,6 @@ export default function AppLayout({ children }) {
                         <Menu size={20} />
                     </button>
 
-                    {/* Right actions */}
                     <div className="ml-auto flex items-center gap-4">
                         <button aria-label="Notifications">
                             <Bell size={18} />

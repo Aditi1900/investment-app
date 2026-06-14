@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Building2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -27,20 +27,20 @@ const SECTOR_HUE = {
 
 const generateSectorColors = (holdings) => {
     const sectorGroups = {};
-    holdings.forEach((h, i) => {
+    holdings.forEach((h) => {
         const sector = h.sector ?? "Other";
         if (!sectorGroups[sector]) sectorGroups[sector] = [];
-        sectorGroups[sector].push(i);
+        sectorGroups[sector].push(h.ticker);
     });
 
     const colors = {};
-    holdings.forEach((h, i) => {
+    holdings.forEach((h) => {
         const sector = h.sector ?? "Other";
         const hue = SECTOR_HUE[sector] ?? (
             [...(h.ticker ?? "?")].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
         );
-        const group = sectorGroups[sector];
-        const posInGroup = group.indexOf(i);
+        const group = sectorGroups[sector].sort();
+        const posInGroup = group.indexOf(h.ticker);
         const count = group.length;
         const lightness = count === 1 ? 52 : 42 + (posInGroup / (count - 1)) * 22;
         colors[h.ticker] = `hsl(${hue}, 55%, ${lightness.toFixed(1)}%)`;
@@ -53,14 +53,63 @@ const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
 function PortfolioCard({ portfolio: p }) {
     const { name, totalValue, holdings, isEmpty, isLoading } = p;
-    const topFour = [...holdings].sort((a, b) => b.value - a.value).slice(0, 4);
-    const topHolder = topFour[0] ?? null;
+    const [displayHoldings, setDisplayHoldings] = useState(holdings);
+    const [displayTotal, setDisplayTotal] = useState(totalValue);
+    const animRef = useRef(null);
+    const prevRef = useRef(holdings);
+    const prevTotalRef = useRef(totalValue);
+    const colorMapRef = useRef({});
 
-    const sectorColors = generateSectorColors(holdings);
-    const sortedHoldings = [...holdings].sort((a, b) => b.value - a.value);
+    const tickerKey = holdings.map((h) => h.ticker).sort().join(",");
+    useEffect(() => {
+        colorMapRef.current = generateSectorColors(holdings);
+    }, [tickerKey]);
+
+    useEffect(() => {
+        if (!holdings.length) { setDisplayHoldings(holdings); setDisplayTotal(totalValue); return; }
+
+        const prev = prevRef.current;
+        const prevTotal = prevTotalRef.current;
+        const start = performance.now();
+        const duration = 3000;
+
+        const prevMap = Object.fromEntries(prev.map((h) => [h.ticker, h.value]));
+        const prevTotalNum = parseFloat(String(prevTotal).replace(/[^0-9.]/g, "")) || 0;
+        const nextTotalNum = parseFloat(String(totalValue).replace(/[^0-9.]/g, "")) || 0;
+
+        const animate = (now) => {
+            const t = Math.min((now - start) / duration, 1);
+
+            const interpolated = holdings.map((h) => ({
+                ...h,
+                value: (prevMap[h.ticker] ?? h.value) + ((h.value - (prevMap[h.ticker] ?? h.value)) * t),
+            }));
+
+            const interpolatedTotal = prevTotalNum + (nextTotalNum - prevTotalNum) * t;
+            setDisplayHoldings(interpolated);
+            setDisplayTotal(`$${interpolatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+
+            if (t < 1) animRef.current = requestAnimationFrame(animate);
+            else {
+                prevRef.current = holdings;
+                prevTotalRef.current = totalValue;
+            }
+        };
+
+        if (animRef.current) cancelAnimationFrame(animRef.current);
+        animRef.current = requestAnimationFrame(animate);
+
+        return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
+    }, [holdings, totalValue]);
+
+    const sectorColors = colorMapRef.current;
+    const tickerOrder = holdings.map((h) => h.ticker);
+    const stableHoldings = tickerOrder.map((ticker) => displayHoldings.find((h) => h.ticker === ticker)).filter(Boolean);
+    const topFour = [...stableHoldings].sort((a, b) => b.value - a.value).slice(0, 4);
+    const topHolder = topFour[0] ?? null;
     const chartData = isEmpty
         ? [{ name: "Empty", value: 1 }]
-        : sortedHoldings.map((h) => ({ name: h.ticker, value: h.value, color: sectorColors[h.ticker] }));
+        : stableHoldings.map((h) => ({ name: h.ticker, value: h.value, color: sectorColors[h.ticker] }));
 
     return (
         <div className="card-surface p-5 sm:p-6">
@@ -71,7 +120,7 @@ function PortfolioCard({ portfolio: p }) {
                         {!isLoading && (isEmpty ? "No holdings" : `${holdings.length} stocks`)}
                     </div>
                 </div>
-                {!isLoading && <span className="text-xs font-medium text-muted-foreground">{totalValue}</span>}
+                {!isLoading && <span className="text-xs font-medium text-muted-foreground">{displayTotal}</span>}
             </div>
 
             <div className="relative mx-auto my-6 h-40 w-40">
@@ -82,9 +131,9 @@ function PortfolioCard({ portfolio: p }) {
                     </div>
                 ) : (
                     <PieChart width={160} height={160}>
-                        <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" animationBegin={0} animationDuration={600} animationEasing="ease-out">
-                            {chartData.map((entry, i) => (
-                                <Cell key={i} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
+                        <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" isAnimationActive={false}>
+                            {chartData.map((entry) => (
+                                <Cell key={entry.name} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
                             ))}
                         </Pie>
                         {!isEmpty && (
@@ -162,7 +211,6 @@ export default function Dashboard() {
                     <p className="text-muted-foreground">Hello, {user?.login ?? "User"}</p>
                 </div>
 
-                {/* Funds card — stacks vertically on mobile */}
                 <div className="card-surface flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div className="flex items-center gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary">

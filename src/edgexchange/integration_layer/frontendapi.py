@@ -149,17 +149,16 @@ class FrontendApi:
     def make_data_stream(self, portfolio) -> AsyncGenerator:
         async def stream():
             while True:
-                await asyncio.sleep(constants.PRICE_REFRESH_INTERVAL)
 
                 data = self.serv.package_portfolio_data(portfolio)
 
-                if data is None:
-                    continue
+                if data is not None:
+                    yield json.dumps(data) + "\n"
 
-                yield json.dumps(data) + "\n"
+                await asyncio.sleep(constants.PRICE_REFRESH_INTERVAL)
 
+                
             
-
         return stream()
 
 
