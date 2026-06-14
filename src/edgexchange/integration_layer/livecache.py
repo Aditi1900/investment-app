@@ -91,11 +91,10 @@ def run():
                 if timestamp is None or price is None:
                     continue
 
+                data["price"] += inject_volatility(price)
+
                 if now - timestamp > constants.PRICE_REFRESH_INTERVAL: 
                     expired_p.append(ticker)
-                else:  
-                   data["price"] += inject_volatility(price)
-
                 
                 #Stock info quote eviciton/refresh policy
                 quote = data["quote"]

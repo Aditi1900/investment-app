@@ -123,47 +123,54 @@ function PortfolioCard({ portfolio: p }) {
                 {!isLoading && <span className="text-xs font-medium text-muted-foreground">{displayTotal}</span>}
             </div>
 
-            <div className="relative mx-auto my-6 h-40 w-40">
-                {isLoading ? (
-                    <div className="relative h-full w-full">
+            {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-4">
+                    <div className="relative h-40 w-40">
                         <div className="h-full w-full rounded-full border-[20px] border-secondary opacity-20" />
-                        <div className="absolute inset-0 rounded-full border-[20px] border-transparent border-t-muted-foreground opacity-40 animate-spin" style={{ animationDuration: "1.2s" }} />
-                    </div>
-                ) : (
-                    <PieChart width={160} height={160}>
-                        <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" isAnimationActive={false}>
-                            {chartData.map((entry) => (
-                                <Cell key={entry.name} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
-                            ))}
-                        </Pie>
-                        {!isEmpty && (
-                            <Tooltip
-                                formatter={(val, name) => [`$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, name]}
-                                contentStyle={{ backgroundColor: "hsl(0 0% 100%)", border: "1px solid hsl(214 20% 90%)", borderRadius: "8px", fontSize: "11px" }}
-                            />
-                        )}
-                        <text x={80} y={75} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "22px", fontWeight: "700", fill: "currentColor" }}>
-                            {isEmpty ? "—" : holdings.length}
-                        </text>
-                        <text x={80} y={97} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "9px", letterSpacing: "0.1em", fill: "currentColor", opacity: 0.5 }}>
-                            {isEmpty ? "EMPTY" : topHolder?.ticker || "—"}
-                        </text>
-                    </PieChart>
-                )}
-            </div>
-
-            <div className="space-y-2">
-                {topFour.map((h) => (
-                    <div key={h.ticker} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: sectorColors[h.ticker] }} />
-                            <span className="text-foreground">{h.ticker}</span>
+                        <div className="absolute inset-0 rounded-full border-[20px] border-transparent border-t-primary opacity-60 animate-spin" style={{ animationDuration: "1.2s" }} />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-[9px] font-semibold tracking-widest text-muted-foreground uppercase">{name}</span>
                         </div>
-                        <span className="text-muted-foreground">${Number(h.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
-                ))}
-                {!isLoading && isEmpty && <div className="text-center text-xs text-muted-foreground">No holdings yet</div>}
-            </div>
+                </div>
+            ) : (
+                <>
+                    <div className="relative mx-auto my-6 h-40 w-40">
+                        <PieChart width={160} height={160}>
+                            <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" isAnimationActive={false}>
+                                {chartData.map((entry) => (
+                                    <Cell key={entry.name} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
+                                ))}
+                            </Pie>
+                            {!isEmpty && (
+                                <Tooltip
+                                    formatter={(val, name) => [`$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, name]}
+                                    contentStyle={{ backgroundColor: "hsl(0 0% 100%)", border: "1px solid hsl(214 20% 90%)", borderRadius: "8px", fontSize: "11px" }}
+                                />
+                            )}
+                            <text x={80} y={75} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "22px", fontWeight: "700", fill: "currentColor" }}>
+                                {isEmpty ? "—" : holdings.length}
+                            </text>
+                            <text x={80} y={97} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "9px", letterSpacing: "0.1em", fill: "currentColor", opacity: 0.5 }}>
+                                {isEmpty ? "EMPTY" : topHolder?.ticker || "—"}
+                            </text>
+                        </PieChart>
+                    </div>
+
+                    <div className="space-y-2">
+                        {topFour.map((h) => (
+                            <div key={h.ticker} className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: sectorColors[h.ticker] }} />
+                                    <span className="text-foreground">{h.ticker}</span>
+                                </div>
+                                <span className="text-muted-foreground">${Number(h.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                        ))}
+                        {isEmpty && <div className="text-center text-xs text-muted-foreground">No holdings yet</div>}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -179,7 +186,7 @@ export default function Dashboard() {
     const portfolios = Object.values(user?.portfolios ?? {}).map((p) => {
         const live = liveData[p.name];
         const holdings = live?.holdings ?? [];
-        const isEmpty = !holdings.length;
+        const isEmpty = live && !holdings.length;
         return {
             id: p.name,
             name: p.name,
