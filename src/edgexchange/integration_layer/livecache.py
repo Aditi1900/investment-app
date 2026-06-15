@@ -1,6 +1,5 @@
 import time
 import threading
-import math
 
 from threading import Lock
 from collections import defaultdict
@@ -23,52 +22,6 @@ fetch_locks = {
     "sector": Lock(),
     "exists": Lock(),
 }
-
-sp500 = [
-    "NVDA", "GOOGL", "GOOG", "AAPL", "MSFT", "AMZN", "AVGO", "META", "TSLA", "BRK.B",
-    "LLY", "JPM", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "WMT",
-    "NFLX", "JNJ", "CRM", "BAC", "ABBV", "ORCL", "CVX", "MRK", "WFC", "CSCO",
-    "NOW", "ACN", "IBM", "GS", "LIN", "PM", "T", "TMO", "MCD", "ABT",
-    "INTU", "AXP", "CAT", "ISRG", "VZ", "AMGN", "SPGI", "PFE", "DHR", "TXN",
-    "NEE", "RTX", "UBER", "BKNG", "HON", "LOW", "MS", "UNP", "BLK", "AMAT",
-    "BSX", "C", "SYK", "PLD", "DE", "VRTX", "ETN", "ADI", "SBUX", "GILD",
-    "ADP", "MMC", "PANW", "LRCX", "MDT", "BMY", "CB", "SCHW", "AMT", "TMUS",
-    "MU", "SO", "BA", "MDLZ", "KLAC", "CI", "PGR", "REGN", "DUK", "ZTS",
-    "MCO", "COP", "CME", "TJX", "WELL", "GE", "SNPS", "CDNS", "AON", "ICE",
-    "WM", "CEG", "FCX", "CSX", "EOG", "ITW", "ELV", "PSA", "NOC", "SHW",
-    "PH", "HCA", "USB", "GEV", "EMR", "AJG", "OKE", "TT", "CTAS", "NKE",
-    "ORLY", "APH", "PCAR", "FDX", "MMM", "MSI", "AFL", "COF", "ECL", "ROP",
-    "ADSK", "AIG", "MPC", "PSX", "APD", "TDG", "SLB", "TRV", "BDX", "FICO",
-    "NSC", "NEM", "MSCI", "KMB", "MET", "NXPI", "EW", "AZO", "O", "RSG",
-    "PCG", "D", "CARR", "SRE", "PAYX", "STZ", "FAST", "HLT", "CTVA", "ALL",
-    "GM", "F", "ROST", "MCHP", "GEHC", "GWW", "IDXX", "KDP", "PPG", "PRU",
-    "A", "ODFL", "LHX", "HUM", "VRSK", "OTIS", "AME", "CMG", "CPRT", "EXC",
-    "DHI", "IR", "FANG", "KVUE", "CTSH", "MNST", "CCI", "DXCM", "ACGL", "KR",
-    "DVN", "PWR", "XEL", "ROK", "EA", "WAB", "BIIB", "HWM", "HAL", "URI",
-    "FITB", "MTB", "KHC", "EFX", "ANSS", "PEG", "GLW", "EBAY", "WBD", "DECK",
-    "DD", "CHD", "BF.B", "KEYS", "ZBH", "RMD", "DAL", "WTW", "TTWO", "LEN",
-    "WEC", "VLTO", "LVS", "ETR", "EIX", "DOV", "CAH", "INVH", "CBRE", "ON",
-    "AXON", "NVR", "PHM", "HUBB", "RF", "HBAN", "IFF", "SBAC", "AVB", "TRGP",
-    "BR", "HPQ", "MOH", "LYB", "STE", "CINF", "WAT", "BALL", "ULTA", "TYL",
-    "OMC", "MKC", "EXPD", "NTAP", "STT", "AEP", "PPL", "GIS", "FTV", "DTE",
-    "IRM", "AWK", "ES", "CBOE", "GRMN", "AEE", "VICI", "ARE", "TDY", "HOLX",
-    "DOC", "NUE", "PODD", "BAX", "CMS", "HSY", "STLD", "CF", "CLX", "TSN",
-    "LH", "EQR", "EXAS", "APTV", "COO", "JBHT", "EVRG", "LUV", "PKG", "SNA",
-    "SWK", "NTRS", "EXPD", "BRO", "ERIE", "ZBRA", "ALGN", "POOL", "TECH", "MAS",
-    "DRI", "TER", "CHRW", "AIZ", "WDC", "JKHY", "CPT", "SWKS", "HRL", "FMC",
-    "AKAM", "DGX", "IPG", "HSIC", "TAP", "NDSN", "CTLT", "PNR", "MKTX", "UDR",
-    "L", "QRVO", "BBWI", "EPAM", "VTRS", "HII", "LNC", "DVA", "MHK", "XRAY",
-    "CPB", "AOS", "IVZ", "RL", "GNRC", "ALLE", "LUMN", "BWA", "PVH", "SEE",
-    "HAS", "CE", "WBA", "CZR", "BEN", "NCLH", "ALK", "CCL", "RCL", "MGM",
-    "WYNN", "TPR", "VFC", "FOX", "FOXA", "NWS", "NWSA", "FRT", "REG", "SPG",
-    "MAC", "KIM", "HST", "EQT", "MRO", "APA", "OXY", "PXD", "VLO", "HES",
-    "CVS", "CI", "HIG", "PFG", "TROW", "BK", "NTRS", "FIS", "FISV", "GPN",
-    "MA", "V", "DFS", "SYF", "ALLY", "CFG", "ZION", "CMA", "KEY", "PBCT",
-    "IEX", "RJF", "SEIC", "NDAQ", "CBSH", "FHN", "SNV", "CINF", "TMK", "GL"
-    ]
-
-
-
 
 # INPUT: None
 # OUTPUT: None
@@ -118,37 +71,6 @@ def run():
         elapsed = time.time() - now
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - elapsed))
 
-
-
-def warm_cache():
-    try:
-        with cache_lock:
-            unwarm = [t for t in sp500 if cache[t]["price"] is None]
-
-        if unwarm:
-            warm = eapi.get_stock_prices(unwarm)
-        else:
-            warm = eapi.get_stock_prices(sp500)
-
-        with cache_lock:
-            for ticker, price in warm.items():
-                cache[ticker]["price"] = price + inject_volatility(price)
-                cache[ticker]["timestamp"] = time.time()
-
-    except FetchingError:
-        pass
-
-
-def cache_warmer():
-    while True:
-        start = time.time()
-        warm_cache()
-        elapsed = time.time() - start
-
-        warmtime = constants.PRICE_REFRESH_INTERVAL / 2
-        time.sleep(max(0, warmtime - elapsed))
-
-threading.Thread(target = cache_warmer, daemon = True).start()
 threading.Thread(target = run, daemon = True).start()
 
 
