@@ -12,104 +12,93 @@ import { fundAccount } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
 const SECTOR_HUE = {
-    "Technology": 142,
-    "Financial Services": 45,
-    "Healthcare": 0,
-    "Energy": 35,
-    "Consumer Cyclical": 25,
-    "Consumer Defensive": 80,
-    "Industrials": 210,
-    "Basic Materials": 55,
-    "Real Estate": 160,
-    "Communication Services": 270,
-    "Utilities": 195,
+    Technology: 142, "Financial Services": 45, Healthcare: 0, Energy: 35,
+    "Consumer Cyclical": 25, "Consumer Defensive": 80, Industrials: 210,
+    "Basic Materials": 55, "Real Estate": 160, "Communication Services": 270, Utilities: 195,
 };
 
 const generateSectorColors = (holdings) => {
-    const sectorGroups = {};
-    holdings.forEach((h) => {
-        const sector = h.sector ?? "Other";
-        if (!sectorGroups[sector]) sectorGroups[sector] = [];
-        sectorGroups[sector].push(h.ticker);
+    const groups = {};
+    holdings.forEach(({ ticker, sector = "Other" }) => {
+        (groups[sector] ??= []).push(ticker);
     });
 
-    const colors = {};
-    holdings.forEach((h) => {
+    return Object.fromEntries(holdings.map((h) => {
         const sector = h.sector ?? "Other";
-        const hue = SECTOR_HUE[sector] ?? (
-            [...(h.ticker ?? "?")].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
-        );
-        const group = sectorGroups[sector].sort();
-        const posInGroup = group.indexOf(h.ticker);
+        const hue = SECTOR_HUE[sector] ?? ([...(h.ticker ?? "?")].reduce((a, c) => a + c.charCodeAt(0), 0) % 360);
+        const group = groups[sector].sort();
+        const pos = group.indexOf(h.ticker);
         const count = group.length;
-        const lightness = count === 1 ? 52 : 42 + (posInGroup / (count - 1)) * 22;
-        colors[h.ticker] = `hsl(${hue}, 55%, ${lightness.toFixed(1)}%)`;
-    });
-
-    return colors;
+        const lightness = count === 1 ? 52 : 42 + (pos / (count - 1)) * 22;
+        return [h.ticker, `hsl(${hue}, 55%, ${lightness.toFixed(1)}%)`];
+    }));
 };
 
+const fmt = (n) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
-function PortfolioCard({ portfolio: p }) {
-    const { name, totalValue, holdings, isEmpty, isLoading } = p;
-    const [displayHoldings, setDisplayHoldings] = useState(holdings);
-    const [displayTotal, setDisplayTotal] = useState(totalValue);
+function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoading } }) {
+    // Track whether live data has arrived at least once
+    const hasLoadedRef = useRef(false);
+    const [display, setDisplay] = useState({ holdings, total: totalValue });
     const animRef = useRef(null);
-    const prevRef = useRef(holdings);
-    const prevTotalRef = useRef(totalValue);
+    const prevRef = useRef(null); // null = no previous value yet (first load)
     const colorMapRef = useRef({});
 
     const tickerKey = holdings.map((h) => h.ticker).sort().join(",");
-    useEffect(() => {
-        colorMapRef.current = generateSectorColors(holdings);
-    }, [tickerKey]);
+    useEffect(() => { colorMapRef.current = generateSectorColors(holdings); }, [tickerKey]);
 
     useEffect(() => {
-        if (!holdings.length) { setDisplayHoldings(holdings); setDisplayTotal(totalValue); return; }
+        // Still loading — don't touch display state
+        if (isLoading) return;
 
-        const prev = prevRef.current;
-        const prevTotal = prevTotalRef.current;
+        // First time data arrives: snap immediately, no animation
+        if (!hasLoadedRef.current) {
+            hasLoadedRef.current = true;
+            prevRef.current = { holdings, total: totalValue };
+            setDisplay({ holdings, total: totalValue });
+            return;
+        }
+
+        // Subsequent updates: animate from previous to next
+        if (!holdings.length) {
+            setDisplay({ holdings, total: totalValue });
+            prevRef.current = { holdings, total: totalValue };
+            return;
+        }
+
+        const { holdings: prev, total: prevTotal } = prevRef.current;
+        const prevMap = Object.fromEntries((prev ?? []).map((h) => [h.ticker, h.value]));
+        const prevNum = parseFloat(String(prevTotal ?? "0").replace(/[^0-9.]/g, "")) || 0;
+        const nextNum = parseFloat(String(totalValue).replace(/[^0-9.]/g, "")) || 0;
         const start = performance.now();
-        const duration = 3000;
-
-        const prevMap = Object.fromEntries(prev.map((h) => [h.ticker, h.value]));
-        const prevTotalNum = parseFloat(String(prevTotal).replace(/[^0-9.]/g, "")) || 0;
-        const nextTotalNum = parseFloat(String(totalValue).replace(/[^0-9.]/g, "")) || 0;
 
         const animate = (now) => {
-            const t = Math.min((now - start) / duration, 1);
-
-            const interpolated = holdings.map((h) => ({
-                ...h,
-                value: (prevMap[h.ticker] ?? h.value) + ((h.value - (prevMap[h.ticker] ?? h.value)) * t),
-            }));
-
-            const interpolatedTotal = prevTotalNum + (nextTotalNum - prevTotalNum) * t;
-            setDisplayHoldings(interpolated);
-            setDisplayTotal(`$${interpolatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-
+            const t = Math.min((now - start) / 3000, 1);
+            setDisplay({
+                holdings: holdings.map((h) => ({
+                    ...h,
+                    value: (prevMap[h.ticker] ?? h.value) + (h.value - (prevMap[h.ticker] ?? h.value)) * t,
+                })),
+                total: `$${fmt(prevNum + (nextNum - prevNum) * t)}`,
+            });
             if (t < 1) animRef.current = requestAnimationFrame(animate);
-            else {
-                prevRef.current = holdings;
-                prevTotalRef.current = totalValue;
-            }
+            else prevRef.current = { holdings, total: totalValue };
         };
 
         if (animRef.current) cancelAnimationFrame(animRef.current);
         animRef.current = requestAnimationFrame(animate);
-
         return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-    }, [holdings, totalValue]);
+    }, [holdings, totalValue, isLoading]);
 
-    const sectorColors = colorMapRef.current;
-    const tickerOrder = holdings.map((h) => h.ticker);
-    const stableHoldings = tickerOrder.map((ticker) => displayHoldings.find((h) => h.ticker === ticker)).filter(Boolean);
+    const colors = colorMapRef.current;
+    const stableHoldings = holdings.map((h) => h.ticker).map((t) => display.holdings.find((h) => h.ticker === t)).filter(Boolean);
     const topFour = [...stableHoldings].sort((a, b) => b.value - a.value).slice(0, 4);
     const topHolder = topFour[0] ?? null;
-    const chartData = isEmpty
-        ? [{ name: "Empty", value: 1 }]
-        : stableHoldings.map((h) => ({ name: h.ticker, value: h.value, color: sectorColors[h.ticker] }));
+    const chartData = isEmpty ? [{ name: "Empty", value: 1 }] : stableHoldings.map((h) => ({ name: h.ticker, value: h.value, color: colors[h.ticker] }));
+
+    // Show loading spinner until first data arrives
+    const showLoading = isLoading || !hasLoadedRef.current;
 
     return (
         <div className="card-surface p-5 sm:p-6">
@@ -117,13 +106,13 @@ function PortfolioCard({ portfolio: p }) {
                 <div>
                     <div className="text-lg font-bold text-foreground">{name}</div>
                     <div className="text-xs text-muted-foreground">
-                        {!isLoading && (isEmpty ? "No holdings" : `${holdings.length} stocks`)}
+                        {!showLoading && (isEmpty ? "No holdings" : `${holdings.length} stocks`)}
                     </div>
                 </div>
-                {!isLoading && <span className="text-xs font-medium text-muted-foreground">{displayTotal}</span>}
+                {!showLoading && <span className="text-xs font-medium text-muted-foreground">{display.total}</span>}
             </div>
 
-            {isLoading ? (
+            {showLoading ? (
                 <div className="flex flex-col items-center justify-center py-4">
                     <div className="relative h-40 w-40">
                         <div className="h-full w-full rounded-full border-[20px] border-secondary opacity-20" />
@@ -138,13 +127,11 @@ function PortfolioCard({ portfolio: p }) {
                     <div className="relative mx-auto my-6 h-40 w-40">
                         <PieChart width={160} height={160}>
                             <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" stroke="none" isAnimationActive={false}>
-                                {chartData.map((entry) => (
-                                    <Cell key={entry.name} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />
-                                ))}
+                                {chartData.map((entry) => <Cell key={entry.name} fill={isEmpty ? "hsl(0,0%,80%)" : entry.color} />)}
                             </Pie>
                             {!isEmpty && (
                                 <Tooltip
-                                    formatter={(val, name) => [`$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, name]}
+                                    formatter={(val, name) => [`$${fmt(val)}`, name]}
                                     contentStyle={{ backgroundColor: "hsl(0 0% 100%)", border: "1px solid hsl(214 20% 90%)", borderRadius: "8px", fontSize: "11px" }}
                                 />
                             )}
@@ -161,10 +148,10 @@ function PortfolioCard({ portfolio: p }) {
                         {topFour.map((h) => (
                             <div key={h.ticker} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: sectorColors[h.ticker] }} />
+                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: colors[h.ticker] }} />
                                     <span className="text-foreground">{h.ticker}</span>
                                 </div>
-                                <span className="text-muted-foreground">${Number(h.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span className="text-muted-foreground">${fmt(h.value)}</span>
                             </div>
                         ))}
                         {isEmpty && <div className="text-center text-xs text-muted-foreground">No holdings yet</div>}
@@ -181,20 +168,10 @@ export default function Dashboard() {
     const [addFundsOpen, setAddFundsOpen] = useState(false);
     const [fundAmount, setFundAmount] = useState("");
 
-    const funds = user?.balance ?? 0;
-
     const portfolios = Object.values(user?.portfolios ?? {}).map((p) => {
         const live = liveData[p.name];
         const holdings = live?.holdings ?? [];
-        const isEmpty = live && !holdings.length;
-        return {
-            id: p.name,
-            name: p.name,
-            totalValue: live?.total ?? "$0.00",
-            holdings,
-            isEmpty,
-            isLoading: !live,
-        };
+        return { id: p.name, name: p.name, totalValue: live?.total ?? "$0.00", holdings, isEmpty: live && !holdings.length, isLoading: !live };
     });
 
     const handleAddFunds = async () => {
@@ -226,7 +203,7 @@ export default function Dashboard() {
                         <div>
                             <div className="section-label text-accent">Available Funds</div>
                             <div className="text-2xl font-bold text-foreground">
-                                ${funds.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${(user?.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </div>
                         </div>
                     </div>

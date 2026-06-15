@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, Trash2, Filter, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,76 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { createPortfolio, removePortfolio } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
+// ---------------------------------------------------------------------------
+// Animated number hook — snaps on first load, animates on subsequent changes
+// ---------------------------------------------------------------------------
+function useAnimatedNumber(target, duration = 3000) {
+    const [display, setDisplay] = useState(null); // null = not yet loaded
+    const prevRef = useRef(null);
+    const animRef = useRef(null);
+    const hasLoadedRef = useRef(false);
+
+    useEffect(() => {
+        if (target === null || target === undefined) return;
+
+        const nextNum = typeof target === "number" ? target : parseFloat(String(target).replace(/[^0-9.]/g, "")) || 0;
+
+        // First real value: snap, no animation
+        if (!hasLoadedRef.current) {
+            hasLoadedRef.current = true;
+            prevRef.current = nextNum;
+            setDisplay(nextNum);
+            return;
+        }
+
+        const prevNum = prevRef.current ?? nextNum;
+        if (prevNum === nextNum) return;
+
+        const start = performance.now();
+        const animate = (now) => {
+            const t = Math.min((now - start) / duration, 1);
+            setDisplay(prevNum + (nextNum - prevNum) * t);
+            if (t < 1) animRef.current = requestAnimationFrame(animate);
+            else prevRef.current = nextNum;
+        };
+
+        if (animRef.current) cancelAnimationFrame(animRef.current);
+        animRef.current = requestAnimationFrame(animate);
+        return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
+    }, [target, duration]);
+
+    return display; // null until first data arrives
+}
+
+// ---------------------------------------------------------------------------
+// Animated cell — renders a single numeric value with transition
+// ---------------------------------------------------------------------------
+function AnimatedValue({ value, prefix = "$", decimals = 2, fallback = "—" }) {
+    const animated = useAnimatedNumber(value);
+    if (animated === null) return <span>{fallback}</span>;
+    return <span>{prefix}{animated.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}</span>;
+}
+
+// ---------------------------------------------------------------------------
+// Animated total valuation in the header
+// ---------------------------------------------------------------------------
+function AnimatedTotal({ rawTotal, hasHoldings }) {
+    // rawTotal is like "$12,345.67" or "$0.00" — extract the number
+    const num = rawTotal ? parseFloat(String(rawTotal).replace(/[^0-9.]/g, "")) || 0 : null;
+    const animated = useAnimatedNumber(hasHoldings ? num : 0);
+
+    if (animated === null) return <span>Loading...</span>;
+    return <span>${animated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
 export default function Portfolio() {
     const { user, setUser, sessionId } = useSession();
     const { liveData } = usePortfolio();
 
-    const portfolios = Object.values(user?.portfolios ?? {}).map((p) => ({
-        id: p.name, name: p.name, stocks: p.stocks ?? {},
-    }));
+    const portfolios = Object.values(user?.portfolios ?? {}).map((p) => ({ id: p.name, name: p.name, stocks: p.stocks ?? {} }));
 
     const [activeTab, setActiveTab] = useState("All Stocks");
     const [activePortfolio, setActivePortfolio] = useState(portfolios[0]?.id ?? "");
@@ -26,6 +89,7 @@ export default function Portfolio() {
 
     const current = portfolios.find((p) => p.id === activePortfolio) ?? portfolios[0];
     const live = liveData[current?.name];
+
     const holdings = (live?.holdings ?? []).map((h) => ({
         ticker: h.ticker ?? "",
         qty: h.quantity ?? 0,
@@ -35,25 +99,12 @@ export default function Portfolio() {
         name: h.ticker ?? "",
     }));
 
-    const knownSectors = Array.from(new Set(
-        holdings.map((h) => h.sector).filter((s) => s && s !== "Other")
-    ));
-    const hasOther = holdings.some((h) => h.sector === "Other");
-    const presentSectors = [
-        "All Stocks",
-        ...knownSectors,
-        ...(hasOther ? ["Other"] : []),
-    ];
-
+    const sectors = [...new Set(holdings.map((h) => h.sector).filter((s) => s && s !== "Other"))];
+    const presentSectors = ["All Stocks", ...sectors, ...(holdings.some((h) => h.sector === "Other") ? ["Other"] : [])];
     const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
+    const filteredHoldings = resolvedTab === "All Stocks" ? holdings : holdings.filter((h) => h.sector === resolvedTab);
 
-    const totalValue = live?.total
-        ? `$${String(live.total).replace(/^\$+/, "")}`
-        : holdings.length === 0 ? "$0.00" : "Loading...";
-
-    const filteredHoldings = resolvedTab === "All Stocks"
-        ? holdings
-        : holdings.filter((h) => h.sector === resolvedTab);
+    const rawTotal = live?.total ? `$${String(live.total).replace(/^\$+/, "")}` : holdings.length === 0 ? "$0.00" : null;
 
     const handleCreate = async () => {
         try {
@@ -85,7 +136,6 @@ export default function Portfolio() {
     return (
         <AppLayout>
             <div className="space-y-8">
-                {/* Header: stacks on mobile, side-by-side on sm+ */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <div className="section-label">Asset Allocation</div>
@@ -106,11 +156,13 @@ export default function Portfolio() {
                     </div>
                     <div className="sm:text-right">
                         <div className="section-label">Total Valuation</div>
-                        <div className="text-3xl font-bold text-foreground">{totalValue}</div>
+                        <div className="text-3xl font-bold text-foreground">
+                            <AnimatedTotal rawTotal={rawTotal} hasHoldings={holdings.length > 0} />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-wrap items-center gap-2">
                     <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
                         <Filter size={14} /> Filters
                     </button>
@@ -133,7 +185,6 @@ export default function Portfolio() {
                     </div>
                 </div>
 
-                {/* Table: horizontally scrollable on mobile */}
                 <div className="card-surface overflow-x-auto">
                     {filteredHoldings.length > 0 ? (
                         <table className="w-full min-w-[640px]">
@@ -155,15 +206,19 @@ export default function Portfolio() {
                                         </td>
                                         <td className="px-6 py-4">
                                             {h.sector !== "Other" && (
-                                                <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground">
-                                                    {h.sector}
-                                                </span>
+                                                <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground">{h.sector}</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-foreground">{h.price > 0 ? `$${h.price.toFixed(2)}` : "—"}</td>
+                                        <td className="px-6 py-4 text-sm text-foreground">
+                                            {h.price > 0
+                                                ? <AnimatedValue value={h.price} />
+                                                : "—"}
+                                        </td>
                                         <td className="px-6 py-4 text-sm text-foreground">{h.qty.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm font-semibold text-foreground">
-                                            {h.value > 0 ? `$${h.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+                                            {h.value > 0
+                                                ? <AnimatedValue value={h.value} />
+                                                : "—"}
                                         </td>
                                         <td className="px-6 py-4">
                                             <button className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>
