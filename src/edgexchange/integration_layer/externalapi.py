@@ -6,7 +6,6 @@ from ..common.errors import FetchingError
 
 logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
-
 # PURPOSE:
 #   -ExternalApi provides a external finance fetching abstraction
 #   -provides functionality related to fetching live stock data

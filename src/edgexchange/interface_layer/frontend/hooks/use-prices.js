@@ -28,7 +28,7 @@ export function usePrices(tickers) {
     };
 
     fetchAll();
-    const interval = setInterval(fetchAll, 30_000);
+    const interval = setInterval(fetchAll, 5_000);
     return () => clearInterval(interval);
   }, [tickers.join(",")]);
 

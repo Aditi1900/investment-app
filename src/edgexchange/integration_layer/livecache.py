@@ -23,6 +23,7 @@ fetch_locks = {
     "exists": Lock(),
 }
 
+
 # INPUT: None
 # OUTPUT: None
 # PRECONDITION: None
@@ -31,42 +32,44 @@ fetch_locks = {
 # RAISES: None
 def run():
     while True:
-        expired_p = []
-        expired_q = []
+        expired_price = []
+        expired_quote = []
         now = time.time()
         with cache_lock:
+
             for ticker, data in cache.items():
                 
                 #Stock price eviction/refresh policy
                 price = data["price"]
+                quote = data["quote"]
                 timestamp = data["timestamp"]
+                quote_timestamp = data["quote_timestamp"]
 
-                if timestamp is None or price is None:
+                if price is None:
                     continue
 
                 data["price"] += inject_volatility(price)
 
                 if now - timestamp > constants.PRICE_REFRESH_INTERVAL: 
-                    expired_p.append(ticker)
+                    expired_price.append(ticker)
                 
-                #Stock info quote eviciton/refresh policy
-                quote = data["quote"]
-                quote_timestamp = data["quote_timestamp"]
-
-                if quote is None or quote_timestamp is None:
+                if quote is None:
                     continue
 
-                if now - quote_timestamp > constants.QUOTE_REFRESH_INTERVAL:
-                    expired_q.append(ticker)
 
-            #Cache evictions
-            for ticker in expired_p:
+                if now - quote_timestamp > constants.QUOTE_REFRESH_INTERVAL:
+                    expired_quote.append(ticker)
+            
+             
+            for ticker in expired_quote:
+                cache[ticker]["quote"] = None
+                cache[ticker]["quote_timestamp"] = None
+
+            for ticker in expired_price:
                 cache[ticker]["price"] = None
                 cache[ticker]["timestamp"] = None
 
-            for ticker in expired_q:
-                cache[ticker]["quote"] = None
-                cache[ticker]["quote_timestamp"] = None
+            
 
         elapsed = time.time() - now
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - elapsed))
@@ -171,6 +174,7 @@ class LiveCache:
             with fetch_locks["quote"]:
                 with cache_lock:
                     stock_info = cache[ticker]["quote"]
+                    price = cache[ticker]["price"]
 
                 if stock_info is None:
                     stock_info = eapi.get_stock_info(ticker)
@@ -178,6 +182,7 @@ class LiveCache:
                     with cache_lock:
                         cache[ticker]["quote"] = stock_info
                         cache[ticker]["quote_timestamp"] = time.time()
+                
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e
