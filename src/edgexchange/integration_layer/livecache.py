@@ -1,6 +1,8 @@
 import time
 import threading
 
+from math import inf
+from datetime import date
 from threading import Lock, Condition
 from collections import defaultdict, deque
 
@@ -10,7 +12,7 @@ from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
 
-cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "high" : 0, "low" : inf, "date" : None ,"price_timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Condition(Lock())
 
@@ -28,42 +30,48 @@ fetch_locks = {
 # OUTPUT: None
 # PRECONDITION: None
 # POSTCONDITION:
-#   -cache; all tickers prices un-updated >1sec are removed (quotes removed >120sec), simulated volatility is injected here if any
+#   -cache; cache item reset occurs at respective REFRESH interval, data effected by system volatility is adjusted here
 # RAISES: None
 def run():
     while True:
-        expired_price = []
-        expired_quote = []
         now = time.time()
 
         with cache_lock:
             for ticker, data in cache.items():
+                high = data["high"]
+                low = data["low"]
+
                 price = data["price"]
+                price_timestamp = data["price_timestamp"]
+
                 quote = data["quote"]
-                timestamp = data["timestamp"]
                 quote_timestamp = data["quote_timestamp"]
+
+                today = data["date"]
 
                 if price is None:
                     continue
 
+                
                 data["price"] += inject_volatility(price)
 
-                if now - timestamp > constants.PRICE_REFRESH_INTERVAL:
-                    expired_price.append(ticker)
+                if today != date.today():
+                    cache[ticker]["high"] = 0
+                    cache[ticker]["low"] = inf
+
+                data["high"] = max(high, data["price"])
+                data["low"] = min(low, data["price"])
+
+                if now - price_timestamp > constants.PRICE_REFRESH_INTERVAL:
+                    cache[ticker]["price"] = None
+                    cache[ticker]["price_timestamp"] = None
 
                 if quote is None:
                     continue
 
                 if now - quote_timestamp > constants.QUOTE_REFRESH_INTERVAL:
-                    expired_quote.append(ticker)
-
-            for ticker in expired_quote:
-                cache[ticker]["quote"] = None
-                cache[ticker]["quote_timestamp"] = None
-
-            for ticker in expired_price:
-                cache[ticker]["price"] = None
-                cache[ticker]["timestamp"] = None
+                    cache[ticker]["quote"] = None
+                    cache[ticker]["quote_timestamp"] = None
                 
         elapsed = time.time() - now
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - elapsed))
@@ -96,12 +104,12 @@ class LiveCache:
                     with cache_lock:
                         fetch = cache[ticker]["price"] is not None
                         cache[ticker]["price"] = price
-                        cache[ticker]["timestamp"] = time.time()
+                        cache[ticker]["price_timestamp"] = time.time()
 
                 with cache_lock:
                     if fetch:
                         cache_lock.wait_for(lambda: cache[ticker]["price"] is not None)
-                        price = cache[ticker]["price"]
+                    price = cache[ticker]["price"]
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
@@ -190,7 +198,11 @@ class LiveCache:
                 with cache_lock:
                     if fetch:
                         cache_lock.wait_for(lambda: cache[ticker]["price"] is not None)
-                        stock_info["price"] = cache[ticker]["price"]
+                    
+                    stock_info["high"] = cache[ticker]["high"]
+                    stock_info["low"] = cache[ticker]["low"]
+                    stock_info["price"] = cache[ticker]["price"]
+
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e
@@ -220,7 +232,7 @@ class LiveCache:
                 with cache_lock:
                     for ticker, price in fresh.items():
                         cache[ticker]["price"] = price
-                        cache[ticker]["timestamp"] = time.time()
+                        cache[ticker]["price_timestamp"] = time.time()
                         ticker_package[ticker] = cache[ticker]["price"]
                     cache_lock.notify_all()
 
