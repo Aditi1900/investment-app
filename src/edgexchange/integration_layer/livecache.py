@@ -2,7 +2,7 @@ import time
 import threading
 
 from threading import Lock, Condition
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from ..common.errors import FetchingError, LiveCacheError
 from ..common import constants
@@ -34,6 +34,7 @@ def run():
     while True:
         expired_price = []
         expired_quote = []
+       
         now = time.time()
 
         with cache_lock:
@@ -65,6 +66,7 @@ def run():
             for ticker in expired_price:
                 cache[ticker]["price"] = None
                 cache[ticker]["timestamp"] = None
+
 
         elapsed = time.time() - now
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - elapsed))
@@ -207,9 +209,9 @@ class LiveCache:
 
                     for ticker in cached_tickers:
                         ticker_package[ticker] = cache[ticker]["price"]
-
+                
                 fresh = eapi.get_stock_prices(missing_tickers)
-
+             
                 with cache_lock:
                     for ticker, price in fresh.items():
                         cache[ticker]["price"] = price

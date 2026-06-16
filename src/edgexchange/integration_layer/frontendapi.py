@@ -3,7 +3,6 @@ import json
 from typing import AsyncGenerator
 
 from ..common.errors import ValidationError
-from ..common import constants
 from .routes import connect
 
 
@@ -155,7 +154,7 @@ class FrontendApi:
                 if data is not None:
                     yield json.dumps(data) + "\n"
 
-                await asyncio.sleep(constants.PRICE_REFRESH_INTERVAL)
+                await asyncio.sleep(1)
 
                 
             
