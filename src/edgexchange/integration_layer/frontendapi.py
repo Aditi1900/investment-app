@@ -154,7 +154,7 @@ class FrontendApi:
                 if data is not None:
                     yield json.dumps(data) + "\n"
 
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
 
                 
             
