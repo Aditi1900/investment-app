@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Plus, Trash2, Filter, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,8 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { createPortfolio, removePortfolio } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 
-// ---------------------------------------------------------------------------
-// Animated number hook — snaps on first load, animates on subsequent changes
-// ---------------------------------------------------------------------------
-function useAnimatedNumber(target, duration = 3000) {
-    const [display, setDisplay] = useState(null); // null = not yet loaded
+function useAnimatedNumber(target, duration = 1000) {
+    const [display, setDisplay] = useState(null);
     const prevRef = useRef(null);
     const animRef = useRef(null);
     const hasLoadedRef = useRef(false);
@@ -24,7 +21,6 @@ function useAnimatedNumber(target, duration = 3000) {
 
         const nextNum = typeof target === "number" ? target : parseFloat(String(target).replace(/[^0-9.]/g, "")) || 0;
 
-        // First real value: snap, no animation
         if (!hasLoadedRef.current) {
             hasLoadedRef.current = true;
             prevRef.current = nextNum;
@@ -48,33 +44,22 @@ function useAnimatedNumber(target, duration = 3000) {
         return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
     }, [target, duration]);
 
-    return display; // null until first data arrives
+    return display;
 }
 
-// ---------------------------------------------------------------------------
-// Animated cell — renders a single numeric value with transition
-// ---------------------------------------------------------------------------
-function AnimatedValue({ value, prefix = "$", decimals = 2, fallback = "—" }) {
+const AnimatedValue = memo(function AnimatedValue({ value, prefix = "$", decimals = 2, fallback = "—" }) {
     const animated = useAnimatedNumber(value);
     if (animated === null) return <span>{fallback}</span>;
     return <span>{prefix}{animated.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}</span>;
-}
+});
 
-// ---------------------------------------------------------------------------
-// Animated total valuation in the header
-// ---------------------------------------------------------------------------
-function AnimatedTotal({ rawTotal, hasHoldings }) {
-    // rawTotal is like "$12,345.67" or "$0.00" — extract the number
+const AnimatedTotal = memo(function AnimatedTotal({ rawTotal, hasHoldings }) {
     const num = rawTotal ? parseFloat(String(rawTotal).replace(/[^0-9.]/g, "")) || 0 : null;
     const animated = useAnimatedNumber(hasHoldings ? num : 0);
-
     if (animated === null) return <span>Loading...</span>;
     return <span>${animated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
-}
+});
 
-// ---------------------------------------------------------------------------
-// Main page
-// ---------------------------------------------------------------------------
 export default function Portfolio() {
     const { user, setUser, sessionId } = useSession();
     const { liveData } = usePortfolio();
@@ -157,7 +142,7 @@ export default function Portfolio() {
                     <div className="sm:text-right">
                         <div className="section-label">Total Valuation</div>
                         <div className="text-3xl font-bold text-foreground">
-                            <AnimatedTotal rawTotal={rawTotal} hasHoldings={holdings.length > 0} />
+                            <AnimatedTotal key={current?.name} rawTotal={rawTotal} hasHoldings={holdings.length > 0} />
                         </div>
                     </div>
                 </div>
@@ -210,15 +195,11 @@ export default function Portfolio() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-foreground">
-                                            {h.price > 0
-                                                ? <AnimatedValue value={h.price} />
-                                                : "—"}
+                                            {h.price > 0 ? <AnimatedValue key={`${current?.name}-${h.ticker}-price`} value={h.price} /> : "—"}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-foreground">{h.qty.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm font-semibold text-foreground">
-                                            {h.value > 0
-                                                ? <AnimatedValue value={h.value} />
-                                                : "—"}
+                                            {h.value > 0 ? <AnimatedValue key={`${current?.name}-${h.ticker}-value`} value={h.value} /> : "—"}
                                         </td>
                                         <td className="px-6 py-4">
                                             <button className="text-muted-foreground hover:text-foreground"><MoreVertical size={16} /></button>

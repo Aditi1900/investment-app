@@ -67,6 +67,12 @@ function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoa
         const prevMap = Object.fromEntries((prev ?? []).map((h) => [h.ticker, h.value]));
         const prevNum = parseFloat(String(prevTotal ?? "0").replace(/[^0-9.]/g, "")) || 0;
         const nextNum = parseFloat(String(totalValue).replace(/[^0-9.]/g, "")) || 0;
+
+        if (prevNum === nextNum) {
+            prevRef.current = { holdings, total: totalValue };
+            return;
+        }
+
         const start = performance.now();
 
         const animate = (now) => {
@@ -171,7 +177,6 @@ export default function Dashboard() {
     const portfolioNames = Object.keys(user?.portfolios ?? {});
     const portfolioKey = portfolioNames.join(",");
 
-    // Reset all tracking state when the portfolio set changes.
     useEffect(() => {
         pendingRef.current = {};
         updatedRef.current = new Set();
@@ -179,10 +184,6 @@ export default function Dashboard() {
         setSyncedData({});
     }, [portfolioKey]);
 
-    // Buffer incoming liveData and track a generation (lap counter) per portfolio.
-    // Only commit to syncedData when every portfolio is present AND all share the
-    // same generation — meaning they all arrived in the same natural SSE cycle.
-    // Portfolios that are ahead or behind are held until the others catch up.
     useEffect(() => {
         if (!portfolioNames.length) return;
 
