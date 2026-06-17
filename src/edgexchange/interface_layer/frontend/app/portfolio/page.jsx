@@ -21,11 +21,10 @@ function useAnimatedNumber(target, duration = 1000) {
 
         const nextNum = typeof target === "number" ? target : parseFloat(String(target).replace(/[^0-9.]/g, "")) || 0;
 
+        // First real value: animate from 0
         if (!hasLoadedRef.current) {
             hasLoadedRef.current = true;
-            prevRef.current = nextNum;
-            setDisplay(nextNum);
-            return;
+            prevRef.current = 0; 
         }
 
         const prevNum = prevRef.current ?? nextNum;
@@ -56,9 +55,28 @@ const AnimatedValue = memo(function AnimatedValue({ value, prefix = "$", decimal
 const AnimatedTotal = memo(function AnimatedTotal({ rawTotal, hasHoldings }) {
     const num = rawTotal ? parseFloat(String(rawTotal).replace(/[^0-9.]/g, "")) || 0 : null;
     const animated = useAnimatedNumber(hasHoldings ? num : 0);
-    if (animated === null) return <span>Loading...</span>;
+
+    if (animated === null) return <span>$0.00</span>;
     return <span>${animated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
-});
+}
+
+// ---------------------------------------------------------------------------
+// Loading placeholder - grey horizontal animated bars 
+// ---------------------------------------------------------------------------
+function SkeletonRow() {
+    return (
+        <tr className="border-b border-border">
+            {[140, 80, 90, 60, 100, 24].map((w, i) => (
+                <td key={i} className="px-6 py-4">
+                    <div
+                        className="animate-pulse rounded bg-muted-foreground/20"
+                        style={{ width: w, height: 16, animationDuration: "1s" }}
+                    />
+                </td>
+            ))}
+        </tr>
+    );
+}
 
 export default function Portfolio() {
     const { user, setUser, sessionId } = useSession();
@@ -74,7 +92,9 @@ export default function Portfolio() {
 
     const current = portfolios.find((p) => p.id === activePortfolio) ?? portfolios[0];
     const live = liveData[current?.name];
-
+    // const isLoading = live === undefined;
+    const isLoading = portfolios.length > 0 && live === undefined;
+    
     const holdings = (live?.holdings ?? []).map((h) => ({
         ticker: h.ticker ?? "",
         qty: h.quantity ?? 0,
@@ -89,7 +109,11 @@ export default function Portfolio() {
     const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
     const filteredHoldings = resolvedTab === "All Stocks" ? holdings : holdings.filter((h) => h.sector === resolvedTab);
 
-    const rawTotal = live?.total ? `$${String(live.total).replace(/^\$+/, "")}` : holdings.length === 0 ? "$0.00" : null;
+    const rawTotal = isLoading
+    ? null
+    : live?.total
+        ? `$${String(live.total).replace(/^\$+/, "")}`
+        : "$0.00";
 
     const handleCreate = async () => {
         try {
@@ -142,7 +166,10 @@ export default function Portfolio() {
                     <div className="sm:text-right">
                         <div className="section-label">Total Valuation</div>
                         <div className="text-3xl font-bold text-foreground">
-                            <AnimatedTotal key={current?.name} rawTotal={rawTotal} hasHoldings={holdings.length > 0} />
+                            {isLoading
+                                ? <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted-foreground/20 border-t-foreground mt-1" />
+                                : <AnimatedTotal rawTotal={rawTotal} hasHoldings={holdings.length > 0} />
+                            }
                         </div>
                     </div>
                 </div>
@@ -171,7 +198,20 @@ export default function Portfolio() {
                 </div>
 
                 <div className="card-surface overflow-x-auto">
-                    {filteredHoldings.length > 0 ? (
+                    {isLoading ? (
+                        <table className="w-full min-w-[640px]">
+                            <thead>
+                                <tr className="border-b border-border">
+                                    {["Holding", "Sector", "Current Price", "Quantity", "Total Value", "Actions"].map((h) => (
+                                        <th key={h} className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
+                            </tbody>
+                        </table>
+                    ) : filteredHoldings.length > 0 ? (
                         <table className="w-full min-w-[640px]">
                             <thead>
                                 <tr className="border-b border-border">
