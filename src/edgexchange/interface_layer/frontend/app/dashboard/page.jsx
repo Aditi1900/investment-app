@@ -181,6 +181,14 @@ export default function Dashboard() {
     const portfolioNames = Object.keys(user?.portfolios ?? {});
     const portfolioKey = portfolioNames.join(",");
 
+    // Get the set of non-empty portfolio names
+    const nonEmptyPortfolioNames = new Set(
+        portfolioNames.filter(name => {
+            const live = liveData[name];
+            return live && live.holdings && live.holdings.length > 0;
+        })
+    );
+
     useEffect(() => {
         pendingRef.current = {};
         updatedRef.current = new Set();
@@ -208,22 +216,24 @@ export default function Dashboard() {
 
         if (!changed) return;
 
-        const allUpdated = portfolioNames.every(
+        // Only check sync condition for non-empty portfolios
+        const nonEmptyUpdated = [...nonEmptyPortfolioNames].filter(
             (name) => updatedRef.current.has(name)
         );
 
-        if (!allUpdated) return;
-
-        setSyncedData(
-            Object.fromEntries(
-                portfolioNames.map((name) => [
-                    name,
-                    pendingRef.current[name],
-                ])
-            )
-        );
-
-        updatedRef.current.clear();
+        // If there are no non-empty portfolios or all non-empty portfolios are updated
+        if (nonEmptyPortfolioNames.size === 0 || nonEmptyUpdated.length === nonEmptyPortfolioNames.size) {
+            // Sync all portfolios (including empty ones for consistency)
+            setSyncedData(
+                Object.fromEntries(
+                    portfolioNames.map((name) => [
+                        name,
+                        pendingRef.current[name],
+                    ])
+                )
+            );
+            updatedRef.current.clear();
+        }
     }, [liveData, portfolioKey]);
 
     const portfolios = Object.values(user?.portfolios ?? {}).map((p) => {

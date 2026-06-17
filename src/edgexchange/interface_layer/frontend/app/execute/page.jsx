@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, ShieldCheck, ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
+import { Search, ShieldCheck, ArrowRight, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { toast } from "@/hooks/use-toast";
 import { useSession } from "@/context/SessionContext";
@@ -36,8 +36,9 @@ export default function Execution() {
     const [side, setSide] = useState("buy");
     const [ticker, setTicker] = useState(() => searchParams.get("ticker")?.toUpperCase() ?? "");
     const [searchInput, setSearchInput] = useState(ticker);
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState("");
     const [selectedPortfolio, setSelectedPortfolio] = useState(portfolios[0]?.id ?? "");
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         const trimmed = searchInput.trim().toUpperCase();
@@ -57,22 +58,55 @@ export default function Execution() {
     const isBuy = side === "buy";
     const currentPortfolio = portfolios.find((p) => p.id === selectedPortfolio);
     const sharesHeld = currentPortfolio?.holdings.find((h) => h.ticker === ticker)?.qty ?? 0;
-    const estimatedTotal = currentPrice && quantity > 0
-        ? (currentPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })
+    const quantityNum = quantity === "" ? 0 : Number(quantity);
+    const estimatedTotal = currentPrice && quantityNum > 0
+        ? (currentPrice * quantityNum).toLocaleString(undefined, { minimumFractionDigits: 2 })
         : null;
 
+    const handleQuantityChange = (e) => {
+        const value = e.target.value;
+
+        // Allow empty field
+        if (value === "") {
+            setQuantity("");
+            return;
+        }
+
+        // Remove leading zeros unless it's just "0"
+        const cleaned = value.replace(/^0+/, "") || "0";
+        setQuantity(cleaned);
+    };
+
     const handleExecute = async () => {
+        if (isProcessing) return;
+
+        setIsProcessing(true);
+
         try {
             const fn = isBuy ? executeBuy : executeSell;
-            await fn(sessionId, selectedPortfolio, ticker, quantity);
+            await fn(sessionId, selectedPortfolio, ticker, quantityNum);
+
             const { user: updatedUser } = await getUser(sessionId);
             setUser(updatedUser);
-            toast({ title: `${isBuy ? "Bought" : "Sold"} ${quantity} shares of ${ticker}.` });
-            setQuantity(0);
+
+            toast({
+                title: `${isBuy ? "Bought" : "Sold"} ${quantityNum} shares of ${ticker}.`,
+                description: `Transaction completed successfully.`
+            });
+            setQuantity("");
         } catch (err) {
-            toast({ title: err.message, variant: "destructive" });
+            toast({
+                title: err.message,
+                variant: "destructive",
+                description: "Please try again or contact support if the issue persists."
+            });
+        } finally {
+            setIsProcessing(false);
         }
     };
+
+    const canExecute = ticker && !errors[ticker] && currentPrice && quantityNum > 0 && !isProcessing;
+    const buttonDisabled = !canExecute;
 
     return (
         <AppLayout>
@@ -177,10 +211,18 @@ export default function Execution() {
                     <div className="space-y-4 lg:col-span-2">
                         <div className={`card-surface space-y-5 border-t-4 p-6 ${isBuy ? "border-t-emerald-500" : "border-t-red-500"}`}>
                             <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border">
-                                <button onClick={() => setSide("buy")} className={`py-2.5 text-sm font-semibold transition-colors ${isBuy ? "bg-emerald-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+                                <button
+                                    onClick={() => !isProcessing && setSide("buy")}
+                                    disabled={isProcessing}
+                                    className={`py-2.5 text-sm font-semibold transition-colors ${isBuy ? "bg-emerald-500 text-white" : "text-muted-foreground hover:bg-secondary"} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+                                >
                                     <span className="flex items-center justify-center gap-1.5"><TrendingUp size={14} /> BUY</span>
                                 </button>
-                                <button onClick={() => setSide("sell")} className={`py-2.5 text-sm font-semibold transition-colors ${!isBuy ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+                                <button
+                                    onClick={() => !isProcessing && setSide("sell")}
+                                    disabled={isProcessing}
+                                    className={`py-2.5 text-sm font-semibold transition-colors ${!isBuy ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-secondary"} ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+                                >
                                     <span className="flex items-center justify-center gap-1.5"><TrendingDown size={14} /> SELL</span>
                                 </button>
                             </div>
@@ -192,7 +234,8 @@ export default function Execution() {
                                         value={searchInput}
                                         onChange={(e) => setSearchInput(e.target.value.toUpperCase())}
                                         placeholder="e.g. AAPL"
-                                        className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
+                                        disabled={isProcessing}
+                                        className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
                                     />
                                     <Search size={16} className="text-muted-foreground" />
                                 </div>
@@ -220,7 +263,8 @@ export default function Execution() {
                                 <select
                                     value={selectedPortfolio}
                                     onChange={(e) => setSelectedPortfolio(e.target.value)}
-                                    className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-sm font-medium text-foreground outline-none"
+                                    disabled={isProcessing}
+                                    className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-sm font-medium text-foreground outline-none disabled:opacity-50"
                                 >
                                     {portfolios.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                                 </select>
@@ -229,11 +273,13 @@ export default function Execution() {
                             <div>
                                 <label className="section-label">Quantity (Shares)</label>
                                 <input
-                                    type="number"
-                                    min={0}
+                                    type="text"
+                                    inputMode="numeric"
                                     value={quantity}
-                                    onChange={(e) => setQuantity(Number(e.target.value))}
-                                    className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-2xl font-bold text-foreground outline-none"
+                                    onChange={handleQuantityChange}
+                                    placeholder="0"
+                                    disabled={isProcessing}
+                                    className="mt-2 w-full rounded-lg border border-border bg-transparent px-3 py-2.5 text-2xl font-bold text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
                                 />
                                 <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                                     <span>{estimatedTotal ? `Est. total: $${estimatedTotal}` : "Enter quantity"}</span>
@@ -251,7 +297,7 @@ export default function Execution() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Quantity</span>
-                                    <span className="text-foreground">{quantity} shares</span>
+                                    <span className="text-foreground">{quantityNum} shares</span>
                                 </div>
                                 {currentPrice && (
                                     <div className="flex justify-between">
@@ -269,9 +315,24 @@ export default function Execution() {
 
                             <button
                                 onClick={handleExecute}
-                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${isBuy ? "bg-emerald-500 hover:bg-emerald-600" : "bg-red-500 hover:bg-red-600"}`}
+                                disabled={buttonDisabled}
+                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${isProcessing
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : isBuy
+                                        ? "bg-emerald-500 hover:bg-emerald-600"
+                                        : "bg-red-500 hover:bg-red-600"
+                                    } ${buttonDisabled && !isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
-                                {isBuy ? "BUY" : "SELL"} <ArrowRight size={16} />
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        PROCESSING...
+                                    </>
+                                ) : (
+                                    <>
+                                        {isBuy ? "BUY" : "SELL"} <ArrowRight size={16} />
+                                    </>
+                                )}
                             </button>
                             <p className="text-center text-[10px] text-muted-foreground">
                                 By clicking {isBuy ? "BUY" : "SELL"}, you agree to EdgeXchange&apos;s Terms of Service and Risk Disclosure statement.

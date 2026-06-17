@@ -97,11 +97,12 @@ class LiveCache:
                     write = True
                 
                 with cache_lock:
-                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.POLLING_RATE + 2)
-                                 
+                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("quote") is not None, timeout=constants.TIMEOUT)
+                    
                     if satisfied and write:
                         cache[ticker]["price"] = price
                         cache[ticker]["timestamp"] = time.time()
+                        
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
@@ -183,7 +184,7 @@ class LiveCache:
                     write = True
                         
                 with cache_lock:
-                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.POLLING_RATE + 2)
+                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.TIMEOUT)
                                  
                     if satisfied:
                         stock_info["price"] = cache.get(ticker, {}).get("price")
@@ -191,6 +192,7 @@ class LiveCache:
                     if write:
                         cache[ticker]["quote"] = stock_info
                         cache[ticker]["quote_timestamp"] = time.time()
+              
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e
