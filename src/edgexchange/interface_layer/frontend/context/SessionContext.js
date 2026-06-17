@@ -36,7 +36,11 @@ export function SessionProvider({ children }) {
         const stored = store.get("session_id");
         if (!stored) { setReady(true); return; }
 
-        setReady(true);
+        const cachedUser = (() => {
+            try { return JSON.parse(store.get("user")); } catch { return null; }
+        })();
+
+        if (cachedUser) setReady(true);
 
         fetch(`${API_BASE}/user?session_id=${stored}`)
             .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
@@ -44,6 +48,7 @@ export function SessionProvider({ children }) {
                 if (!user) throw new Error();
                 setUser(user);
                 store.set("user", JSON.stringify(user));
+                if (!cachedUser) setReady(true);
             })
             .catch(() => { clearSession(); router.push("/login"); });
     }, []);

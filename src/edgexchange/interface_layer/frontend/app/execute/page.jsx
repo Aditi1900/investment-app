@@ -46,7 +46,7 @@ export default function Execution() {
         return () => clearTimeout(timeout);
     }, [searchInput]);
 
-    const { prices, loading: priceLoading } = usePrices(ticker ? [ticker] : []);
+    const { prices, errors, loading: priceLoading } = usePrices(ticker ? [ticker] : []);
     const td = prices[ticker];
     const currentPrice = td?.price ?? null;
     const priceChange = td?.change ?? null;
@@ -86,10 +86,21 @@ export default function Execution() {
                             </div>
                             <div className="min-w-0">
                                 <h1 className="truncate text-2xl font-bold text-foreground">
-                                    {ticker ? (priceLoading ? ticker : companyName) : "Enter a ticker"}
+                                    {ticker
+                                        ? errors[ticker] ? "Ticker not found"
+                                            : priceLoading ? ticker
+                                                : companyName
+                                        : "Enter a ticker"}
                                 </h1>
-                                {ticker && td?.exchange && <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>}
-                                {!ticker && <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>}
+                                {ticker && !errors[ticker] && td?.exchange && (
+                                    <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>
+                                )}
+                                {ticker && errors[ticker] && (
+                                    <p className="text-xs text-red-500">Please enter a valid ticker symbol</p>
+                                )}
+                                {!ticker && (
+                                    <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>
+                                )}
                             </div>
                         </div>
 
@@ -129,7 +140,6 @@ export default function Execution() {
                             </div>
                         )}
 
-                        {/* Stats grid: 2 cols on mobile, 4 on sm+ */}
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                             {[
                                 { label: "Open", value: fmt(td?.open) },
@@ -186,7 +196,10 @@ export default function Execution() {
                                     />
                                     <Search size={16} className="text-muted-foreground" />
                                 </div>
-                                {ticker && currentPrice && (
+                                {ticker && errors[ticker] && (
+                                    <p className="mt-1 text-xs text-red-500">Ticker does not exist</p>
+                                )}
+                                {ticker && currentPrice && !errors[ticker] && (
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         <span className="font-semibold text-foreground">{ticker}</span>
                                         <span className="ml-2">${currentPrice.toFixed(2)}</span>
@@ -197,7 +210,9 @@ export default function Execution() {
                                         )}
                                     </p>
                                 )}
-                                {ticker && priceLoading && <p className="mt-1 text-xs text-muted-foreground">Loading...</p>}
+                                {ticker && priceLoading && !errors[ticker] && (
+                                    <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
+                                )}
                             </div>
 
                             <div>

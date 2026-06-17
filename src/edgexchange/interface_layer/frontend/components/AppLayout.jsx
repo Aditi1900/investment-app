@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AppSidebar from "../components/Sidebar";
 import { Bell, Settings, User, Menu } from "lucide-react";
@@ -10,6 +10,10 @@ export default function AppLayout({ children }) {
     const router = useRouter();
     const { ready, user } = useSession();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        if (ready && !user) router.push("/login");
+    }, [ready, user]);
 
     if (!ready) return (
         <div className="flex h-screen items-center justify-center bg-background">
