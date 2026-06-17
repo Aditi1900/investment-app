@@ -236,7 +236,7 @@ export default function Dashboard() {
             totalValue: live?.total ?? "$0.00",
             holdings,
             isEmpty: live && !holdings.length,
-            isLoading: !live,
+            isLoading: !live || (holdings.length > 0 && !holdings.some((h) => (h.price ?? 0) > 0)),
         };
     });
 
