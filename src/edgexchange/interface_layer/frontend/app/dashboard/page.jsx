@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Building2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -37,7 +37,7 @@ const generateSectorColors = (holdings) => {
 const fmt = (n) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
-function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoading } }) {
+const PortfolioCard = memo(function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoading } }) {
     const hasLoadedRef = useRef(false);
     const [display, setDisplay] = useState({ holdings, total: totalValue });
     const animRef = useRef(null);
@@ -74,16 +74,20 @@ function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoa
         }
 
         const start = performance.now();
+        let frameCount = 0;
 
         const animate = (now) => {
-            const t = Math.min((now - start) / 1000, 1);
-            setDisplay({
-                holdings: holdings.map((h) => ({
-                    ...h,
-                    value: (prevMap[h.ticker] ?? h.value) + (h.value - (prevMap[h.ticker] ?? h.value)) * t,
-                })),
-                total: `$${fmt(prevNum + (nextNum - prevNum) * t)}`,
-            });
+            const t = Math.min((now - start) / 600, 1);
+            frameCount++;
+            if (frameCount % 2 === 0 || t === 1) {
+                setDisplay({
+                    holdings: holdings.map((h) => ({
+                        ...h,
+                        value: (prevMap[h.ticker] ?? h.value) + (h.value - (prevMap[h.ticker] ?? h.value)) * t,
+                    })),
+                    total: `$${fmt(prevNum + (nextNum - prevNum) * t)}`,
+                });
+            }
             if (t < 1) animRef.current = requestAnimationFrame(animate);
             else prevRef.current = { holdings, total: totalValue };
         };
@@ -161,7 +165,7 @@ function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoa
             )}
         </div>
     );
-}
+});
 
 export default function Dashboard() {
     const { user, setUser, sessionId } = useSession();
