@@ -21,8 +21,6 @@ export const PortfolioProvider = ({ children }) => {
     const { sessionId, user } = useSession();
     const [liveData, setLiveData] = useState({});
     const controllers = useRef([]);
-    const roundRef = useRef(0);
-    const receivedRef = useRef({});
 
     useEffect(() => {
         setLiveData(readCache());
@@ -31,8 +29,6 @@ export const PortfolioProvider = ({ children }) => {
     useEffect(() => {
         controllers.current.forEach((c) => c.abort());
         controllers.current = [];
-        roundRef.current = 0;
-        receivedRef.current = {};
 
         const portfolioNames = Object.keys(user?.portfolios ?? {});
         if (!sessionId || !portfolioNames.length) return;
@@ -54,24 +50,11 @@ export const PortfolioProvider = ({ children }) => {
                             if (!line) continue;
                             try {
                                 const data = JSON.parse(line);
-                                receivedRef.current[name] = { data, round: roundRef.current };
-
-                                const currentRound = roundRef.current;
-                                const allPresent = portfolioNames.every(
-                                    (n) => receivedRef.current[n]?.round === currentRound
-                                );
-
-                                if (allPresent) {
-                                    roundRef.current++;
-                                    const snapshot = Object.fromEntries(
-                                        portfolioNames.map((n) => [n, receivedRef.current[n].data])
-                                    );
-                                    setLiveData((prev) => {
-                                        const next = { ...prev, ...snapshot };
-                                        writeCache(next);
-                                        return next;
-                                    });
-                                }
+                                setLiveData((prev) => {
+                                    const next = { ...prev, [name]: data };
+                                    writeCache(next);
+                                    return next;
+                                });
                             } catch { }
                         }
                     }
@@ -82,8 +65,6 @@ export const PortfolioProvider = ({ children }) => {
         return () => {
             controllers.current.forEach((c) => c.abort());
             controllers.current = [];
-            roundRef.current = 0;
-            receivedRef.current = {};
         };
     }, [sessionId, Object.keys(user?.portfolios ?? {}).join(",")]);
 

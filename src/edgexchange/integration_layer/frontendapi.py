@@ -149,7 +149,7 @@ class FrontendApi:
     def make_data_stream(self, portfolio) -> AsyncGenerator:
         async def stream():
             while True:
-
+              
                 data = self.serv.package_portfolio_data(portfolio)
 
                 if data is not None:

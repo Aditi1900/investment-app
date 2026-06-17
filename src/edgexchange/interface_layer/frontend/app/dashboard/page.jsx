@@ -38,21 +38,18 @@ const fmt = (n) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 
 const QUICK_AMOUNTS = [1000, 5000, 10000, 50000];
 
 function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoading } }) {
-    // Track whether live data has arrived at least once
     const hasLoadedRef = useRef(false);
     const [display, setDisplay] = useState({ holdings, total: totalValue });
     const animRef = useRef(null);
-    const prevRef = useRef(null); // null = no previous value yet (first load)
+    const prevRef = useRef(null);
     const colorMapRef = useRef({});
 
     const tickerKey = holdings.map((h) => h.ticker).sort().join(",");
     useEffect(() => { colorMapRef.current = generateSectorColors(holdings); }, [tickerKey]);
 
     useEffect(() => {
-        // Still loading — don't touch display state
         if (isLoading) return;
 
-        // First time data arrives: snap immediately, no animation
         if (!hasLoadedRef.current) {
             hasLoadedRef.current = true;
             prevRef.current = { holdings, total: totalValue };
@@ -60,21 +57,20 @@ function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoa
             return;
         }
 
-        // Subsequent updates: animate from previous to next
         if (!holdings.length) {
             setDisplay({ holdings, total: totalValue });
             prevRef.current = { holdings, total: totalValue };
             return;
         }
 
-        const { holdings: prev, total: prevTotal } = prevRef.current;
+        const { holdings: prev, total: prevTotal } = prevRef.current ?? { holdings, total: totalValue };
         const prevMap = Object.fromEntries((prev ?? []).map((h) => [h.ticker, h.value]));
         const prevNum = parseFloat(String(prevTotal ?? "0").replace(/[^0-9.]/g, "")) || 0;
         const nextNum = parseFloat(String(totalValue).replace(/[^0-9.]/g, "")) || 0;
         const start = performance.now();
 
         const animate = (now) => {
-            const t = Math.min((now - start) / 3000, 1);
+            const t = Math.min((now - start) / 1000, 1);
             setDisplay({
                 holdings: holdings.map((h) => ({
                     ...h,
@@ -97,7 +93,6 @@ function PortfolioCard({ portfolio: { name, totalValue, holdings, isEmpty, isLoa
     const topHolder = topFour[0] ?? null;
     const chartData = isEmpty ? [{ name: "Empty", value: 1 }] : stableHoldings.map((h) => ({ name: h.ticker, value: h.value, color: colors[h.ticker] }));
 
-    // Show loading spinner until first data arrives
     const showLoading = isLoading || !hasLoadedRef.current;
 
     return (
@@ -167,11 +162,77 @@ export default function Dashboard() {
     const { liveData } = usePortfolio();
     const [addFundsOpen, setAddFundsOpen] = useState(false);
     const [fundAmount, setFundAmount] = useState("");
+    const [syncedData, setSyncedData] = useState({});
+
+    const pendingRef = useRef({});
+    const updatedRef = useRef(new Set());
+    const lastSeenRef = useRef({});
+
+    const portfolioNames = Object.keys(user?.portfolios ?? {});
+    const portfolioKey = portfolioNames.join(",");
+
+    // Reset all tracking state when the portfolio set changes.
+    useEffect(() => {
+        pendingRef.current = {};
+        updatedRef.current = new Set();
+        lastSeenRef.current = {};
+        setSyncedData({});
+    }, [portfolioKey]);
+
+    // Buffer incoming liveData and track a generation (lap counter) per portfolio.
+    // Only commit to syncedData when every portfolio is present AND all share the
+    // same generation — meaning they all arrived in the same natural SSE cycle.
+    // Portfolios that are ahead or behind are held until the others catch up.
+    useEffect(() => {
+        if (!portfolioNames.length) return;
+
+        let changed = false;
+
+        for (const [name, data] of Object.entries(liveData)) {
+            const serialized = JSON.stringify(data);
+
+            if (lastSeenRef.current[name] === serialized) {
+                continue;
+            }
+
+            lastSeenRef.current[name] = serialized;
+            pendingRef.current[name] = data;
+            updatedRef.current.add(name);
+            changed = true;
+        }
+
+        if (!changed) return;
+
+        const allUpdated = portfolioNames.every(
+            (name) => updatedRef.current.has(name)
+        );
+
+        if (!allUpdated) return;
+
+        setSyncedData(
+            Object.fromEntries(
+                portfolioNames.map((name) => [
+                    name,
+                    pendingRef.current[name],
+                ])
+            )
+        );
+
+        updatedRef.current.clear();
+    }, [liveData, portfolioKey]);
 
     const portfolios = Object.values(user?.portfolios ?? {}).map((p) => {
-        const live = liveData[p.name];
+        const live = syncedData[p.name] ?? null;
         const holdings = live?.holdings ?? [];
-        return { id: p.name, name: p.name, totalValue: live?.total ?? "$0.00", holdings, isEmpty: live && !holdings.length, isLoading: !live };
+
+        return {
+            id: p.name,
+            name: p.name,
+            totalValue: live?.total ?? "$0.00",
+            holdings,
+            isEmpty: live && !holdings.length,
+            isLoading: !live,
+        };
     });
 
     const handleAddFunds = async () => {
