@@ -42,7 +42,7 @@ export default function Execution() {
     useEffect(() => {
         const trimmed = searchInput.trim().toUpperCase();
         if (!trimmed) { setTicker(""); return; }
-        const timeout = setTimeout(() => setTicker(trimmed), 300);
+        const timeout = setTimeout(() => setTicker(trimmed), 800);
         return () => clearTimeout(timeout);
     }, [searchInput]);
 

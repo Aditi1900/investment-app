@@ -1,3 +1,4 @@
+POLLING_RATE = 3
 PRICE_REFRESH_INTERVAL = 1
 QUOTE_REFRESH_INTERVAL = 15
 # INPUT:
@@ -12,13 +13,13 @@ def dynamic_system_refresh(user_count : int) -> None:
     global QUOTE_REFRESH_INTERVAL
 
     if user_count < 50:
-        PRICE_REFRESH_INTERVAL = 7
+        PRICE_REFRESH_INTERVAL = 5
     elif user_count < 200:
-        PRICE_REFRESH_INTERVAL = 11
+        PRICE_REFRESH_INTERVAL = 6
     elif user_count < 500:
-        PRICE_REFRESH_INTERVAL = 13
+        PRICE_REFRESH_INTERVAL = 8
     else:
-        PRICE_REFRESH_INTERVAL = 17
+        PRICE_REFRESH_INTERVAL = 10
 
     QUOTE_REFRESH_INTERVAL = PRICE_REFRESH_INTERVAL*15
 

@@ -2,6 +2,7 @@ import asyncio
 import json
 from typing import AsyncGenerator
 
+from ..common.constants import POLLING_RATE
 from ..common.errors import ValidationError
 from .routes import connect
 
@@ -154,7 +155,7 @@ class FrontendApi:
                 if data is not None:
                     yield json.dumps(data) + "\n"
 
-                await asyncio.sleep(5)
+                await asyncio.sleep(POLLING_RATE)
 
                 
             

@@ -54,6 +54,8 @@ def run():
                 if quote is None:
                     continue
 
+                quote["price"] = data["price"]
+
                 if now - quote_timestamp > constants.QUOTE_REFRESH_INTERVAL:
                     expired_quote.append(ticker)
 
@@ -82,25 +84,24 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_price()
     @staticmethod
     def get_stock_price(ticker: str) -> float:
-      
+        write = False
         try:
 
             with fetch_locks["price"]:
                 with cache_lock:
-                    price = cache[ticker]["price"]
+                    price = cache.get(ticker, {}).get("price")
 
                 if price is None:
                     price = eapi.get_stock_price(ticker)
 
-                    with cache_lock:
+                    write = True
+                
+                with cache_lock:
+                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.POLLING_RATE + 2)
+                                 
+                    if satisfied and write:
                         cache[ticker]["price"] = price
                         cache[ticker]["timestamp"] = time.time()
-
-                with cache_lock:
-                    if ticker in cache:
-                        cache_lock.wait()
-                    if cache[ticker]["price"] is not None:
-                        price = cache[ticker]["price"]
 
         except FetchingError as e:
             raise LiveCacheError("Failed to find stocks price") from e
@@ -170,24 +171,26 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_info()
     @staticmethod
     def get_stock_info(ticker: str):
+        write = False
         try:
             with fetch_locks["quote"]:
                 with cache_lock:
-                    stock_info = cache[ticker]["quote"]
+                    stock_info = cache.get(ticker, {}).get("quote")
 
                 if stock_info is None:
                     stock_info = eapi.get_stock_info(ticker)
 
-                    with cache_lock:
+                    write = True
+                        
+                with cache_lock:
+                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.POLLING_RATE + 2)
+                                 
+                    if satisfied:
+                        stock_info["price"] = cache.get(ticker, {}).get("price")
+
+                    if write:
                         cache[ticker]["quote"] = stock_info
                         cache[ticker]["quote_timestamp"] = time.time()
-
-                
-                with cache_lock:
-                    if ticker in cache:
-                        cache_lock.wait()
-                    if cache[ticker]["price"] is not None:
-                        stock_info["price"] = cache[ticker]["price"]
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock info") from e
@@ -206,11 +209,11 @@ class LiveCache:
 
             with fetch_locks["bulk"]:
                 with cache_lock:
-                    cached_tickers = [t for t in tickers if cache[t]["price"] is not None]
-                    missing_tickers = [t for t in tickers if cache[t]["price"] is None]
+                    cached_tickers = [t for t in tickers if cache.get(t, {}).get("price") is not None]
+                    missing_tickers = [t for t in tickers if cache.get(t, {}).get("price") is None]
 
                     for ticker in cached_tickers:
-                        ticker_package[ticker] = cache[ticker]["price"]
+                        ticker_package[ticker] = cache.get(ticker, {}).get("price")
                 
                 fresh = eapi.get_stock_prices(missing_tickers)
              
@@ -218,7 +221,7 @@ class LiveCache:
                     for ticker, price in fresh.items():
                         cache[ticker]["price"] = price
                         cache[ticker]["timestamp"] = time.time()
-                        ticker_package[ticker] = cache[ticker]["price"]
+                        ticker_package[ticker] = cache.get(ticker, {}).get("price")
                     cache_lock.notify_all()
 
         except FetchingError as e:
