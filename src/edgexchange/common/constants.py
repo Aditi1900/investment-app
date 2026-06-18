@@ -1,4 +1,4 @@
-POLLING_RATE = 1
+POLLING_RATE = 3
 
 PRICE_REFRESH_INTERVAL = 3
 
@@ -20,4 +20,5 @@ def dynamic_system_refresh(user_count : int) -> None:
         PRICE_REFRESH_INTERVAL = 5
     else:
         PRICE_REFRESH_INTERVAL = 6
+
 

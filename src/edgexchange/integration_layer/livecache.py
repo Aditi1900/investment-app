@@ -28,51 +28,54 @@ cache_lock = Condition(Lock())
 # RAISES: None
 def run():
     while True:
-        start = time.time()
+        try:
+            start = time.time()
 
          
-        expired = []
-        with cache_lock:
-            for ticker, cache_item in cache.items():
-                if cache_item.get("quote") is None or date.fromtimestamp(cache_item.get("quote_timestamp")) < date.today():
-                    expired.append(ticker)
-
-        if expired:
-            
-            stock_info = eapi.get_stock_info(expired)
-            
-            
+            expired = []
             with cache_lock:
-                for ticker, quote in stock_info.items():
-                    cache[ticker]["quote"] = quote
-                    cache[ticker]["quote_timestamp"] = time.time()
+                for ticker, cache_item in cache.items():
+                    if cache_item.get("quote") is None or date.fromtimestamp(cache_item.get("quote_timestamp")) < date.today():
+                        expired.append(ticker)
+
+            if expired:
+            
+                stock_info = eapi.get_stock_info(expired)
+            
+            
+                with cache_lock:
+                    for ticker, quote in stock_info.items():
+                        cache[ticker]["quote"] = quote
+                        cache[ticker]["quote_timestamp"] = time.time()
                 
             
         
-        ticker_prices = eapi.get_stock_prices(list(cache.keys()))
+            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
 
-        with cache_lock:
-            for ticker, price in ticker_prices.items():
-                price += inject_volatility(price)
-
-
-                if cache[ticker].get("quote") is not None:
-                    cache[ticker]["quote"]["price"] = price
+            with cache_lock:
+                for ticker, price in ticker_prices.items():
+                    price += inject_volatility(price)
 
 
-                cache[ticker]["price"] = price
-                cache[ticker]["timestamp"] = time.time()
+                    if cache[ticker].get("quote") is not None:
+                        cache[ticker]["quote"]["price"] = price
+
+
+                    cache[ticker]["price"] = price
+                    cache[ticker]["timestamp"] = time.time()
 
                 
 
-            cache_lock.notify_all()
+                cache_lock.notify_all()
 
 
-        end = time.time()
-        latency = end - start
+            end = time.time()
+            latency = end - start
         
+        except FetchingError as e:
+            pass
 
-        time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
+            time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 
 threading.Thread(target = run, daemon = True).start()
 
@@ -170,6 +173,7 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
+
         if not tickers:
             return {}
 
