@@ -11,13 +11,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const store = {
     set: (k, v) => !isTesting && localStorage.setItem(k, v),
-    get: (k) => isTesting ? null : localStorage.getItem(k),
+    get: (k) => (isTesting ? null : localStorage.getItem(k)),
     remove: (k) => !isTesting && localStorage.removeItem(k),
 };
 
 const clearSession = () => {
     ["session_id", "user"].forEach(store.remove);
-    document.cookie = "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+        "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 };
 
 const setSessionCookie = (id) => {
@@ -26,38 +27,107 @@ const setSessionCookie = (id) => {
 
 export function SessionProvider({ children }) {
     const router = useRouter();
-    const [sessionId, setSessionId] = useState(() => typeof window !== "undefined" ? store.get("session_id") : null);
+
+    const [sessionId, setSessionId] = useState(() =>
+        typeof window !== "undefined" ? store.get("session_id") : null
+    );
+
     const [user, setUser] = useState(() => {
-        try { return typeof window !== "undefined" ? JSON.parse(store.get("user")) : null; } catch { return null; }
+        try {
+            return typeof window !== "undefined"
+                ? JSON.parse(store.get("user"))
+                : null;
+        } catch {
+            return null;
+        }
     });
+
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
+        let active = true;
+        const controller = new AbortController();
+
         const stored = store.get("session_id");
-        if (!stored) { setReady(true); return; }
+
+        if (!stored) {
+            setReady(true);
+            return;
+        }
 
         const cachedUser = (() => {
-            try { return JSON.parse(store.get("user")); } catch { return null; }
+            try {
+                return JSON.parse(store.get("user"));
+            } catch {
+                return null;
+            }
         })();
 
-        if (cachedUser) setReady(true);
+        if (cachedUser) {
+            setUser(cachedUser);
+            setReady(true);
+        }
 
-        fetch(`${API_BASE}/user?session_id=${stored}`)
-            .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
-            .then(({ user }) => {
-                if (!user) throw new Error();
-                setUser(user);
-                store.set("user", JSON.stringify(user));
-                if (!cachedUser) setReady(true);
+        fetch(`${API_BASE}/user?session_id=${stored}`, {
+            signal: controller.signal,
+        })
+            .then(async (res) => {
+                if (!active) return;
+
+                if (res.status === 401) {
+                    clearSession();
+                    setSessionId(null);
+                    setUser(null);
+                    setReady(true);
+                    router.push("/login");
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+
+                if (!active) return;
+
+                if (!data.user) {
+                    throw new Error("No user returned");
+                }
+
+                setUser(data.user);
+                store.set("user", JSON.stringify(data.user));
+                setReady(true);
             })
-            .catch(() => { clearSession(); router.push("/login"); });
-    }, []);
+            .catch((err) => {
+                // Handle aborted requests first
+                if (err?.name === "AbortError") {
+                    setReady(true);
+                    return;
+                }
+
+                if (!active) return;
+
+                console.error("Session validation failed:", err);
+
+                // Don't destroy a valid session because of a temporary
+                // network/backend issue. Just allow the app to continue.
+                setReady(true);
+            });
+
+        return () => {
+            controller.abort();
+            active = false;
+        };
+    }, [router]);
 
     const persistUser = (id, user) => {
         setSessionId(id);
         setUser(user);
+
         store.set("session_id", id);
         store.set("user", JSON.stringify(user));
+
         setSessionCookie(id);
     };
 
@@ -68,9 +138,15 @@ export function SessionProvider({ children }) {
     };
 
     const logout = async () => {
-        try { if (sessionId) await logoutUser(sessionId); } catch { }
+        try {
+            if (sessionId) {
+                await logoutUser(sessionId);
+            }
+        } catch { }
+
         setSessionId(null);
         setUser(null);
+
         clearSession();
         router.push("/login");
     };
@@ -86,7 +162,18 @@ export function SessionProvider({ children }) {
     };
 
     return (
-        <SessionContext.Provider value={{ sessionId, user, setUser, refreshUser, login, logout, register, ready }}>
+        <SessionContext.Provider
+            value={{
+                sessionId,
+                user,
+                setUser,
+                refreshUser,
+                login,
+                logout,
+                register,
+                ready,
+            }}
+        >
             {children}
         </SessionContext.Provider>
     );
@@ -94,6 +181,10 @@ export function SessionProvider({ children }) {
 
 export const useSession = () => {
     const ctx = useContext(SessionContext);
-    if (!ctx) throw new Error("useSession must be used within SessionProvider");
+
+    if (!ctx) {
+        throw new Error("useSession must be used within SessionProvider");
+    }
+
     return ctx;
 };

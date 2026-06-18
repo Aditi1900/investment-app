@@ -12,16 +12,29 @@ export default function AppLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        if (ready && !user) router.push("/login");
-    }, [ready, user]);
+        if (ready && !user) {
+            router.push("/login");
+        }
+    }, [ready, user, router]);
 
-    if (!ready) return (
-        <div className="flex h-screen items-center justify-center bg-background">
-            <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
-        </div>
-    );
+    // Session still loading
+    if (!ready) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
+            </div>
+        );
+    }
 
-    if (!user) return null;
+    // Don't white-screen if validation was interrupted.
+    // Show the same loading UI while redirecting.
+    if (!user) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen overflow-hidden bg-background">
@@ -54,9 +67,11 @@ export default function AppLayout({ children }) {
                         <button aria-label="Notifications">
                             <Bell size={18} />
                         </button>
+
                         <button aria-label="Settings">
                             <Settings size={18} />
                         </button>
+
                         <button
                             onClick={() => router.push("/dashboard")}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary"
