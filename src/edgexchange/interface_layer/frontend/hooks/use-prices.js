@@ -5,7 +5,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const fetchQuote = (ticker) =>
     fetch(`${API_BASE}/quote?ticker=${ticker}`)
         .then(async (res) => {
-            if (res.status === 400) return { error: "not_found" };
+            if (res.status === 400) {
+                const text = await res.text();
+                let detail;
+                try { detail = JSON.parse(text)?.detail; } catch { }
+                return { error: detail};
+            }
             if (!res.ok) {
                 const text = await res.text();
                 let detail;

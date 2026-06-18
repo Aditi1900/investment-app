@@ -145,35 +145,46 @@ class ExternalApi:
     # RAISES:
     #   -FetchingError; if yfinance call fails or ticker has no price history
     @staticmethod
-    def get_stock_info(ticker : str) -> dict:
+    def get_stock_info(tickers : list[str]) -> dict[str, dict]:
         try:
-            t = yf.Ticker(ticker)
-            fi = t.fast_info
-            hist = t.history(period="5d", interval="1d")
+            stock_info = {}
 
-            if hist.empty:
-                raise Exception("Requested Ticker has no history")
+            ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
+            hist_all = yf.download(tickers, period="5d", interval="1d", auto_adjust=True, progress=False)
+            hist_all.columns = hist_all.columns.swaplevel('Ticker', 'Price')
+            hist_all = hist_all.sort_index(axis=1)
 
-            closes = hist["Close"].tolist()
-            change = ((fi.last_price - fi.previous_close) / fi.previous_close) * 100
+            for t in tickers:
+                fi = ticker_dat.tickers[t].fast_info
+            
+                hist = hist_all[t]
 
-            stock_info = {
+                closes = hist["Close"].tolist()
+
+                previous_close = fi.previous_close
+
+                if previous_close:
+                    change = ((fi.last_price - previous_close) / previous_close) * 100
+                else:
+                    change = 0
+
+                stock_info[t] = {
                 "price": fi.last_price,
-                "change": round(change, 2),
-                "positive": change >= 0,
-                "sparkline": closes,
-                "open": hist["Open"].iloc[-1],
-                "high": hist["High"].iloc[-1],
-                "low": hist["Low"].iloc[-1],
-                "volume": int(hist["Volume"].iloc[-1]),
+                "change": round(change, 2) if previous_close else None,
+                "positive": (change >= 0) if previous_close else None,
+                "sparkline": closes if not hist.empty else None,
+                "open": hist["Open"].iloc[-1] if not hist.empty else None,
+                "high": hist["High"].iloc[-1] if not hist.empty else None,
+                "low": hist["Low"].iloc[-1] if not hist.empty else None,
+                "volume": int(hist["Volume"].iloc[-1]) if not hist.empty else None,
                 "exchange": fi.exchange,
                 "currency": fi.currency,
                 "fiftyTwoWeekHigh": fi.year_high,
                 "fiftyTwoWeekLow": fi.year_low,
-            }
+                }   
 
         except Exception as e:
-            raise FetchingError(f"get_stock_info failed: {e}") from e
+            raise FetchingError(f"get_stock_info failed {e}") from e
 
         return stock_info
 
