@@ -138,19 +138,19 @@ class FrontendApi:
 
 
     # INPUT:
-    #   -portfolio(Portfolio); a current user portfolio
+    #   -portfolios(list[Portfolio]); a current user portfolio
     # OUTPUT:
     #   -return(AsyncGenerator); a async generator that yields live portfolio data
     # PRECONDITION:
-    #   -portfolio; is not None
+    #   -portfolios; are not None
     # POSTCONDITION:
     #   -return; yields JSON serialized portfolio data every second until client disconnects
     # RAISES: None
-    def make_data_stream(self, portfolio) -> AsyncGenerator:
+    def make_data_stream(self, portfolios) -> AsyncGenerator:
         async def stream():
             while True:
               
-                data = self.serv.package_portfolio_data(portfolio)
+                data = self.serv.package_portfolio_data(portfolios)
 
                 if data is not None:
                     yield json.dumps(data) + "\n"

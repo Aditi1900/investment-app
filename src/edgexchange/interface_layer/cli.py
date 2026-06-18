@@ -276,7 +276,7 @@ class Cli:
             table = self.vis.construct_stock_table(portfolio, len(title))
             print(table)
 
-            self.vis.display_pie_chart(lambda: self.serv.package_portfolio_data(portfolio))
+            self.vis.display_pie_chart(lambda: self.serv.package_portfolio_data([portfolio]))
 
             print("1. Buy Stock")
             print("2. Sell Stock")

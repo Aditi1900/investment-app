@@ -289,41 +289,43 @@ class Service:
 
 
     # INPUT:
-    #   -portfolio(Portfolio); a user portfolio
+    #   -portfolios(list[Portfolio]); users portfolios
     # OUTPUT:
-    #   -packaged_data(dict[str, str | list]); portfolios holdings and total value at the moment or None if the call fails
+    #   -packaged_data(dict[str, list[str, str | list]]); all portfolios holdings and total value at the moment or None if the call fails
     # PRECONDITION: None
     # POSTCONDITION:
     #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolio : Portfolio) -> dict[str, str | list] | None:
-        packaged_data = {"total": "$0.00", "holdings" : []}
-        total = 0
-
+    def package_portfolio_data(self, portfolios : list[Portfolio]) -> dict[str, list[str, str | list]] | None:
         try:
+            packaged_data = {"portfolios" : []}
+            for portfolio in portfolios:
+                entry = {"portfolio" : portfolio.name, "total": "$0.00", "holdings" : []}
+                total = 0
 
-            holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
+                holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
 
         
-            for ticker, stock in portfolio.stocks.items():
-                price = holdings[ticker]
+                for ticker, stock in portfolio.stocks.items():
+                    price = holdings[ticker]
 
-                value = stock.quantity * price
-                total += value
+                    value = stock.quantity * price
+                    total += value
 
-                packaged_data["holdings"].append({
-                    "ticker": ticker, 
-                    "price" : price, 
-                    "quantity" : stock.quantity, 
-                    "value": value,
-                    "sector": lcac.get_sector(ticker),
-                    "label": f"{ticker} (${value:,.2f})"
-                })
+                    entry["holdings"].append({
+                        "ticker": ticker, 
+                        "price" : price, 
+                        "quantity" : stock.quantity, 
+                        "value": value,
+                        "sector": lcac.get_sector(ticker),
+                        "label": f"{ticker} (${value:,.2f})"
+                    })
+
+                entry["total"] = f"${total:,.2f}"
+                packaged_data["portfolios"].append(entry)
 
         except LiveCacheError as e:
             return None
-
-        packaged_data["total"] = f"${total:,.2f}"
 
         return packaged_data
 

@@ -425,7 +425,6 @@ def get_user(session_id : str) -> dict[str, UserData]:
 
 # INPUT:
 #   -session_id(str); a session id
-#   -portfolio_name(str); current portfolio name
 # OUTPUT:
 #   -return(StreamingResponse); a streaming response object
 # PRECONDITION: None
@@ -433,20 +432,20 @@ def get_user(session_id : str) -> dict[str, UserData]:
 #   -StreamingResponse; streams each yielded chunk of the async generator directly to client
 # RAISES:
 #   -HTTPException(401); unauthorized, user session does not exist
-#   -HTTPException(404); portfolio is not found   
+#   -HTTPException(404); portfolios are not found   
 @router.get("/live_data")
-async def get_live_portfolio_data(session_id : str, portfolio_name : str) -> StreamingResponse:
+async def get_live_portfolio_data(session_id : str) -> StreamingResponse:
     user = find_sessions_user(session_id)
 
     if user is None:
         raise HTTPException(status_code = 401, detail = "Invalid session")
         
-    portfolio = user.portfolios.get(portfolio_name)
+    portfolios = list(user.portfolios.values())
     
-    if portfolio is None:
-        raise HTTPException(status_code = 404, detail = "Portfolio not found")
+    if not portfolios:
+        raise HTTPException(status_code = 404, detail = "Portfolios not found")
     
-    live_data = frontend_api.make_data_stream(portfolio)
+    live_data = frontend_api.make_data_stream(portfolios)
 
     return StreamingResponse(live_data, media_type = "application/x-ndjson")
 

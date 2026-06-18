@@ -1,13 +1,20 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useSession } from "@/context/SessionContext";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const CACHE_KEY = "edgexchange_live_data";
 
-const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY)) ?? {}; } catch { return {}; } };
-const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { } };
+const readCache = () => {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY)) ?? {}; }
+    catch { return {}; }
+};
+
+const writeCache = (data) => {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); }
+    catch { }
+};
 
 const PortfolioContext = createContext(null);
 
@@ -20,53 +27,64 @@ export const usePortfolio = () => {
 export const PortfolioProvider = ({ children }) => {
     const { sessionId, user } = useSession();
     const [liveData, setLiveData] = useState({});
-    const controllers = useRef([]);
+    const controllerRef = useRef(null);
 
     useEffect(() => {
         setLiveData(readCache());
     }, []);
 
     useEffect(() => {
-        controllers.current.forEach((c) => c.abort());
-        controllers.current = [];
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+            controllerRef.current = null;
+        }
 
         const portfolioNames = Object.keys(user?.portfolios ?? {});
         if (!sessionId || !portfolioNames.length) return;
 
-        portfolioNames.forEach((name) => {
-            const controller = new AbortController();
-            controllers.current.push(controller);
+        const controller = new AbortController();
+        controllerRef.current = controller;
 
-            const url = `${BASE_URL}/live_data?session_id=${sessionId}&portfolio_name=${encodeURIComponent(name)}`;
+        const url = `${BASE_URL}/live_data?session_id=${sessionId}`;
 
-            fetch(url, { signal: controller.signal })
-                .then(async (res) => {
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder();
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        for (const line of decoder.decode(value).trim().split("\n")) {
-                            if (!line) continue;
-                            try {
-                                const data = JSON.parse(line);
+        fetch(url, { signal: controller.signal })
+            .then(async (res) => {
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    for (const line of decoder.decode(value).trim().split("\n")) {
+                        if (!line) continue;
+                        try {
+                            const parsed = JSON.parse(line);
+                            for (const entry of parsed.portfolios ?? []) {
+                                if (!entry.portfolio) continue;
                                 setLiveData((prev) => {
-                                    const next = { ...prev, [name]: data };
+                                    const next = { ...prev, [entry.portfolio]: entry };
                                     writeCache(next);
                                     return next;
                                 });
-                            } catch { }
-                        }
+                            }
+                        } catch { }
                     }
-                })
-                .catch((err) => { if (err.name !== "AbortError") console.error("Stream error", err); });
-        });
+                }
+            })
+            .catch((err) => {
+                if (err.name !== "AbortError") console.error("Stream error", err);
+            });
 
         return () => {
-            controllers.current.forEach((c) => c.abort());
-            controllers.current = [];
+            controllerRef.current?.abort();
+            controllerRef.current = null;
         };
     }, [sessionId, Object.keys(user?.portfolios ?? {}).join(",")]);
 
-    return <PortfolioContext.Provider value={{ liveData }}>{children}</PortfolioContext.Provider>;
+    return (
+        <PortfolioContext.Provider value={{ liveData }}>
+            {children}
+        </PortfolioContext.Provider>
+    );
 };

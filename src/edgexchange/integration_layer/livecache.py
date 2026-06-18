@@ -14,15 +14,6 @@ cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Condition(Lock())
 
-fetch_locks = {
-    "bulk" : Lock(),
-    "price":  Lock(),
-    "quote":  Lock(),
-    "float":  Lock(),
-    "sector": Lock(),
-    "exists": Lock(),
-}
-
 
 # INPUT: None
 # OUTPUT: None
@@ -87,21 +78,20 @@ class LiveCache:
         write = False
         try:
 
-            with fetch_locks["price"]:
-                with cache_lock:
-                    price = cache.get(ticker, {}).get("price")
+            with cache_lock:
+                price = cache.get(ticker, {}).get("price")
 
-                if price is None:
-                    price = eapi.get_stock_price(ticker)
+            if price is None:
+                price = eapi.get_stock_price(ticker)
 
-                    write = True
+                write = True
                 
-                with cache_lock:
-                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("quote") is not None, timeout=constants.TIMEOUT)
+            with cache_lock:
+                satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("quote") is not None, timeout=constants.TIMEOUT)
                     
-                    if satisfied and write:
-                        cache[ticker]["price"] = price
-                        cache[ticker]["timestamp"] = time.time()
+                if satisfied and write:
+                    cache[ticker]["price"] = price
+                    cache[ticker]["timestamp"] = time.time()
                         
 
         except FetchingError as e:
@@ -119,9 +109,8 @@ class LiveCache:
 
         try:
 
-            with fetch_locks["exists"]:
-                if ticker not in cache:
-                    exist = eapi.does_ticker_exist(ticker)
+            if ticker not in cache:
+                exist = eapi.does_ticker_exist(ticker)
 
         except FetchingError as e:
             raise LiveCacheError("Ticker search failed") from e
@@ -136,11 +125,10 @@ class LiveCache:
     def get_float(ticker: str) -> int:
         try:
 
-            with fetch_locks["float"]:
-                if persistent_cache[ticker]["float"] is None:
-                    persistent_cache[ticker]["float"] = eapi.get_float(ticker)
+            if persistent_cache[ticker]["float"] is None:
+                persistent_cache[ticker]["float"] = eapi.get_float(ticker)
 
-                max_shares = persistent_cache[ticker]["float"]
+            max_shares = persistent_cache[ticker]["float"]
 
         except FetchingError as e:
             raise LiveCacheError("Float shares search failed") from e
@@ -155,11 +143,10 @@ class LiveCache:
     def get_sector(ticker: str):
         try:
 
-            with fetch_locks["sector"]:
-                if persistent_cache[ticker]["sector"] is None:
-                    persistent_cache[ticker]["sector"] = eapi.get_sector(ticker)
+            if persistent_cache[ticker]["sector"] is None:
+                persistent_cache[ticker]["sector"] = eapi.get_sector(ticker)
 
-                sector = persistent_cache[ticker]["sector"]
+            sector = persistent_cache[ticker]["sector"]
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch stock sector") from e
@@ -174,24 +161,24 @@ class LiveCache:
     def get_stock_info(ticker: str):
         write = False
         try:
-            with fetch_locks["quote"]:
-                with cache_lock:
-                    stock_info = cache.get(ticker, {}).get("quote")
+           
+            with cache_lock:
+                stock_info = cache.get(ticker, {}).get("quote")
 
-                if stock_info is None:
-                    stock_info = eapi.get_stock_info(ticker)
+            if stock_info is None:
+                stock_info = eapi.get_stock_info(ticker)
 
-                    write = True
+                write = True
                         
-                with cache_lock:
-                    satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.TIMEOUT)
+            with cache_lock:
+                satisfied = cache_lock.wait_for(lambda: cache.get(ticker, {}).get("price") is not None, timeout=constants.TIMEOUT)
                                  
-                    if satisfied:
-                        stock_info["price"] = cache.get(ticker, {}).get("price")
+                if satisfied:
+                    stock_info["price"] = cache.get(ticker, {}).get("price")
 
-                    if write:
-                        cache[ticker]["quote"] = stock_info
-                        cache[ticker]["quote_timestamp"] = time.time()
+                if write:
+                    cache[ticker]["quote"] = stock_info
+                    cache[ticker]["quote_timestamp"] = time.time()
               
 
         except FetchingError as e:
@@ -208,23 +195,21 @@ class LiveCache:
         ticker_package = {}
 
         try:
+            with cache_lock:
+                cached_tickers = [t for t in tickers if cache.get(t, {}).get("price") is not None]
+                missing_tickers = [t for t in tickers if cache.get(t, {}).get("price") is None]
 
-            with fetch_locks["bulk"]:
-                with cache_lock:
-                    cached_tickers = [t for t in tickers if cache.get(t, {}).get("price") is not None]
-                    missing_tickers = [t for t in tickers if cache.get(t, {}).get("price") is None]
-
-                    for ticker in cached_tickers:
-                        ticker_package[ticker] = cache.get(ticker, {}).get("price")
+                for ticker in cached_tickers:
+                    ticker_package[ticker] = cache.get(ticker, {}).get("price")
                 
-                fresh = eapi.get_stock_prices(missing_tickers)
+            fresh = eapi.get_stock_prices(missing_tickers)
              
-                with cache_lock:
-                    for ticker, price in fresh.items():
-                        cache[ticker]["price"] = price
-                        cache[ticker]["timestamp"] = time.time()
-                        ticker_package[ticker] = cache.get(ticker, {}).get("price")
-                    cache_lock.notify_all()
+            with cache_lock:
+                for ticker, price in fresh.items():
+                    cache[ticker]["price"] = price
+                    cache[ticker]["timestamp"] = time.time()
+                    ticker_package[ticker] = cache.get(ticker, {}).get("price")
+                cache_lock.notify_all()
 
         except FetchingError as e:
             raise LiveCacheError("Failed to fetch requested stock prices") from e
