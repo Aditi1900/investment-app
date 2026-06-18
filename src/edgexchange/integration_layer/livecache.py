@@ -38,15 +38,17 @@ def run():
                     expired.append(ticker)
 
         if expired:
+            
             stock_info = eapi.get_stock_info(expired)
-
+            
+            
             with cache_lock:
                 for ticker, quote in stock_info.items():
                     cache[ticker]["quote"] = quote
                     cache[ticker]["quote_timestamp"] = time.time()
                 
             
-
+        
         ticker_prices = eapi.get_stock_prices(list(cache.keys()))
 
         with cache_lock:
@@ -168,9 +170,15 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
+        if not tickers:
+            return {}
+
         ticker_package = {}
 
         with cache_lock:
+            for ticker in tickers:
+                _ = cache[ticker]
+
             for ticker in tickers:
                 cache_item = cache[ticker]
                 cache_lock.wait_for(lambda ci=cache_item: ci.get("price") is not None)

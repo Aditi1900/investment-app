@@ -296,26 +296,25 @@ class Service:
     # POSTCONDITION:
     #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolios : list[Portfolio]) -> dict[str, list[str, str | list]] | None:
+    def package_portfolio_data(self, portfolios: list[Portfolio]) -> dict[str, list[str, str | list]] | None:
         try:
-            packaged_data = {"portfolios" : []}
+            holdings = list({ticker for portfolio in portfolios for ticker in portfolio.stocks.keys()})
+            prices = lcac.get_stock_prices(holdings)
+
+            packaged_data = {"portfolios": []}
             for portfolio in portfolios:
-                entry = {"portfolio" : portfolio.name, "total": "$0.00", "holdings" : []}
+                entry = {"portfolio": portfolio.name, "total": "$0.00", "holdings": []}
                 total = 0
 
-                holdings = lcac.get_stock_prices(list(portfolio.stocks.keys()))
-
-        
                 for ticker, stock in portfolio.stocks.items():
-                    price = holdings[ticker]
-
+                    price = prices[ticker]
                     value = stock.quantity * price
                     total += value
 
                     entry["holdings"].append({
-                        "ticker": ticker, 
-                        "price" : price, 
-                        "quantity" : stock.quantity, 
+                        "ticker": ticker,
+                        "price": price,
+                        "quantity": stock.quantity,
                         "value": value,
                         "sector": lcac.get_sector(ticker),
                         "label": f"{ticker} (${value:,.2f})"

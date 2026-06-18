@@ -182,7 +182,6 @@ class ExternalApi:
                 "fiftyTwoWeekHigh": fi.year_high,
                 "fiftyTwoWeekLow": fi.year_low,
                 }   
-
         except Exception as e:
             raise FetchingError(f"get_stock_info failed {e}") from e
 
