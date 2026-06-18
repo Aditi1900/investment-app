@@ -1,7 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactCompiler: true,
-    allowedDevOrigins: ['10.0.0.16'],
+    allowedDevOrigins: ['*'],
+    async rewrites() {
+        return [
+            {
+                source: "/api/:path*",
+                destination: "http://localhost:8000/:path*",
+            },
+        ];
+    },
 };
 
 export default nextConfig;
