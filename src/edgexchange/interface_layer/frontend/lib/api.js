@@ -6,8 +6,10 @@ async function request(endpoint, options = {}) {
     ...options,
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.detail || "Request failed");
+    const text = await res.text();
+    let detail;
+    try { detail = JSON.parse(text)?.detail; } catch {}
+    throw new Error(detail || `Server error (${res.status})`);
   }
   return res.json();
 }

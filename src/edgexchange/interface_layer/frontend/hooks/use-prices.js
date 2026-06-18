@@ -4,12 +4,18 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const fetchQuote = (ticker) =>
     fetch(`${API_BASE}/quote?ticker=${ticker}`)
-        .then((res) => {
+        .then(async (res) => {
             if (res.status === 400) return { error: "not_found" };
-            return res.ok ? res.json() : null;
+            if (!res.ok) {
+                const text = await res.text();
+                let detail;
+                try { detail = JSON.parse(text)?.detail; } catch { }
+                return { error: detail || `Server error (${res.status})` };
+            }
+            return res.json();
         })
         .then((json) => {
-            if (json?.error === "not_found") return { error: "not_found" };
+            if (json?.error) return { error: json.error };
             return json?.quote ?? null;
         })
         .catch(() => null);
@@ -25,13 +31,13 @@ export function usePrices(tickers) {
         if (!unique.length) return;
 
         const fetchAll = async () => {
-            if (isFetchingRef.current) return; // skip if previous cycle isn't done
+            if (isFetchingRef.current) return;
             isFetchingRef.current = true;
 
             try {
                 const results = await Promise.all(unique.map(async (t) => [t, await fetchQuote(t)]));
 
-                const hasNotFound = results.some(([, data]) => data?.error === "not_found");
+                const hasError = results.some(([, data]) => data?.error);
 
                 setPrices((prev) => {
                     const next = { ...prev };
@@ -41,13 +47,13 @@ export function usePrices(tickers) {
                 setErrors((prev) => {
                     const next = { ...prev };
                     for (const [t, data] of results) {
-                        if (data?.error === "not_found") next[t] = "Ticker does not exist";
+                        if (data?.error) next[t] = data.error;
                         else if (data !== null) delete next[t];
                     }
                     return next;
                 });
 
-                if (hasNotFound && intervalRef.current) {
+                if (hasError && intervalRef.current) {
                     clearInterval(intervalRef.current);
                     intervalRef.current = null;
                 }

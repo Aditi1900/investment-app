@@ -65,14 +65,10 @@ export default function Execution() {
 
     const handleQuantityChange = (e) => {
         const value = e.target.value;
-
-        // Allow empty field
         if (value === "") {
             setQuantity("");
             return;
         }
-
-        // Remove leading zeros unless it's just "0"
         const cleaned = value.replace(/^0+/, "") || "0";
         setQuantity(cleaned);
     };
@@ -130,7 +126,7 @@ export default function Execution() {
                                     <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>
                                 )}
                                 {ticker && errors[ticker] && (
-                                    <p className="text-xs text-red-500">Please enter a valid ticker symbol</p>
+                                    <p className="text-xs text-red-500">Please enter a different symbol</p>
                                 )}
                                 {!ticker && (
                                     <p className="text-xs text-muted-foreground">Type a ticker symbol to load stock data</p>
@@ -240,7 +236,7 @@ export default function Execution() {
                                     <Search size={16} className="text-muted-foreground" />
                                 </div>
                                 {ticker && errors[ticker] && (
-                                    <p className="mt-1 text-xs text-red-500">Ticker does not exist</p>
+                                    <p className="mt-1 text-xs text-red-500">{errors[ticker]}</p>
                                 )}
                                 {ticker && currentPrice && !errors[ticker] && (
                                     <p className="mt-1 text-xs text-muted-foreground">
