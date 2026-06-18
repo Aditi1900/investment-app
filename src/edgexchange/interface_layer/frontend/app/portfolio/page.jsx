@@ -58,12 +58,12 @@ const AnimatedTotal = memo(function AnimatedTotal({ rawTotal, hasHoldings }) {
 
     if (animated === null) return <span>$0.00</span>;
     return <span>${animated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
-}
+});
 
 // ---------------------------------------------------------------------------
 // Loading placeholder - grey horizontal animated bars 
 // ---------------------------------------------------------------------------
-function SkeletonRow() {
+const SkeletonRow = () => {
     return (
         <tr className="border-b border-border">
             {[140, 80, 90, 60, 100, 24].map((w, i) => (
@@ -76,7 +76,7 @@ function SkeletonRow() {
             ))}
         </tr>
     );
-}
+};
 
 export default function Portfolio() {
     const { user, setUser, sessionId } = useSession();
