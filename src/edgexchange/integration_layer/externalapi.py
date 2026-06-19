@@ -154,6 +154,7 @@ class ExternalApi:
             hist_all = hist_all.sort_index(axis=1)
 
             for t in tickers:
+                current_ticker = t
                 fi = ticker_dat.tickers[t].fast_info
             
                 hist = hist_all[t]
@@ -182,7 +183,7 @@ class ExternalApi:
                 "fiftyTwoWeekLow": fi.year_low,
                 }   
         except Exception as e:
-            raise FetchingError(f"get_stock_info failed {e}") from e
+            raise FetchingError(f"get_stock_info failed {e}", ticker = current_ticker) from e
 
         return stock_info
 

@@ -9,7 +9,7 @@ from datetime import date
 from yfinance import live
 
 from ..common.errors import FetchingError, LiveCacheError
-from ..common import constants
+from ..common import PRICE_REFRESH_INTERVAL, constants
 from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
@@ -31,7 +31,6 @@ def run():
         try:
             start = time.time()
 
-         
             expired = []
             with cache_lock:
                 for ticker, cache_item in cache.items():
@@ -39,9 +38,18 @@ def run():
                         expired.append(ticker)
 
             if expired:
-            
-                stock_info = eapi.get_stock_info(expired)
-            
+                
+                
+                try:
+                    stock_info = eapi.get_stock_info(expired)
+                except FetchingError as e:
+                    if e.ticker:
+                        with cache_lock:
+                            if not cache.get(e.ticker, {}).get("quote"),:
+                                del cache[e.ticker]
+                    raise
+              
+
             
                 with cache_lock:
                     for ticker, quote in stock_info.items():
@@ -65,7 +73,6 @@ def run():
                     cache[ticker]["timestamp"] = time.time()
 
                 
-
                 cache_lock.notify_all()
 
 
