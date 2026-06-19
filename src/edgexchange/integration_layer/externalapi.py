@@ -12,30 +12,6 @@ logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 #   -provides functionality related to fetching live stock data
 class ExternalApi:
 
-
-    # INPUT:
-    #   -ticker(str); a stock ticker symbol
-    # OUTPUT:
-    #   -price(float); live stock price
-    # PRECONDITION:
-    #   -ticker; exists in open market
-    # POSTCONDITION:
-    #   -price; current market price for ticker
-    # RAISES:
-    #   -FetchingError; if yfinance call fails
-    @staticmethod
-    def get_stock_price(ticker: str) -> float:
-
-        try:
-
-            price = yf.Ticker(ticker).fast_info.last_price
-
-        except Exception as e:
-            raise FetchingError(f"get_stock_price failed: {e}") from e
-
-        return price
-
-
     # INPUT:
     #   -ticker(str); a stock ticker symbol
     # OUTPUT:
@@ -96,7 +72,7 @@ class ExternalApi:
     # RAISES:
     #   -FetchingError; if yfinance call fails at any point
     @staticmethod
-    def get_stock_prices(tickers: list[str]) -> dict[str, float]:
+    def get_stock_prices(tickers : list[str]) -> dict[str, float]:
         ticker_package = {}
 
         try:

@@ -1,23 +1,39 @@
-from ast import Constant
 import time
 import threading
 
 from threading import Lock, Condition
 from collections import defaultdict
 from datetime import date
-
-from yfinance import live
+from typing import NamedTuple
 
 from ..common.errors import FetchingError, LiveCacheError
-from ..common import PRICE_REFRESH_INTERVAL, constants
+from ..common import constants
 from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
 
-cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 
+cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Condition(Lock())
+
+def read(key, value):
+    return cache.get(key, {}).get(value)
+
+def touch(keys):
+    for key in keys:
+        _ = cache[key]
+
+def write(value, key1 = None, key2 = None, key3 = None):
+    if key3:
+        cache[key1][key2][key3] = value
+    elif key2:
+        cache[key1][key2] = value
+    elif key1:
+        cache[key1] = value
+
+def rm(ticker):
+    del cache[ticker]
 
 
 # INPUT: None
@@ -34,30 +50,27 @@ def run():
 
             expired = []
             with cache_lock:
-                for ticker, cache_item in cache.items():
-                    if cache_item.get("quote") is None or date.fromtimestamp(cache_item.get("quote_timestamp")) < date.today():
+                for ticker in cache.keys():
+                    if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
                         expired.append(ticker)
 
             if expired:
-                
-                
                 try:
 
                     stock_info = eapi.get_stock_info(expired)
 
                 except FetchingError as e:
-                    if e.ticker:
-                        with cache_lock:
-                            if not cache.get(e.ticker, {}).get("quote"):
-                                del cache[e.ticker]
+                    with cache_lock:
+                        if e.ticker and read(e.ticker, "quote") is None:
+                            rm(e.ticker)
                     raise
               
 
             
                 with cache_lock:
                     for ticker, quote in stock_info.items():
-                        cache[ticker]["quote"] = quote
-                        cache[ticker]["quote_timestamp"] = time.time()
+                        write(key1 = ticker, key2 = "quote", value = quote)
+                        write(key1 = ticker, key2 = "quote_timestamp", value = time.time())
                 
             
         
@@ -68,12 +81,12 @@ def run():
                     price += inject_volatility(price)
 
 
-                    if cache[ticker].get("quote") is not None:
-                        cache[ticker]["quote"]["price"] = price
+                    if read(ticker, "quote") is not None:
+                        write(key1 = ticker, key2 = "quote", key3 = "price", value = price)
 
 
-                    cache[ticker]["price"] = price
-                    cache[ticker]["timestamp"] = time.time()
+                    write(key1 = ticker, key2 = "price", value = price)
+                    write(key1 = ticker, key2 = "timestamp", value = time.time())
 
                 
                 cache_lock.notify_all()
@@ -85,7 +98,6 @@ def run():
         except FetchingError as e:
             with cache_lock:
                 cache_lock.notify_all()
-            pass
 
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 
@@ -105,9 +117,9 @@ class LiveCache:
     def get_stock_price(ticker: str) -> float:
         
         with cache_lock:
-            cache_item = cache[ticker]
-            cache_lock.wait_for(lambda ci=cache_item: ci.get("price") is not None)
-            price = cache_item.get("price")
+            touch([ticker])
+            cache_lock.wait_for(lambda : read(ticker, "price") is not None)
+            price = read(ticker, "price")
 
         return price
 
@@ -173,9 +185,9 @@ class LiveCache:
     def get_stock_info(ticker: str):
         
         with cache_lock:
-            cache_item = cache[ticker]
-            cache_lock.wait_for(lambda ci=cache_item: ci.get("quote") is not None)
-            stock_info = cache_item.get("quote")
+            touch([ticker])
+            cache_lock.wait_for(lambda: read(ticker, "quote") is not None)
+            stock_info = read(ticker, "quote")
 
         return stock_info
 
@@ -192,12 +204,9 @@ class LiveCache:
         ticker_package = {}
 
         with cache_lock:
+            touch(tickers)
             for ticker in tickers:
-                _ = cache[ticker]
-
-            for ticker in tickers:
-                cache_item = cache[ticker]
-                cache_lock.wait_for(lambda ci=cache_item: ci.get("price") is not None)
-                ticker_package[ticker] = cache_item.get("price")
+                cache_lock.wait_for(lambda: read(ticker, "price") is not None)
+                ticker_package[ticker] = read(ticker, "price")
 
         return ticker_package
