@@ -24,13 +24,14 @@ def touch(keys):
     for key in keys:
         _ = cache[key]
 
-def write(value, key1 = None, key2 = None, key3 = None):
-    if key3:
-        cache[key1][key2][key3] = value
-    elif key2:
-        cache[key1][key2] = value
-    elif key1:
-        cache[key1] = value
+def write(keys, value):
+    loc = cache
+
+    for key in keys[:-1]:
+        loc = loc[key]
+
+    loc[keys[-1]] = value
+
 
 def rm(ticker):
     del cache[ticker]
@@ -69,8 +70,8 @@ def run():
             
                 with cache_lock:
                     for ticker, quote in stock_info.items():
-                        write(key1 = ticker, key2 = "quote", value = quote)
-                        write(key1 = ticker, key2 = "quote_timestamp", value = time.time())
+                        write([ticker, "quote"], quote)
+                        write([ticker, "quote_timestamp"], time.time())
                 
             
         
@@ -82,11 +83,11 @@ def run():
 
 
                     if read(ticker, "quote") is not None:
-                        write(key1 = ticker, key2 = "quote", key3 = "price", value = price)
+                        write([ticker, "quote", "price"], price)
 
 
-                    write(key1 = ticker, key2 = "price", value = price)
-                    write(key1 = ticker, key2 = "timestamp", value = time.time())
+                    write([ticker, "price"], price)
+                    write([ticker, "timestamp"], time.time())
 
                 
                 cache_lock.notify_all()
