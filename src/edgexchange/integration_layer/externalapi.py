@@ -127,19 +127,34 @@ class ExternalApi:
         try:
             stock_info = {}
 
+            print(f"[get_stock_info] starting for tickers: {tickers}")
+
+            print(f"[get_stock_info] calling yf.Tickers")
             ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
+            print(f"[get_stock_info] yf.Tickers done")
+
+            print(f"[get_stock_info] calling yf.download")
             hist_all = yf.download(tickers, period="5d", interval="1d", auto_adjust=True, progress=False)
+            print(f"[get_stock_info] yf.download done, shape: {hist_all.shape}")
+
             hist_all.columns = hist_all.columns.swaplevel('Ticker', 'Price')
             hist_all = hist_all.sort_index(axis=1)
+            print(f"[get_stock_info] columns swapped and sorted")
 
             for t in tickers:
                 current_ticker = t
+                print(f"[get_stock_info] processing ticker: {t}")
+
                 fi = ticker_dat.tickers[t].fast_info
+                print(f"[get_stock_info] got fast_info for {t}")
+
                 hist = hist_all[t]
+                print(f"[get_stock_info] got hist for {t}, empty: {hist.empty}")
 
                 closes = hist["Close"].dropna().tolist()
                 last_price = hist["Close"].iloc[-1] if not hist.empty else None
                 previous_close = hist["Close"].iloc[-2] if len(hist) >= 2 else None
+                print(f"[get_stock_info] {t} last_price={last_price}, previous_close={previous_close}")
 
                 if last_price and previous_close:
                     change = ((last_price - previous_close) / previous_close) * 100
@@ -150,6 +165,7 @@ class ExternalApi:
                 currency = fi.currency
                 year_high = fi.year_high
                 year_low = fi.year_low
+                print(f"[get_stock_info] {t} exchange={exchange}, currency={currency}, year_high={year_high}, year_low={year_low}")
 
                 stock_info[t] = {
                     "price": float(last_price) if last_price is not None else None,
@@ -165,8 +181,12 @@ class ExternalApi:
                     "fiftyTwoWeekHigh": float(year_high) if year_high is not None else None,
                     "fiftyTwoWeekLow": float(year_low) if year_low is not None else None,
                 }
+                print(f"[get_stock_info] finished processing {t}")
+
+            print(f"[get_stock_info] all tickers processed, returning {list(stock_info.keys())}")
 
         except Exception as e:
+            print(f"[get_stock_info] exception on ticker={current_ticker}: {e}")
             raise FetchingError(f"get_stock_info failed {e}", ticker=current_ticker) from e
 
         return stock_info

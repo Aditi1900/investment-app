@@ -187,12 +187,7 @@ class LiveCache:
         
         with cache_lock:
             touch([ticker])
-            success = cache_lock.wait_for(lambda: read(ticker, "quote") is not None, timeout = constants.PRICE_REFRESH_INTERVAL)
-
-            if not success:
-                rm(ticker)
-                raise LiveCacheError("Quote fetch timed out")
-
+            cache_lock.wait_for(lambda: read(ticker, "quote") is not None)
             stock_info = read(ticker, "quote")
 
         return stock_info
