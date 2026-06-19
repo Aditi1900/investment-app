@@ -17,13 +17,40 @@ cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 cache_lock = Condition(Lock())
 
+# INPUT: if N/A - None
+#    - key(str); ticker symbol to look up
+#    - value(str); field name to retrieve
+# OUTPUT:
+#    - result(any); value at cache[key][value], or None if key or field not found
+# PRECONDITION: None
+# POSTCONDITION: None
+# RAISES: None
 def read(key, value):
     return cache.get(key, {}).get(value)
 
+
+# INPUT:
+#    - keys(list[str]); ticker symbols to register in cache
+# OUTPUT: None
+# PRECONDITION: None
+# POSTCONDITION:
+#    - cache; all tickers in keys exist with default values
+# RAISES: None
 def touch(keys):
     for key in keys:
         _ = cache[key]
 
+
+# INPUT:
+#    - keys(list); path of keys to traverse to write location
+#    - value(any); value to write
+# OUTPUT: None
+# PRECONDITION:
+#    - keys; len > 0
+#    - keys[:-1]; all intermediate keys must already exist in cache
+# POSTCONDITION:
+#    - cache; value written at location described by keys
+# RAISES: None
 def write(keys, value):
     loc = cache
 
@@ -33,6 +60,15 @@ def write(keys, value):
     loc[keys[-1]] = value
 
 
+# INPUT:
+#    - ticker(str); ticker symbol to remove
+# OUTPUT: None
+# PRECONDITION:
+#    - ticker; must exist in cache
+# POSTCONDITION:
+#    - cache; ticker and all associated data removed
+# RAISES:
+#    - KeyError; ticker not in cache
 def rm(ticker):
     del cache[ticker]
 
@@ -41,7 +77,11 @@ def rm(ticker):
 # OUTPUT: None
 # PRECONDITION: None
 # POSTCONDITION:
-#   -cache; all tickers prices un-updated >1sec are removed (quotes removed >120sec), simulated volatility is injected here if any
+#    - cache; quotes refreshed daily via eapi.get_stock_info for any ticker with missing or stale quote
+#    - cache; prices refreshed every PRICE_REFRESH_INTERVAL seconds via eapi.get_stock_prices for all tickers
+#    - cache; simulated volatility injected into each price update
+#    - cache; all waiters on cache_lock notified after each price update or on FetchingError
+#    - cache; tickers that fail quote fetching with no existing quote are removed
 # RAISES: None
 def run():
     while True:
