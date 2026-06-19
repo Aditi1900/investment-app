@@ -28,6 +28,7 @@ cache_lock = Condition(Lock())
 # RAISES: None
 def run():
     while True:
+        latency = 0
         try:
             start = time.time()
 
@@ -41,11 +42,13 @@ def run():
                 
                 
                 try:
+
                     stock_info = eapi.get_stock_info(expired)
+
                 except FetchingError as e:
                     if e.ticker:
                         with cache_lock:
-                            if not cache.get(e.ticker, {}).get("quote"),:
+                            if not cache.get(e.ticker, {}).get("quote"):
                                 del cache[e.ticker]
                     raise
               
@@ -80,9 +83,11 @@ def run():
             latency = end - start
         
         except FetchingError as e:
+            with cache_lock:
+                cache_lock.notify_all()
             pass
 
-            time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
+        time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 
 threading.Thread(target = run, daemon = True).start()
 

@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 from math import inf
 
 import yfinance as yf
@@ -108,7 +109,7 @@ class ExternalApi:
 
                 if series.empty:
                     series = yf.download(t, period="1d", interval="1m", auto_adjust=True, progress=False)["Close"].dropna()
-
+                    
                 if series.empty:
                     raise Exception(t)
 
@@ -144,7 +145,8 @@ class ExternalApi:
     # RAISES:
     #   -FetchingError; if yfinance call fails or ticker has no price history
     @staticmethod
-    def get_stock_info(tickers : list[str]) -> dict[str, dict]:
+    def get_stock_info(tickers: list[str]) -> dict[str, dict]:
+        current_ticker = None
         try:
             stock_info = {}
 
@@ -156,34 +158,39 @@ class ExternalApi:
             for t in tickers:
                 current_ticker = t
                 fi = ticker_dat.tickers[t].fast_info
-            
                 hist = hist_all[t]
 
-                closes = hist["Close"].tolist()
+                closes = hist["Close"].dropna().tolist()
+                last_price = hist["Close"].iloc[-1] if not hist.empty else None
+                previous_close = hist["Close"].iloc[-2] if len(hist) >= 2 else None
 
-                previous_close = fi.previous_close
-
-                if previous_close:
-                    change = ((fi.last_price - previous_close) / previous_close) * 100
+                if last_price and previous_close:
+                    change = ((last_price - previous_close) / previous_close) * 100
                 else:
-                    change = 0
+                    change = None
+
+                exchange = fi.exchange
+                currency = fi.currency
+                year_high = fi.year_high
+                year_low = fi.year_low
 
                 stock_info[t] = {
-                "price": fi.last_price,
-                "change": round(change, 2) if previous_close else None,
-                "positive": (change >= 0) if previous_close else None,
-                "sparkline": closes if not hist.empty else None,
-                "open": hist["Open"].iloc[-1] if not hist.empty else None,
-                "high": hist["High"].iloc[-1] if not hist.empty else None,
-                "low": hist["Low"].iloc[-1] if not hist.empty else None,
-                "volume": int(hist["Volume"].iloc[-1]) if not hist.empty else None,
-                "exchange": fi.exchange,
-                "currency": fi.currency,
-                "fiftyTwoWeekHigh": fi.year_high,
-                "fiftyTwoWeekLow": fi.year_low,
-                }   
+                    "price": float(last_price) if last_price is not None else None,
+                    "change": round(change, 2) if change is not None else None,
+                    "positive": bool(change >= 0) if change is not None else None,
+                    "sparkline": [float(c) for c in closes] if closes else None,
+                    "open": float(hist["Open"].iloc[-1]) if not hist.empty else None,
+                    "high": float(hist["High"].iloc[-1]) if not hist.empty else None,
+                    "low": float(hist["Low"].iloc[-1]) if not hist.empty else None,
+                    "volume": int(hist["Volume"].iloc[-1]) if not hist.empty and not pd.isna(hist["Volume"].iloc[-1]) else None,
+                    "exchange": exchange,
+                    "currency": currency,
+                    "fiftyTwoWeekHigh": float(year_high) if year_high is not None else None,
+                    "fiftyTwoWeekLow": float(year_low) if year_low is not None else None,
+                }
+
         except Exception as e:
-            raise FetchingError(f"get_stock_info failed {e}", ticker = current_ticker) from e
+            raise FetchingError(f"get_stock_info failed {e}", ticker=current_ticker) from e
 
         return stock_info
 
