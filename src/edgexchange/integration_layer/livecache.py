@@ -48,70 +48,57 @@ def run():
         latency = 0
         try:
             start = time.time()
-            print(f"[run] cycle start")
 
             expired = []
-            print(f"[run] acquiring cache_lock for expired check")
             with cache_lock:
-                print(f"[run] cache_lock acquired, checking {list(cache.keys())} for expired quotes")
                 for ticker in cache.keys():
                     if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
                         expired.append(ticker)
-                print(f"[run] expired check done, releasing cache_lock")
-            print(f"[run] cache_lock released, expired: {expired}")
 
             if expired:
-                print(f"[run] calling eapi.get_stock_info for {expired}")
                 try:
+
                     stock_info = eapi.get_stock_info(expired)
-                    print(f"[run] eapi.get_stock_info returned: {list(stock_info.keys())}")
 
                 except FetchingError as e:
-                    print(f"[run] FetchingError from get_stock_info: ticker={e.ticker}")
                     with cache_lock:
                         if e.ticker and read(e.ticker, "quote") is None:
-                            print(f"[run] removing {e.ticker} from cache")
                             rm(e.ticker)
                     raise
+              
 
-                print(f"[run] acquiring cache_lock to write quotes")
+            
                 with cache_lock:
-                    print(f"[run] cache_lock acquired, writing quotes")
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
-                        print(f"[run] wrote quote for {ticker}")
-                    print(f"[run] releasing cache_lock after writing quotes")
-
-            print(f"[run] calling eapi.get_stock_prices for {list(cache.keys())}")
+                
+            
+        
             ticker_prices = eapi.get_stock_prices(list(cache.keys()))
-            print(f"[run] eapi.get_stock_prices returned: {list(ticker_prices.keys())}")
 
-            print(f"[run] acquiring cache_lock to write prices")
             with cache_lock:
-                print(f"[run] cache_lock acquired, writing prices")
                 for ticker, price in ticker_prices.items():
                     price += inject_volatility(price)
+
 
                     if read(ticker, "quote") is not None:
                         write([ticker, "quote", "price"], price)
 
+
                     write([ticker, "price"], price)
                     write([ticker, "timestamp"], time.time())
-                    print(f"[run] wrote price {price} for {ticker}")
 
+                
                 cache_lock.notify_all()
-                print(f"[run] notify_all called, releasing cache_lock")
+
 
             end = time.time()
             latency = end - start
-            print(f"[run] cycle complete in {latency:.3f}s, sleeping {max(0, constants.PRICE_REFRESH_INTERVAL - latency):.3f}s")
-
+        
         except FetchingError as e:
-            print(f"[run] FetchingError caught at top level: {e}")
             with cache_lock:
                 cache_lock.notify_all()
-                print(f"[run] notify_all called after FetchingError")
 
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 

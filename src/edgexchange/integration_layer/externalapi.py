@@ -72,25 +72,26 @@ class ExternalApi:
     # RAISES:
     #   -FetchingError; if yfinance call fails at any point
     @staticmethod
-    def get_stock_prices(tickers : list[str]) -> dict[str, float]:
+    def get_stock_prices(tickers: list[str]) -> dict[str, float]:
+
         ticker_package = {}
 
         try:
-            if not tickers:
-                return ticker_package
 
-            data = yf.download(tickers, period="1d", interval="1m", auto_adjust=True, progress=False)
+            ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
 
             for t in tickers:
-                series = data["Close"][t].dropna() if len(tickers) > 1 else data["Close"].dropna()
 
-                if series.empty:
-                    series = yf.download(t, period="1d", interval="1m", auto_adjust=True, progress=False)["Close"].dropna()
-                    
-                if series.empty:
+                price = ticker_dat.tickers[t].fast_info.last_price
+
+                if not price:
+                    price = yf.Ticker(t).fast_info.last_price
+
+                if not price:
                     raise Exception(t)
 
-                ticker_package[t] = float(series.iloc[-1])
+                ticker_package[t] = float(price)
+
 
         except Exception as e:
             raise FetchingError(f"get_stock_prices failed: {e}") from e
