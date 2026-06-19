@@ -51,7 +51,8 @@ class ExternalApi:
 
         try: 
 
-            exist = yf.Ticker(ticker).fast_info.last_price is not None
+            data = yf.download(ticker, period="1d", interval="1m", auto_adjust=True, progress=False)
+            exist = not data["Close"].dropna().empty
 
         except Exception as e:
             raise FetchingError(f"does_ticker_exist failed: {e}") from e
