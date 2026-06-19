@@ -17,18 +17,8 @@ export default function AppLayout({ children }) {
         }
     }, [ready, user, router]);
 
-    // Session still loading
-    if (!ready) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-background">
-                <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
-            </div>
-        );
-    }
-
-    // Don't white-screen if validation was interrupted.
-    // Show the same loading UI while redirecting.
-    if (!user) {
+    // Loading session, or redirecting because there's no user — same UI either way.
+    if (!ready || !user) {
         return (
             <div className="flex h-screen items-center justify-center bg-background">
                 <div className="h-8 w-8 rounded-full border-2 border-border border-t-foreground animate-spin" />

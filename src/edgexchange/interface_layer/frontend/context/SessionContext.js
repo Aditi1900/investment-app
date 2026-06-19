@@ -15,6 +15,11 @@ const store = {
     remove: (k) => !isTesting && localStorage.removeItem(k),
 };
 
+const getCachedUser = () => {
+    try { return JSON.parse(store.get("user")); }
+    catch { return null; }
+};
+
 const clearSession = () => {
     ["session_id", "user"].forEach(store.remove);
     document.cookie =
@@ -32,22 +37,14 @@ export function SessionProvider({ children }) {
         typeof window !== "undefined" ? store.get("session_id") : null
     );
 
-    const [user, setUser] = useState(() => {
-        try {
-            return typeof window !== "undefined"
-                ? JSON.parse(store.get("user"))
-                : null;
-        } catch {
-            return null;
-        }
-    });
+    const [user, setUser] = useState(() =>
+        typeof window !== "undefined" ? getCachedUser() : null
+    );
 
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        let active = true;
         const controller = new AbortController();
-
         const stored = store.get("session_id");
 
         if (!stored) {
@@ -55,14 +52,7 @@ export function SessionProvider({ children }) {
             return;
         }
 
-        const cachedUser = (() => {
-            try {
-                return JSON.parse(store.get("user"));
-            } catch {
-                return null;
-            }
-        })();
-
+        const cachedUser = getCachedUser();
         if (cachedUser) {
             setUser(cachedUser);
             setReady(true);
@@ -72,8 +62,6 @@ export function SessionProvider({ children }) {
             signal: controller.signal,
         })
             .then(async (res) => {
-                if (!active) return;
-
                 if (res.status === 401) {
                     clearSession();
                     setSessionId(null);
@@ -89,8 +77,6 @@ export function SessionProvider({ children }) {
 
                 const data = await res.json();
 
-                if (!active) return;
-
                 if (!data.user) {
                     throw new Error("No user returned");
                 }
@@ -100,13 +86,7 @@ export function SessionProvider({ children }) {
                 setReady(true);
             })
             .catch((err) => {
-                // Handle aborted requests first
-                if (err?.name === "AbortError") {
-                    setReady(true);
-                    return;
-                }
-
-                if (!active) return;
+                if (err?.name === "AbortError") return;
 
                 console.error("Session validation failed:", err);
 
@@ -115,10 +95,7 @@ export function SessionProvider({ children }) {
                 setReady(true);
             });
 
-        return () => {
-            controller.abort();
-            active = false;
-        };
+        return () => controller.abort();
     }, [router]);
 
     const persistUser = (id, user) => {

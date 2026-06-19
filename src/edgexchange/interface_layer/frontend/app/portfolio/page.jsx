@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, memo } from "react";
 import { Plus, Trash2, Filter, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,43 +9,9 @@ import { useSession } from "@/context/SessionContext";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { createPortfolio, removePortfolio } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
+import { useAnimatedNumber } from "@/hooks/use-animated-number"
 
-function useAnimatedNumber(target, duration = 1000) {
-    const [display, setDisplay] = useState(null);
-    const prevRef = useRef(null);
-    const animRef = useRef(null);
-    const hasLoadedRef = useRef(false);
-
-    useEffect(() => {
-        if (target === null || target === undefined) return;
-
-        const nextNum = typeof target === "number" ? target : parseFloat(String(target).replace(/[^0-9.]/g, "")) || 0;
-
-        if (!hasLoadedRef.current) {
-            hasLoadedRef.current = true;
-            prevRef.current = nextNum;
-            setDisplay(nextNum);
-            return;
-        }
-
-        const prevNum = prevRef.current ?? nextNum;
-        if (prevNum === nextNum) return;
-
-        const start = performance.now();
-        const animate = (now) => {
-            const t = Math.min((now - start) / duration, 1);
-            setDisplay(prevNum + (nextNum - prevNum) * t);
-            if (t < 1) animRef.current = requestAnimationFrame(animate);
-            else prevRef.current = nextNum;
-        };
-
-        if (animRef.current) cancelAnimationFrame(animRef.current);
-        animRef.current = requestAnimationFrame(animate);
-        return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-    }, [target, duration]);
-
-    return display;
-}
+const parseNum = (v) => parseFloat(String(v).replace(/[^0-9.]/g, "")) || 0;
 
 const AnimatedValue = memo(function AnimatedValue({ value, prefix = "$", decimals = 2, fallback = "—" }) {
     const animated = useAnimatedNumber(value);
@@ -54,7 +20,7 @@ const AnimatedValue = memo(function AnimatedValue({ value, prefix = "$", decimal
 });
 
 const AnimatedTotal = memo(function AnimatedTotal({ rawTotal, hasHoldings }) {
-    const num = rawTotal ? parseFloat(String(rawTotal).replace(/[^0-9.]/g, "")) || 0 : null;
+    const num = rawTotal ? parseNum(rawTotal) : null;
     const animated = useAnimatedNumber(hasHoldings ? num : 0);
     if (animated === null) return <span>Loading...</span>;
     return <span>${animated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
@@ -76,9 +42,7 @@ export default function Portfolio() {
     const live = liveData[current?.name];
 
     const holdings = (live?.holdings ?? []).map((h) => ({
-        ticker: h.ticker ?? "",
-        qty: h.quantity ?? 0,
-        price: h.price ?? 0,
+        ticker: h.ticker ?? "", qty: h.quantity ?? 0, price: h.price ?? 0,
         value: h.value ?? 0,
         sector: typeof h.sector === "string" && h.sector !== "Unknown" ? h.sector : "Other",
         name: h.ticker ?? "",
@@ -88,7 +52,6 @@ export default function Portfolio() {
     const presentSectors = ["All Stocks", ...sectors, ...(holdings.some((h) => h.sector === "Other") ? ["Other"] : [])];
     const resolvedTab = presentSectors.includes(activeTab) ? activeTab : "All Stocks";
     const filteredHoldings = resolvedTab === "All Stocks" ? holdings : holdings.filter((h) => h.sector === resolvedTab);
-
     const rawTotal = live?.total ? `$${String(live.total).replace(/^\$+/, "")}` : holdings.length === 0 ? "$0.00" : null;
 
     const handleCreate = async () => {
@@ -99,9 +62,7 @@ export default function Portfolio() {
             setNewName("");
             setCreateOpen(false);
             toast({ title: `Portfolio "${newName}" created.` });
-        } catch (err) {
-            toast({ title: err.message, variant: "destructive" });
-        }
+        } catch (err) { toast({ title: err.message, variant: "destructive" }); }
     };
 
     const handleRemove = async () => {
@@ -128,11 +89,8 @@ export default function Portfolio() {
                         {portfolios.length > 1 && (
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {portfolios.map((p) => (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => setActivePortfolio(p.id)}
-                                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${p.id === activePortfolio ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}
-                                    >
+                                    <button key={p.id} onClick={() => setActivePortfolio(p.id)}
+                                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${p.id === activePortfolio ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:text-foreground"}`}>
                                         {p.name}
                                     </button>
                                 ))}
@@ -152,11 +110,8 @@ export default function Portfolio() {
                         <Filter size={14} /> Filters
                     </button>
                     {presentSectors.map((t) => (
-                        <button
-                            key={t}
-                            onClick={() => setActiveTab(t)}
-                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${resolvedTab === t ? "bg-card border border-border text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                        >
+                        <button key={t} onClick={() => setActiveTab(t)}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${resolvedTab === t ? "bg-card border border-border text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                             {t}
                         </button>
                     ))}
@@ -190,9 +145,7 @@ export default function Portfolio() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {h.sector !== "Other" && (
-                                                <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground">{h.sector}</span>
-                                            )}
+                                            {h.sector !== "Other" && <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground">{h.sector}</span>}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-foreground">
                                             {h.price > 0 ? <AnimatedValue key={`${current?.name}-${h.ticker}-price`} value={h.price} /> : "—"}
@@ -235,9 +188,7 @@ export default function Portfolio() {
                         </DialogHeader>
                         <div className="space-y-4 pt-2">
                             <Input placeholder="Portfolio name" value={newName} onChange={(e) => setNewName(e.target.value)} />
-                            <button onClick={handleCreate} className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground">
-                                Create Portfolio
-                            </button>
+                            <button onClick={handleCreate} className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground">Create Portfolio</button>
                         </div>
                     </DialogContent>
                 </Dialog>

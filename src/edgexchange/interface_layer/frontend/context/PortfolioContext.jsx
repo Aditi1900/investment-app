@@ -27,24 +27,16 @@ export const usePortfolio = () => {
 export const PortfolioProvider = ({ children }) => {
     const { sessionId, user } = useSession();
     const [liveData, setLiveData] = useState({});
-    const controllerRef = useRef(null);
 
     useEffect(() => {
         setLiveData(readCache());
     }, []);
 
     useEffect(() => {
-        if (controllerRef.current) {
-            controllerRef.current.abort();
-            controllerRef.current = null;
-        }
-
         const portfolioNames = Object.keys(user?.portfolios ?? {});
         if (!sessionId || !portfolioNames.length) return;
 
         const controller = new AbortController();
-        controllerRef.current = controller;
-
         const url = `${BASE_URL}/live_data?session_id=${sessionId}`;
 
         fetch(url, { signal: controller.signal })
@@ -76,10 +68,7 @@ export const PortfolioProvider = ({ children }) => {
                 if (err.name !== "AbortError") console.error("Stream error", err);
             });
 
-        return () => {
-            controllerRef.current?.abort();
-            controllerRef.current = null;
-        };
+        return () => controller.abort();
     }, [sessionId, Object.keys(user?.portfolios ?? {}).join(",")]);
 
     return (

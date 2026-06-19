@@ -54,6 +54,7 @@ export default function Execution() {
     const isPositive = td?.positive ?? true;
     const companyName = td?.companyName ?? ticker;
     const chartData = (td?.sparkline ?? []).map((v, i) => ({ i, v }));
+    const tickerHasError = Boolean(ticker && errors[ticker]);
 
     const isBuy = side === "buy";
     const currentPortfolio = portfolios.find((p) => p.id === selectedPortfolio);
@@ -69,13 +70,11 @@ export default function Execution() {
             setQuantity("");
             return;
         }
-        const cleaned = value.replace(/^0+/, "") || "0";
-        setQuantity(cleaned);
+        setQuantity(value.replace(/^0+/, "") || "0");
     };
 
     const handleExecute = async () => {
         if (isProcessing) return;
-
         setIsProcessing(true);
 
         try {
@@ -101,8 +100,13 @@ export default function Execution() {
         }
     };
 
-    const canExecute = ticker && !errors[ticker] && currentPrice && quantityNum > 0 && !isProcessing;
+    const canExecute = ticker && !tickerHasError && currentPrice && quantityNum > 0 && !isProcessing;
     const buttonDisabled = !canExecute;
+    const buttonClass = isProcessing
+        ? "bg-gray-400 cursor-not-allowed"
+        : isBuy
+            ? "bg-emerald-500 hover:bg-emerald-600"
+            : "bg-red-500 hover:bg-red-600";
 
     return (
         <AppLayout>
@@ -117,15 +121,15 @@ export default function Execution() {
                             <div className="min-w-0">
                                 <h1 className="truncate text-2xl font-bold text-foreground">
                                     {ticker
-                                        ? errors[ticker] ? "Ticker not found"
+                                        ? tickerHasError ? "Ticker not found"
                                             : priceLoading ? ticker
                                                 : companyName
                                         : "Enter a ticker"}
                                 </h1>
-                                {ticker && !errors[ticker] && td?.exchange && (
+                                {ticker && !tickerHasError && td?.exchange && (
                                     <p className="text-xs text-muted-foreground">{td.exchange} · {td.currency}</p>
                                 )}
-                                {ticker && errors[ticker] && (
+                                {tickerHasError && (
                                     <p className="text-xs text-red-500">Please enter a different symbol</p>
                                 )}
                                 {!ticker && (
@@ -235,10 +239,10 @@ export default function Execution() {
                                     />
                                     <Search size={16} className="text-muted-foreground" />
                                 </div>
-                                {ticker && errors[ticker] && (
+                                {tickerHasError && (
                                     <p className="mt-1 text-xs text-red-500">{errors[ticker]}</p>
                                 )}
-                                {ticker && currentPrice && !errors[ticker] && (
+                                {ticker && currentPrice && !tickerHasError && (
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         <span className="font-semibold text-foreground">{ticker}</span>
                                         <span className="ml-2">${currentPrice.toFixed(2)}</span>
@@ -249,7 +253,7 @@ export default function Execution() {
                                         )}
                                     </p>
                                 )}
-                                {ticker && priceLoading && !errors[ticker] && (
+                                {ticker && priceLoading && !tickerHasError && (
                                     <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
                                 )}
                             </div>
@@ -312,12 +316,7 @@ export default function Execution() {
                             <button
                                 onClick={handleExecute}
                                 disabled={buttonDisabled}
-                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${isProcessing
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : isBuy
-                                        ? "bg-emerald-500 hover:bg-emerald-600"
-                                        : "bg-red-500 hover:bg-red-600"
-                                    } ${buttonDisabled && !isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+                                className={`flex w-full items-center justify-center gap-2 rounded-lg py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors ${buttonClass} ${buttonDisabled && !isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
                                 {isProcessing ? (
                                     <>

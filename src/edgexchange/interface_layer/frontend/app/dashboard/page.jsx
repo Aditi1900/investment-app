@@ -98,7 +98,8 @@ const PortfolioCard = memo(function PortfolioCard({ portfolio: { name, totalValu
     }, [holdings, totalValue, isLoading]);
 
     const colors = colorMapRef.current;
-    const stableHoldings = holdings.map((h) => h.ticker).map((t) => display.holdings.find((h) => h.ticker === t)).filter(Boolean);
+    const displayMap = new Map(display.holdings.map((h) => [h.ticker, h]));
+    const stableHoldings = holdings.map((h) => displayMap.get(h.ticker)).filter(Boolean);
     const topFour = [...stableHoldings].sort((a, b) => b.value - a.value).slice(0, 4);
     const topHolder = topFour[0] ?? null;
     const chartData = isEmpty ? [{ name: "Empty", value: 1 }] : stableHoldings.map((h) => ({ name: h.ticker, value: h.value, color: colors[h.ticker] }));
@@ -172,73 +173,11 @@ export default function Dashboard() {
     const { liveData } = usePortfolio();
     const [addFundsOpen, setAddFundsOpen] = useState(false);
     const [fundAmount, setFundAmount] = useState("");
-    const [syncedData, setSyncedData] = useState({});
-
-    const pendingRef = useRef({});
-    const updatedRef = useRef(new Set());
-    const lastSeenRef = useRef({});
-
-    const portfolioNames = Object.keys(user?.portfolios ?? {});
-    const portfolioKey = portfolioNames.join(",");
-
-    // Get the set of non-empty portfolio names
-    const nonEmptyPortfolioNames = new Set(
-        portfolioNames.filter(name => {
-            const live = liveData[name];
-            return live && live.holdings && live.holdings.length > 0;
-        })
-    );
-
-    useEffect(() => {
-        pendingRef.current = {};
-        updatedRef.current = new Set();
-        lastSeenRef.current = {};
-        setSyncedData({});
-    }, [portfolioKey]);
-
-    useEffect(() => {
-        if (!portfolioNames.length) return;
-
-        let changed = false;
-
-        for (const [name, data] of Object.entries(liveData)) {
-            const serialized = JSON.stringify(data);
-
-            if (lastSeenRef.current[name] === serialized) {
-                continue;
-            }
-
-            lastSeenRef.current[name] = serialized;
-            pendingRef.current[name] = data;
-            updatedRef.current.add(name);
-            changed = true;
-        }
-
-        if (!changed) return;
-
-        // Only check sync condition for non-empty portfolios
-        const nonEmptyUpdated = [...nonEmptyPortfolioNames].filter(
-            (name) => updatedRef.current.has(name)
-        );
-
-        // If there are no non-empty portfolios or all non-empty portfolios are updated
-        if (nonEmptyPortfolioNames.size === 0 || nonEmptyUpdated.length === nonEmptyPortfolioNames.size) {
-            // Sync all portfolios (including empty ones for consistency)
-            setSyncedData(
-                Object.fromEntries(
-                    portfolioNames.map((name) => [
-                        name,
-                        pendingRef.current[name],
-                    ])
-                )
-            );
-            updatedRef.current.clear();
-        }
-    }, [liveData, portfolioKey]);
 
     const portfolios = Object.values(user?.portfolios ?? {}).map((p) => {
-        const live = syncedData[p.name] ?? null;
+        const live = liveData[p.name] ?? null;
         const holdings = live?.holdings ?? [];
+        const hasPrices = holdings.some((h) => (h.price ?? 0) > 0);
 
         return {
             id: p.name,
@@ -246,7 +185,7 @@ export default function Dashboard() {
             totalValue: live?.total ?? "$0.00",
             holdings,
             isEmpty: live && !holdings.length,
-            isLoading: !live || (holdings.length > 0 && !holdings.some((h) => (h.price ?? 0) > 0)),
+            isLoading: !live || (holdings.length > 0 && !hasPrices),
         };
     });
 
@@ -257,7 +196,7 @@ export default function Dashboard() {
             setUser(data.user);
             setFundAmount("");
             setAddFundsOpen(false);
-            toast({ title: `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} added to your account.` });
+            toast({ title: `$${fmt(amount)} added to your account.` });
         } catch (err) {
             toast({ title: err.message, variant: "destructive" });
         }

@@ -32,10 +32,6 @@ export default function AppSidebar({ onClose }) {
         router.push("/");
     };
 
-    const handleNavClick = () => {
-        if (onClose) onClose();
-    };
-
     return (
         <aside className="flex h-screen w-56 flex-col border-r border-border bg-card">
             <div className="flex items-center justify-between p-6">
@@ -73,10 +69,10 @@ export default function AppSidebar({ onClose }) {
                         <Link
                             key={link.path}
                             href={link.path}
-                            onClick={handleNavClick}
+                            onClick={onClose}
                             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${isActive
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-secondary"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:bg-secondary"
                                 }`}
                         >
                             <link.icon size={18} />
