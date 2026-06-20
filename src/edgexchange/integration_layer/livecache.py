@@ -85,7 +85,7 @@ def rm(ticker):
 # RAISES: None
 def run():
     
-    signal = Condition(cache_lock)
+    signal = Condition(Lock())
     while True:
         latency = 0
         start = time.time()
