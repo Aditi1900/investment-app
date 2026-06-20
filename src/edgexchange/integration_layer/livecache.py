@@ -85,7 +85,7 @@ def rm(ticker):
 # RAISES: None
 def run():
     
-    signal = Condition(Lock())
+    signal = Condition(cache_lock)
     while True:
         latency = 0
         start = time.time()
@@ -108,7 +108,6 @@ def run():
                         if e.ticker and read(e.ticker, "quote") is None:
                             rm(e.ticker)
                         cache_lock.notify_all()
-                        signal.notify_all()
                     return
             
                 with cache_lock:
