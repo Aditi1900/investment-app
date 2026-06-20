@@ -84,6 +84,8 @@ def rm(ticker):
 #    - cache; tickers that fail quote fetching with no existing quote are removed
 # RAISES: None
 def run():
+    
+    signal = Condition(cache_lock)
     while True:
         latency = 0
         start = time.time()
@@ -112,6 +114,7 @@ def run():
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
+                        signal.notify_all()
                         
 
         t1 = threading.Thread(target = fetch_info)
@@ -123,8 +126,8 @@ def run():
 
             with cache_lock:
                 for ticker, price in ticker_prices.items():
+                    signal.wait_for(lambda: read(ticker, "quote") is not None)
                     price += inject_volatility(price)
-
                     write([ticker, "quote", "price"], price)
                     write([ticker, "price"], price)
                     write([ticker, "timestamp"], time.time())
