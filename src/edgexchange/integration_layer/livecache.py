@@ -86,57 +86,59 @@ def rm(ticker):
 def run():
     while True:
         latency = 0
-        try:
-            start = time.time()
+        start = time.time()
 
-            expired = []
-            with cache_lock:
-                for ticker in cache.keys():
-                    if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
-                        expired.append(ticker)
-            
-  
+        expired = []
+        with cache_lock:
+            for ticker in cache.keys():
+                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
+                    expired.append(ticker)
+
+        
+        def fetch_info():
             if expired:
                 try:
-
+ 
                     stock_info = eapi.get_stock_info(expired)
 
                 except FetchingError as e:
                     with cache_lock:
                         if e.ticker and read(e.ticker, "quote") is None:
                             rm(e.ticker)
-                    raise
-              
-            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
+                        cache_lock.notify_all()
+                    return
             
-
-            with cache_lock:
-                if expired:
+                with cache_lock:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
+                        
+
+        t1 = threading.Thread(target = fetch_info)
+        t1.start()
 
 
+        def fetch_prices():
+            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
+
+            with cache_lock:
                 for ticker, price in ticker_prices.items():
                     price += inject_volatility(price)
 
-
-                    if read(ticker, "quote") is not None:
-                        write([ticker, "quote", "price"], price)
-
-
+                    write([ticker, "quote", "price"], price)
                     write([ticker, "price"], price)
                     write([ticker, "timestamp"], time.time())
+                    cache_lock.notify_all()
 
-                
-                cache_lock.notify_all()
+        t2 = threading.Thread(target = fetch_prices)
+        t2.start()
 
 
-            end = time.time()
-            latency = end - start
-        
-        except FetchingError as e:
-            pass
+        t1.join()
+        t2.join()
+                                 
+        end = time.time()
+        latency = end - start
 
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 
@@ -224,7 +226,7 @@ class LiveCache:
     def get_stock_info(ticker: str):
         with cache_lock:
             touch([ticker])
-            cache_lock.wait_for(lambda: read(ticker, "quote")["price"] == read(ticker, "price"))
+            cache_lock.wait_for(lambda: read(ticker, "quote") is not None)
             stock_info = read(ticker, "quote")
         return stock_info
 
