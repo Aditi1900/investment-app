@@ -1,10 +1,11 @@
 import time
 import threading
+import random
 
 from threading import RLock, Lock, Condition
 from collections import defaultdict
 from datetime import date
-from typing import NamedTuple
+
 
 from ..common.errors import FetchingError, LiveCacheError
 from ..common import constants
@@ -15,6 +16,7 @@ from .externalapi import ExternalApi as eapi
 
 cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
+
 _lock = RLock()
 cache_lock = Condition(_lock)
 
@@ -92,6 +94,7 @@ def run():
 
         expired = []
         with cache_lock:
+
             for ticker in cache.keys():
                 if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
                     expired.append(ticker)
