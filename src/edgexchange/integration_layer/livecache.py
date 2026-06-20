@@ -236,10 +236,7 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_prices()
     @staticmethod
     def get_stock_prices(tickers: list[str]) -> dict[str, float]:
-
-        if not tickers:
-            return {}
-
+        
         ticker_package = {}
 
         with cache_lock:
