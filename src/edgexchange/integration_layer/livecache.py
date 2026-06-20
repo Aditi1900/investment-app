@@ -15,7 +15,7 @@ from .externalapi import ExternalApi as eapi
 
 cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
-cache_lock = Condition(Lock())
+cache_lock = Condition()
 
 # INPUT: if N/A - None
 #    - key(str); ticker symbol to look up
@@ -85,7 +85,7 @@ def rm(ticker):
 # RAISES: None
 def run():
     
-    signal = Condition(cache_lock)
+    signal = Condition()
     while True:
         latency = 0
         start = time.time()
@@ -108,6 +108,7 @@ def run():
                         if e.ticker and read(e.ticker, "quote") is None:
                             rm(e.ticker)
                         cache_lock.notify_all()
+                        signal.notify_all()
                     return
             
                 with cache_lock:
