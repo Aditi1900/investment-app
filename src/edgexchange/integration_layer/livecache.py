@@ -108,6 +108,7 @@ def run():
                         if e.ticker and read(e.ticker, "quote") is None:
                             rm(e.ticker)
                         cache_lock.notify_all()
+                        signal.notify_all()
                     return
             
                 with cache_lock:
@@ -126,7 +127,8 @@ def run():
 
             with cache_lock:
                 for ticker, price in ticker_prices.items():
-                    signal.wait_for(lambda: read(ticker, "quote") is not None)
+                    if ticker in expired:
+                        signal.wait_for(lambda: read(ticker, "quote") is not None)
                     price += inject_volatility(price)
                     write([ticker, "quote", "price"], price)
                     write([ticker, "price"], price)
