@@ -36,13 +36,6 @@ def connect(api) -> None:
     frontend_api = api
 
 
-# INPUT/OUTPUT/POSTCONDITION/RAISES: see respective fields in common.constants.dynamic_system_refresh()
-# PRECONDITION:
-#   -session_lock; must be held by caller
-def sysupdate() -> None:
-    dynamic_system_refresh(len(active_users))
-
-
 # INPUT: None
 # OUTPUT:
 #   -session_id(str); randomly generated hex string
@@ -74,10 +67,7 @@ def start_session(user) -> str:
         session_id = generate_session_id()
         active_sessions[session_id] = user.id
         user_sessions[user.id].add(session_id)
-
-        if active_users.get(user.id) is None:
-            active_users[user.id] = user
-            sysupdate()
+        active_users[user.id] = user
             
     return session_id
 
@@ -195,7 +185,6 @@ def logout(req : LogoutRequest) -> dict[str, str]:
         if not user_sessions[u_id]:
             active_users.pop(u_id, None)
             user_sessions.pop(u_id, None)
-            sysupdate()
 
     response = {"message" : "logged out"}
 
