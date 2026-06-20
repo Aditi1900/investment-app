@@ -113,7 +113,6 @@ def run():
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
-                        signal.notify_all()
                         
 
         t1 = threading.Thread(target = fetch_info)
