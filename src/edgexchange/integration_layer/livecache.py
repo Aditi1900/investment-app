@@ -94,7 +94,8 @@ def run():
                 for ticker in cache.keys():
                     if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
                         expired.append(ticker)
-
+            
+  
             if expired:
                 try:
 
@@ -106,18 +107,16 @@ def run():
                             rm(e.ticker)
                     raise
               
-
+            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
             
-                with cache_lock:
+
+            with cache_lock:
+                if expired:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
-                
-            
-        
-            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
 
-            with cache_lock:
+
                 for ticker, price in ticker_prices.items():
                     price += inject_volatility(price)
 
@@ -137,8 +136,7 @@ def run():
             latency = end - start
         
         except FetchingError as e:
-            with cache_lock:
-                cache_lock.notify_all()
+            pass
 
         time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
 
@@ -224,12 +222,10 @@ class LiveCache:
     #   -LiveCacheError; propagated from ExternalApi.get_stock_info()
     @staticmethod
     def get_stock_info(ticker: str):
-        
         with cache_lock:
             touch([ticker])
-            cache_lock.wait_for(lambda: read(ticker, "quote") is not None)
+            cache_lock.wait_for(lambda: read(ticker, "quote")["price"] == read(ticker, "price"))
             stock_info = read(ticker, "quote")
-
         return stock_info
 
 
