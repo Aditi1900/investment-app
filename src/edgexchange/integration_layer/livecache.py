@@ -1,7 +1,7 @@
 import time
 import threading
 
-from threading import Lock, Condition
+from threading import RLock, Lock, Condition
 from collections import defaultdict
 from datetime import date
 from typing import NamedTuple
@@ -15,7 +15,8 @@ from .externalapi import ExternalApi as eapi
 
 cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
-cache_lock = Condition()
+_lock = RLock()
+cache_lock = Condition(_lock)
 
 # INPUT: if N/A - None
 #    - key(str); ticker symbol to look up
@@ -84,7 +85,7 @@ def rm(ticker):
 #    - cache; tickers that fail quote fetching with no existing quote are removed
 # RAISES: None
 def run():
-
+    signal = Condition(_lock)
     while True:
         latency = 0
         start = time.time()
@@ -107,13 +108,14 @@ def run():
                         if e.ticker and read(e.ticker, "quote") is None:
                             rm(e.ticker)
                         cache_lock.notify_all()
+                        signal.notify_all()
                     return
             
                 with cache_lock:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
                         write([ticker, "quote_timestamp"], time.time())
-                        
+                        signal.notify_all()
 
         t1 = threading.Thread(target = fetch_info)
         t1.start()
@@ -125,6 +127,7 @@ def run():
             with cache_lock:
                 for ticker, price in ticker_prices.items():
                     price += inject_volatility(price)
+                    signal.wait_for(lambda: read(ticker, "quote") is not None)
                     write([ticker, "quote", "price"], price)
                     write([ticker, "price"], price)
                     write([ticker, "timestamp"], time.time())
