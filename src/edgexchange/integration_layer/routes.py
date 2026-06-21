@@ -6,7 +6,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from ..common.errors import ServiceError, ValidationError
-from ..common.constants import dynamic_system_refresh
 from .pydmodels import (
     LogoutRequest, CredsRequest, FundsRequest,
     PortfolioRequest, TransactionRequest,
