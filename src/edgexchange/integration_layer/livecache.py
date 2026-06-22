@@ -130,7 +130,9 @@ def run():
             with cache_lock:
                 for ticker, price in ticker_prices.items():
                     price += inject_volatility(price)
-                    signal.wait_for(lambda: read(ticker, "quote") is not None)
+                    signal.wait_for(lambda: read(ticker, "quote") is not None or ticker not in cache)
+                    if ticker not in cache: continue
+                
                     write([ticker, "quote", "price"], price)
                     write([ticker, "price"], price)
                     write([ticker, "timestamp"], time.time())
