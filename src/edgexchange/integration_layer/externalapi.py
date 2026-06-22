@@ -101,11 +101,11 @@ class ExternalApi:
 
 
     # INPUT:
-    #   -ticker(str); a stock ticker symbol
+    #   -tickers(list[str]); stock ticker symbols
     # OUTPUT:
-    #   -stock_info(dict); market data snapshot for ticker
+    #   -stock_info(dict[str,dict]); market data snapshot for tickers
     # PRECONDITION:
-    #   -ticker; exists in open market with at least 1 day of price history
+    #   -tickers; exist in open market with at least 1 day of price history
     # POSTCONDITION:
     #   -stock_info; contains the following keys:
     #       -price(float); current market price
@@ -124,51 +124,62 @@ class ExternalApi:
     #   -FetchingError; if yfinance call fails or ticker has no price history
     @staticmethod
     def get_stock_info(tickers: list[str]) -> dict[str, dict]:
-        current_ticker = None
-        try:
-            stock_info = {}
+        
+        stock_info = {}
 
-            ticker_dat = None if not tickers else yf.Tickers(" ".join(tickers))
+        ticker = None
+
+        def safe_float(val):
+            return float(val) if not pd.isna(val) else None
+        def safe_int(val):
+            return int(val) if not pd.isna(val) else None
+
+        try:
+            
+            ticker_dat = yf.Tickers(" ".join(tickers))
             hist_all = yf.download(tickers, period="5d", interval="1d", auto_adjust=True, progress=False)
             hist_all.columns = hist_all.columns.swaplevel('Ticker', 'Price')
             hist_all = hist_all.sort_index(axis=1)
+            
+            for ticker in tickers:
+                fi = ticker_dat.tickers[ticker].fast_info
+                hist = hist_all[ticker]
 
-            for t in tickers:
-                current_ticker = t
-                fi = ticker_dat.tickers[t].fast_info
-                hist = hist_all[t]
-
-                closes = hist["Close"].dropna().tolist()
-                last_price = hist["Close"].iloc[-1] if not hist.empty else None
-                previous_close = hist["Close"].iloc[-2] if len(hist) >= 2 else None
-
-                if last_price and previous_close:
-                    change = ((last_price - previous_close) / previous_close) * 100
+                if not hist.empty:
+                    price = safe_float(hist["Close"].iloc[-1])
+                    close = safe_float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
+                    change = round(((price - close) / close) * 100, 2) if close and price else None
+                    positive = change >= 0 if change is not None else None
+                    open = safe_float(hist["Open"].iloc[-1])
+                    high = safe_float(hist["High"].iloc[-1])
+                    low = safe_float(hist["Low"].iloc[-1])
+                    volume = safe_int(hist["Volume"].iloc[-1])
+                    sparkline = [float(close) for close in hist["Close"].dropna().tolist()]
                 else:
-                    change = None
+                    price = open = high = low = volume = close = sparkline = positive = change = None
 
                 exchange = fi.exchange
                 currency = fi.currency
                 year_high = fi.year_high
                 year_low = fi.year_low
 
-                stock_info[t] = {
-                    "price": float(last_price) if last_price is not None else None,
-                    "change": round(change, 2) if change is not None else None,
-                    "positive": bool(change >= 0) if change is not None else None,
-                    "sparkline": [float(c) for c in closes] if closes else None,
-                    "open": float(hist["Open"].iloc[-1]) if not hist.empty else None,
-                    "high": float(hist["High"].iloc[-1]) if not hist.empty else None,
-                    "low": float(hist["Low"].iloc[-1]) if not hist.empty else None,
-                    "volume": int(hist["Volume"].iloc[-1]) if not hist.empty and not pd.isna(hist["Volume"].iloc[-1]) else None,
+                stock_info[ticker] = {
+                    "price": price,
+                    "change": change,
+                    "positive": positive,
+                    "sparkline": sparkline,
+                    "open": open,
+                    "high": high,
+                    "low": low,
+                    "volume": volume,
                     "exchange": exchange,
                     "currency": currency,
-                    "fiftyTwoWeekHigh": float(year_high) if year_high is not None else None,
-                    "fiftyTwoWeekLow": float(year_low) if year_low is not None else None,
+                    "fiftyTwoWeekHigh": year_high,
+                    "fiftyTwoWeekLow": year_low,
                 }
 
         except Exception as e:
-            raise FetchingError(f"get_stock_info failed {e}", ticker=current_ticker) from e
+            raise FetchingError(f"get_stock_info failed {e}", ticker=ticker) from e
 
         return stock_info
 
