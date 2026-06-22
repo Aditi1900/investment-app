@@ -292,12 +292,12 @@ class Service:
     # INPUT:
     #   -portfolios(list[Portfolio]); users portfolios
     # OUTPUT:
-    #   -packaged_data(dict[str, list[dict]]); all portfolios holdings and total value at the moment or None if the call fails
+    #   -packaged_data(dict[str, list[dict]]); all portfolios holdings and total value at the moment or empty dict if the call fails
     # PRECONDITION: None
     # POSTCONDITION:
     #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolios: list[Portfolio]) -> dict[str, list[dict]] | None:
+    def package_portfolio_data(self, portfolios: list[Portfolio]) -> dict[str, list[dict]]:
 
         packaged_data = {}
         holdings = []
