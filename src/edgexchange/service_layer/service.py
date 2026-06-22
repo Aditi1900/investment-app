@@ -1,3 +1,4 @@
+from importlib.resources import Package
 import sys
 from collections import defaultdict
 
@@ -291,20 +292,26 @@ class Service:
     # INPUT:
     #   -portfolios(list[Portfolio]); users portfolios
     # OUTPUT:
-    #   -packaged_data(dict[str, list[str, str | list]]); all portfolios holdings and total value at the moment or None if the call fails
+    #   -packaged_data(dict[str, list[dict]]); all portfolios holdings and total value at the moment or None if the call fails
     # PRECONDITION: None
     # POSTCONDITION:
     #   -packaged_data; "total" contains portfolio current value and "holdings" contains all stock holdings
     # RAISES: None
-    def package_portfolio_data(self, portfolios: list[Portfolio]) -> dict[str, list[str, str | list]] | None:
+    def package_portfolio_data(self, portfolios: list[Portfolio]) -> dict[str, list[dict]] | None:
+
+        packaged_data = {}
+        holdings = []
+
         try:
-            holdings = list({ticker for portfolio in portfolios for ticker in portfolio.stocks.keys()})
+            
+            for portfolio in portfolios: holdings.extend(list(portfolio.stocks.keys()))
+
             prices = lcac.get_stock_prices(holdings)
 
-            packaged_data = {"portfolios": []}
+            packaged_data["portfolios"] = []
             for portfolio in portfolios:
-                entry = {"portfolio": portfolio.name, "total": "$0.00", "holdings": []}
                 total = 0
+                entry = {"portfolio": portfolio.name, "total": "$0.00", "holdings": []}
 
                 for ticker, stock in portfolio.stocks.items():
                     price = prices[ticker]
@@ -324,7 +331,7 @@ class Service:
                 packaged_data["portfolios"].append(entry)
 
         except LiveCacheError as e:
-            return None
+            pass
 
         return packaged_data
 

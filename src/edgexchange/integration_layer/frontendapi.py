@@ -152,7 +152,7 @@ class FrontendApi:
               
                 data = self.serv.package_portfolio_data(portfolios)
 
-                if data is not None:
+                if data:
                     yield json.dumps(data) + "\n"
 
                 await asyncio.sleep(constants.PRICE_REFRESH_INTERVAL)
