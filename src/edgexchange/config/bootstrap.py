@@ -83,4 +83,3 @@ class App:
     def run(self) -> None:
         self.display.execute()
    
-

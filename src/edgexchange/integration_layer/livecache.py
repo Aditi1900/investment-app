@@ -8,19 +8,20 @@ from datetime import date
 
 
 from ..common.errors import FetchingError, LiveCacheError
-from ..common import constants
+from ..common.constants import PRICE_REFRESH_INTERVAL, selx
 from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
 
 
-cache = defaultdict(lambda : {"price" : None, "timestamp" : None, "quote" : None, "quote_timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "quote" : None, "timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 
 _lock = RLock()
 cache_lock = Condition(_lock)
 
-# INPUT: if N/A - None
+
+# INPUT:
 #    - key(str); ticker symbol to look up
 #    - value(str); field name to retrieve
 # OUTPUT:
@@ -28,20 +29,8 @@ cache_lock = Condition(_lock)
 # PRECONDITION: None
 # POSTCONDITION: None
 # RAISES: None
-def read(key, value):
+def read(key : str, value : str) -> any:
     return cache.get(key, {}).get(value)
-
-
-# INPUT:
-#    - keys(list[str]); ticker symbols to register in cache
-# OUTPUT: None
-# PRECONDITION: None
-# POSTCONDITION:
-#    - cache; all tickers in keys exist with default values
-# RAISES: None
-def touch(keys):
-    for key in keys:
-        _ = cache[key]
 
 
 # INPUT:
@@ -54,13 +43,26 @@ def touch(keys):
 # POSTCONDITION:
 #    - cache; value written at location described by keys
 # RAISES: None
-def write(keys, value):
+def write(keys : list, value : any) -> None:
     loc = cache
 
     for key in keys[:-1]:
         loc = loc[key]
 
     loc[keys[-1]] = value
+
+
+# INPUT:
+#    - keys(list[str]); ticker symbols to register in cache
+# OUTPUT: None
+# PRECONDITION: None
+# POSTCONDITION:
+#    - cache; all tickers in keys exist with default values
+# RAISES: None
+def touch(keys : list[str]) -> None:
+    for key in keys:
+        _ = cache[key]
+        write([key, "timestamp"], time.time())
 
 
 # INPUT:
@@ -72,7 +74,7 @@ def write(keys, value):
 #    - cache; ticker and all associated data removed
 # RAISES:
 #    - KeyError; ticker not in cache
-def rm(ticker):
+def rm(ticker : str) -> None:
     del cache[ticker]
 
 
@@ -92,11 +94,14 @@ def run():
         latency = 0
         start = time.time()
 
+        hot = []
         expired = []
         with cache_lock:
 
             for ticker in cache.keys():
-                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
+                if read(ticker, "price") is None or read(ticker, "timestamp") < start + selx(PRICE_REFRESH_INTERVAL):
+                    hot.append(ticker)
+                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "timestamp")) < date.today():
                     expired.append(ticker)
 
         
@@ -117,7 +122,6 @@ def run():
                 with cache_lock:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
-                        write([ticker, "quote_timestamp"], time.time())
                         signal.notify_all()
 
         t1 = threading.Thread(target = fetch_info)
@@ -125,16 +129,16 @@ def run():
 
 
         def fetch_prices():
-            ticker_prices = eapi.get_stock_prices(list(cache.keys()))
+            if hot:
+                ticker_prices = eapi.get_stock_prices(hot)
 
-            with cache_lock:
-                for ticker, price in ticker_prices.items():
-                    price += inject_volatility(price)
-                    signal.wait_for(lambda: read(ticker, "quote") is not None)
-                    write([ticker, "quote", "price"], price)
-                    write([ticker, "price"], price)
-                    write([ticker, "timestamp"], time.time())
-                    cache_lock.notify_all()
+                with cache_lock:
+                    for ticker, price in ticker_prices.items():
+                        price += inject_volatility(price)
+                        signal.wait_for(lambda: read(ticker, "quote") is not None)
+                        write([ticker, "quote", "price"], price)
+                        write([ticker, "price"], price)
+                        cache_lock.notify_all()
 
         t2 = threading.Thread(target = fetch_prices)
         t2.start()
@@ -146,7 +150,7 @@ def run():
         end = time.time()
         latency = end - start
 
-        time.sleep(max(0, constants.PRICE_REFRESH_INTERVAL - latency))
+        time.sleep(max(0, PRICE_REFRESH_INTERVAL - latency))
 
 threading.Thread(target = run, daemon = True).start()
 
@@ -252,3 +256,5 @@ class LiveCache:
                 ticker_package[ticker] = read(ticker, "price")
 
         return ticker_package
+
+
