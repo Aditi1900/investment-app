@@ -179,7 +179,7 @@ class ExternalApi:
                 }
 
         except Exception as e:
-            raise FetchingError(f"get_stock_info failed {e}", ticker=ticker) from e
+            raise FetchingError(f"get_stock_info failed {e}", ticker) from e
 
         return stock_info
 
