@@ -8,7 +8,9 @@ async function req(endpoint, options = {}) {
     if (!res.ok) {
         const text = await res.text();
         let detail; try { detail = JSON.parse(text)?.detail; } catch { }
-        throw new Error(detail || `Server error (${res.status})`);
+        const err = new Error(detail || `Server error (${res.status})`);
+        err.status = res.status;
+        throw err;
     }
     return res.json();
 }

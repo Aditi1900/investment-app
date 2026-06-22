@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import { ArrowRight, ArrowUpRight, BarChart3, Zap, Shield } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer } from "recharts";
 
-// Sample data for the hero chart — represents hypothetical portfolio growth over 10 periods
 const heroChartData = [
     { value: 40 },
     { value: 55 },
@@ -26,6 +25,7 @@ const FEATURES = [
         description:
             "Secure account architecture with encrypted transactions, session-based authentication, and real-time validation across all portfolio operations.",
         cta: "Manage Security",
+        href: "/portfolio",
     },
     {
         icon: BarChart3,
@@ -33,6 +33,7 @@ const FEATURES = [
         description:
             "Stream live market data directly into interactive charts with millisecond updates. Track portfolio performance, trends, and signals as they happen.",
         cta: "View Dashboard",
+        href: "/dashboard",
     },
     {
         icon: Zap,
@@ -40,21 +41,37 @@ const FEATURES = [
         description:
             "Execute trades instantly with optimized backend routing and minimal latency. Designed for precision, speed, and reliability under load.",
         cta: "Start Trading",
+        href: "/execute",
     },
 ];
 
 const FOOTER_COLUMNS = [
     {
         title: "Platform",
-        links: ["Terminal", "Mobile App", "API Docs", "Connectivity"],
+        links: [
+            { label: "Terminal", href: "/execute" },
+            { label: "Mobile App", href: "#" },
+            { label: "API Docs", href: "#" },
+            { label: "Connectivity", href: "#" },
+        ],
     },
     {
         title: "Firm",
-        links: ["Advisory", "Research", "Compliance", "Careers"],
+        links: [
+            { label: "Advisory", href: "#" },
+            { label: "Research", href: "#" },
+            { label: "Compliance", href: "#" },
+            { label: "Careers", href: "#" },
+        ],
     },
     {
         title: "Support",
-        links: ["Help Center", "Security", "Terms", "Privacy"],
+        links: [
+            { label: "Help Center", href: "#" },
+            { label: "Security", href: "#" },
+            { label: "Terms", href: "#" },
+            { label: "Privacy", href: "#" },
+        ],
     },
 ];
 
@@ -90,50 +107,51 @@ export default function Landing() {
                             >
                                 Start Trading <ArrowRight size={16} />
                             </Link>
-                            <Link
-                                href="/login"
-                                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
-                            >
-                                View Demo
-                            </Link>
+
                         </div>
                     </div>
 
                     {/* Right: preview card + feature chips */}
                     <div className="space-y-4">
-                        <div className="card-surface p-6">
-                            <div className="section-label text-accent">Elevate your Wealth</div>
-                            <div className="mt-1 flex items-baseline justify-between">
-                                <span className="text-2xl font-bold text-foreground sm:text-3xl">$2,840,192.44</span>
-                                <span className="badge-positive">↗ +14.2%</span>
+                        <Link href="/dashboard" className="block">
+                            <div className="card-surface p-6 transition-colors hover:bg-secondary/50">
+                                <div className="section-label text-accent">Elevate your Wealth</div>
+                                <div className="mt-1 flex items-baseline justify-between">
+                                    <span className="text-2xl font-bold text-foreground sm:text-3xl">$2,840,192.44</span>
+                                    <span className="badge-positive">↗ +14.2%</span>
+                                </div>
+                                <div className="mt-4 h-24">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={heroChartData}>
+                                            <Bar dataKey="value" fill="hsl(166, 60%, 45%)" radius={[3, 3, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                            <div className="mt-4 h-24">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={heroChartData}>
-                                        <Bar dataKey="value" fill="hsl(166, 60%, 45%)" radius={[3, 3, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+                        </Link>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="card-surface p-4">
-                                <BarChart3 size={20} className="text-accent" />
-                                <div className="mt-2 text-sm font-semibold text-foreground">Realistic Trade Simulation</div>
-                                <div className="text-xs text-muted-foreground">Practice trading in live-style market conditions</div>
-                            </div>
-                            <div className="card-surface p-4">
-                                <Zap size={20} className="text-accent" />
-                                <div className="mt-2 text-sm font-semibold text-foreground">Portfolio Drift Insights</div>
-                                <div className="text-xs text-muted-foreground">Track how allocations shift when positions go unmanaged.</div>
-                            </div>
+                            <Link href="/execute" className="block">
+                                <div className="card-surface p-4 transition-colors hover:bg-secondary/50">
+                                    <BarChart3 size={20} className="text-accent" />
+                                    <div className="mt-2 text-sm font-semibold text-foreground">Realistic Trade Simulation</div>
+                                    <div className="text-xs text-muted-foreground">Practice trading in live-style market conditions</div>
+                                </div>
+                            </Link>
+                            <Link href="/portfolio" className="block">
+                                <div className="card-surface p-4 transition-colors hover:bg-secondary/50">
+                                    <Zap size={20} className="text-accent" />
+                                    <div className="mt-2 text-sm font-semibold text-foreground">Portfolio Drift Insights</div>
+                                    <div className="text-xs text-muted-foreground">Track how allocations shift when positions go unmanaged.</div>
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* ── Features ──────────────────────────────────────────────────── */}
-            <section className="border-t border-border bg-card py-16 sm:py-20">
+            <section id="features" className="border-t border-border bg-card py-16 sm:py-20">
                 <div className="mx-auto max-w-screen-xl px-4 text-center sm:px-6">
                     <div className="section-label">Core Advantage</div>
                     <h2 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">
@@ -150,9 +168,12 @@ export default function Landing() {
                                     </div>
                                     <h3 className="mt-4 text-lg font-bold text-foreground">{feature.title}</h3>
                                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-                                    <button className="mt-6 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground">
+                                    <Link
+                                        href={feature.href}
+                                        className="mt-6 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground hover:text-accent transition-colors"
+                                    >
                                         {feature.cta} <ArrowUpRight size={12} />
-                                    </button>
+                                    </Link>
                                 </div>
                             );
                         })}
@@ -181,9 +202,12 @@ export default function Landing() {
                             >
                                 Start Trading
                             </Link>
-                            <button className="rounded-lg border border-primary-foreground/20 px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10">
+                            <a
+                                href="#features"
+                                className="rounded-lg border border-primary-foreground/20 px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
+                            >
                                 Learn more
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -208,10 +232,10 @@ export default function Landing() {
                                 <div className="section-label">{column.title}</div>
                                 <ul className="mt-3 space-y-2">
                                     {column.links.map((link) => (
-                                        <li key={link}>
-                                            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                                                {link}
-                                            </a>
+                                        <li key={link.label}>
+                                            <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground">
+                                                {link.label}
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>

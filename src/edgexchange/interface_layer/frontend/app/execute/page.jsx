@@ -90,10 +90,11 @@ export default function Execution() {
             });
             setQuantity("");
         } catch (err) {
+            const is400 = err.status === 400 || err.statusCode === 400;
             toast({
                 title: err.message,
                 variant: "destructive",
-                description: "Please try again or contact support if the issue persists."
+                ...(is400 ? {} : { description: "Please try again or contact support if the issue persists." }),
             });
         } finally {
             setIsProcessing(false);

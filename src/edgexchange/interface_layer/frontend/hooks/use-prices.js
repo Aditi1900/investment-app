@@ -61,7 +61,7 @@ export function usePrices(tickers) {
         };
 
         fetchAll();
-        intervalRef.current = setInterval(fetchAll, 1_000);
+        intervalRef.current = setInterval(fetchAll, 2_000);
         return () => {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
