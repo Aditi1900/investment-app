@@ -14,7 +14,7 @@ from .externalapi import ExternalApi as eapi
 
 
 
-cache = defaultdict(lambda : {"price" : None, "quote" : None, "quote_timestamp" : None, "timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "quote" : None, "quote_date" : None, "last_accessed" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 
 _lock = RLock()
@@ -62,7 +62,7 @@ def write(keys : list, value : any) -> None:
 def touch(keys : list[str]) -> None:
     for key in keys:
         _ = cache[key]
-        write([key, "timestamp"], time.time())
+        write([key, "last_accessed"], time.time())
 
 # INPUT:
 #    - ticker(str); ticker symbol to remove
@@ -98,9 +98,9 @@ def run():
         with cache_lock:
 
             for ticker in cache.keys():
-                if read(ticker, "price") is None or read(ticker, "timestamp") < start - selx(PRICE_REFRESH_INTERVAL):
+                if read(ticker, "price") is None or read(ticker, "last_accessed") < start - selx(PRICE_REFRESH_INTERVAL):
                     hot.add(ticker)
-                if ticker in hot and (read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today()):
+                if ticker in hot and (read(ticker, "quote") is None or read(ticker, "quote_date") < date.today()):
                     expired.add(ticker)
 
         
@@ -121,7 +121,7 @@ def run():
                 with cache_lock:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
-                        write([ticker, "quote_timestamp"], time.time())
+                        write([ticker, "quote_date"], date.today())
                         signal.notify_all()
 
         t1 = threading.Thread(target = fetch_info)
