@@ -93,15 +93,15 @@ def run():
         latency = 0
         start = time.time()
 
-        hot = []
-        expired = []
+        hot = set()
+        expired = set()
         with cache_lock:
 
             for ticker in cache.keys():
                 if read(ticker, "price") is None or read(ticker, "timestamp") < start - selx(PRICE_REFRESH_INTERVAL):
-                    hot.append(ticker)
-                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
-                    expired.append(ticker)
+                    hot.add(ticker)
+                if ticker in hot and (read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today()):
+                    expired.add(ticker)
 
         
         def fetch_info():
