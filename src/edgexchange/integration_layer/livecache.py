@@ -14,7 +14,7 @@ from .externalapi import ExternalApi as eapi
 
 
 
-cache = defaultdict(lambda : {"price" : None, "quote" : None, "timestamp" : None})
+cache = defaultdict(lambda : {"price" : None, "quote" : None, "quote_timestamp" : None, "timestamp" : None})
 persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 
 _lock = RLock()
@@ -64,7 +64,6 @@ def touch(keys : list[str]) -> None:
         _ = cache[key]
         write([key, "timestamp"], time.time())
 
-
 # INPUT:
 #    - ticker(str); ticker symbol to remove
 # OUTPUT: None
@@ -99,9 +98,9 @@ def run():
         with cache_lock:
 
             for ticker in cache.keys():
-                if read(ticker, "price") is None or read(ticker, "timestamp") < start + selx(PRICE_REFRESH_INTERVAL):
+                if read(ticker, "price") is None or read(ticker, "timestamp") < start - selx(PRICE_REFRESH_INTERVAL):
                     hot.append(ticker)
-                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "timestamp")) < date.today():
+                if read(ticker, "quote") is None or date.fromtimestamp(read(ticker, "quote_timestamp")) < date.today():
                     expired.append(ticker)
 
         
@@ -122,6 +121,7 @@ def run():
                 with cache_lock:
                     for ticker, quote in stock_info.items():
                         write([ticker, "quote"], quote)
+                        write([ticker, "quote_timestamp"], time.time())
                         signal.notify_all()
 
         t1 = threading.Thread(target = fetch_info)
@@ -256,5 +256,3 @@ class LiveCache:
                 ticker_package[ticker] = read(ticker, "price")
 
         return ticker_package
-
-
