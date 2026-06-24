@@ -126,8 +126,9 @@ def run():
 
                 if is_hot:
                     hot.add(ticker)
-                    if is_expired:
-                        expired.add(ticker)
+
+                if is_hot and is_expired:
+                    expired.add(ticker)
 
         
         def fetch_info():
