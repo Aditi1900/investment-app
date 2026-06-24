@@ -44,7 +44,6 @@ def sync_price(ticker: str, price: float) -> None:
 def write_quote(ticker: str, quote: dict) -> None:
     cache[ticker]["quote"] = quote
     cache[ticker]["quote_date"] = date.today()
-    cache[ticker]["last_accessed"] = time.time()
 
 
 # INPUT:
@@ -61,7 +60,6 @@ def write_price(ticker: str, price: float) -> None:
     price += inject_volatility(price)
     sync_price(ticker, price)
     cache[ticker]["price"] = price
-    cache[ticker]["last_accessed"] = time.time()
 
 
 # INPUT:
@@ -77,15 +75,29 @@ def read(key : str, value : str) -> any:
 
 
 # INPUT:
+#    - ticker(str); ticker symbol to stamp
+# OUTPUT: None
+# PRECONDITION:
+#    - ticker; must exist in cache
+# POSTCONDITION:
+#    - cache; last_accessed updated to current time for ticker
+# RAISES: None
+def stamp(ticker: str) -> None:
+    cache[ticker]["last_accessed"] = time.time()
+
+    
+# INPUT:
 #    - keys(list[str]); ticker symbols to register in cache
 # OUTPUT: None
 # PRECONDITION: None
 # POSTCONDITION:
 #    - cache; all tickers in keys exist with default values
+#    - cache; last_accessed stamped for all tickers to signal demand
 # RAISES: None
-def touch(keys : list[str]) -> None:
+def touch(keys: list[str]) -> None:
     for key in keys:
         _ = cache[key]
+        stamp(key)
 
 
 # INPUT:
