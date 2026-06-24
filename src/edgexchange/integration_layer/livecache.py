@@ -20,6 +20,49 @@ persistent_cache = defaultdict(lambda : {"sector" : None, "float" : None})
 _lock = RLock()
 cache_lock = Condition(_lock)
 
+# INPUT:
+#    - ticker(str); ticker symbol to update
+#    - price(float); price to inject into quote
+# OUTPUT: None
+# PRECONDITION:
+#    - cache[ticker]["quote"]; must not be None
+# POSTCONDITION:
+#    - cache; quote["price"] updated to price for ticker
+# RAISES: None
+def sync_price(ticker: str, price: float) -> None:
+    cache[ticker]["quote"]["price"] = price
+
+
+# INPUT:
+#    - ticker(str); ticker symbol to update
+#    - quote(dict); quote data to write
+# OUTPUT: None
+# PRECONDITION:
+#    - ticker; must exist in cache
+# POSTCONDITION:
+#    - cache; quote, quote_date, and last_accessed updated for ticker
+# RAISES: None
+def write_quote(ticker: str, quote: dict) -> None:
+    cache[ticker]["quote"] = quote
+    cache[ticker]["quote_date"] = date.today()
+    cache[ticker]["last_accessed"] = time.time()
+
+
+# INPUT:
+#    - ticker(str); ticker symbol to update
+#    - price(float); price to write
+# OUTPUT: None
+# PRECONDITION:
+#    - ticker; must exist in cache
+#    - cache[ticker]["quote"]; must not be None (sync_price precondition)
+# POSTCONDITION:
+#    - cache; price, quote["price"], and last_accessed updated for ticker
+# RAISES: None
+def write_price(ticker: str, price: float) -> None:
+    sync_price(ticker, price)
+    cache[ticker]["price"] = price
+    cache[ticker]["last_accessed"] = time.time()
+
 
 # INPUT:
 #    - key(str); ticker symbol to look up
@@ -34,25 +77,6 @@ def read(key : str, value : str) -> any:
 
 
 # INPUT:
-#    - keys(list); path of keys to traverse to write location
-#    - value(any); value to write
-# OUTPUT: None
-# PRECONDITION:
-#    - keys; len > 0
-#    - keys[:-1]; all intermediate keys must already exist in cache
-# POSTCONDITION:
-#    - cache; value written at location described by keys
-# RAISES: None
-def write(keys : list, value : any) -> None:
-    loc = cache
-
-    for key in keys[:-1]:
-        loc = loc[key]
-
-    loc[keys[-1]] = value
-
-
-# INPUT:
 #    - keys(list[str]); ticker symbols to register in cache
 # OUTPUT: None
 # PRECONDITION: None
@@ -62,7 +86,7 @@ def write(keys : list, value : any) -> None:
 def touch(keys : list[str]) -> None:
     for key in keys:
         _ = cache[key]
-        write([key, "last_accessed"], time.time())
+
 
 # INPUT:
 #    - ticker(str); ticker symbol to remove
@@ -120,8 +144,7 @@ def run():
             
                 with cache_lock:
                     for ticker, quote in stock_info.items():
-                        write([ticker, "quote"], quote)
-                        write([ticker, "quote_date"], date.today())
+                        write_quote(ticker, quote)
                         signal.notify_all()
 
         t1 = threading.Thread(target = fetch_info)
@@ -136,8 +159,7 @@ def run():
                     for ticker, price in ticker_prices.items():
                         price += inject_volatility(price)
                         signal.wait_for(lambda: read(ticker, "quote") is not None)
-                        write([ticker, "quote", "price"], price)
-                        write([ticker, "price"], price)
+                        write_price(ticker, price)
                         cache_lock.notify_all()
 
         t2 = threading.Thread(target = fetch_prices)
