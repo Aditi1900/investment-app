@@ -7,7 +7,7 @@ from datetime import date
 
 
 from ..common.errors import FetchingError, LiveCacheError
-from ..common.constants import PRICE_REFRESH_INTERVAL, selx
+from ..common.constants import PRICE_REFRESH_INTERVAL, selfexp
 from ..common.entropy import inject_volatility
 from .externalapi import ExternalApi as eapi
 
@@ -121,7 +121,7 @@ def run():
         with cache_lock:
 
             for ticker in cache.keys():
-                is_hot = read(ticker, "price") is None or read(ticker, "last_accessed") < start - selx(PRICE_REFRESH_INTERVAL)
+                is_hot = read(ticker, "price") is None or read(ticker, "last_accessed") < start - selfexp(PRICE_REFRESH_INTERVAL)
                 is_expired = read(ticker, "quote") is None or read(ticker, "quote_date") < date.today()
 
                 if is_hot:
