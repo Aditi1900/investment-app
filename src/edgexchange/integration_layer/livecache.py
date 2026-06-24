@@ -58,6 +58,7 @@ def write_quote(ticker: str, quote: dict) -> None:
 #    - cache; price, quote["price"], and last_accessed updated for ticker
 # RAISES: None
 def write_price(ticker: str, price: float) -> None:
+    price += inject_volatility(price)
     sync_price(ticker, price)
     cache[ticker]["price"] = price
     cache[ticker]["last_accessed"] = time.time()
@@ -106,7 +107,6 @@ def rm(ticker : str) -> None:
 # POSTCONDITION:
 #    - cache; quotes refreshed daily via eapi.get_stock_info for any ticker with missing or stale quote
 #    - cache; prices refreshed every PRICE_REFRESH_INTERVAL seconds via eapi.get_stock_prices for all tickers
-#    - cache; simulated volatility injected into each price update
 #    - cache; all waiters on cache_lock notified after each price update or on FetchingError
 #    - cache; tickers that fail quote fetching with no existing quote are removed
 # RAISES: None
@@ -121,9 +121,12 @@ def run():
         with cache_lock:
 
             for ticker in cache.keys():
-                if read(ticker, "price") is None or read(ticker, "last_accessed") < start - selx(PRICE_REFRESH_INTERVAL):
+                is_hot = read(ticker, "price") is None or read(ticker, "last_accessed") < start - selx(PRICE_REFRESH_INTERVAL)
+                is_expired = read(ticker, "quote") is None or read(ticker, "quote_date") < date.today()
+
+                if is_hot:
                     hot.add(ticker)
-                if ticker in hot and (read(ticker, "quote") is None or read(ticker, "quote_date") < date.today()):
+                if ticker in hot and is_expired:
                     expired.add(ticker)
 
         
@@ -156,7 +159,6 @@ def run():
 
                 with cache_lock:
                     for ticker, price in ticker_prices.items():
-                        price += inject_volatility(price)
                         signal.wait_for(lambda: read(ticker, "quote") is not None)
                         write_price(ticker, price)
                         cache_lock.notify_all()
