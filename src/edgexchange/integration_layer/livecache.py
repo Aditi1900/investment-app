@@ -1,6 +1,5 @@
 import time
 import threading
-import random
 
 from threading import RLock, Lock, Condition
 from collections import defaultdict
