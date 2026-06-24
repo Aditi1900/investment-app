@@ -130,7 +130,7 @@ class FrontendApi:
     def quote_stock(self, ticker : str):
         ticker = self.san.sanitize_ticker(ticker)
 
-        result = self.validator.ticker_validator(ticker, quote = True)
+        result = self.validator.ticker_validator(ticker, lookup = True)
         if not result.valid:
             raise ValidationError(result.reason)
 

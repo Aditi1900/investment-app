@@ -105,21 +105,33 @@ class Validator:
             return Result(True, f"Portfolio {portfolio_name} successfully removed.\n")
 
 
-    
+    # INPUT:
+    #   -ticker(str); stock ticker symbol to validate
+    #   -lookup(bool); True if verifying ticker exists on open market, False if checking ownership
+    #   -portfolio(Portfolio | None); user portfolio, required when lookup is False
+    # OUTPUT:
+    #   -return(Result); ticker validation result True or False with reason
+    # PRECONDITION:
+    #   -ticker; non-empty string
+    #   -lookup; is True or False
+    #   -portfolio; is not None when lookup is False
+    # POSTCONDITION:
+    #   -Result; True if ticker matches [A-Z]{1,5}, exists on market (lookup), or is owned (not lookup)
+    # RAISES: None
     @staticmethod
-    def ticker_validator(ticker, quote, portfolio = None):
+    def ticker_validator(ticker, lookup, portfolio = None):
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
            return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
         
         try:
 
-            if quote and not lcac.does_ticker_exist(ticker):
+            if lookup and not lcac.does_ticker_exist(ticker):
                 return Result(False, "This stock does not exist on the open market.\n")
             
         except LiveCacheError as e:
             return Result(False, "Stock choice could not be verified at this time.\n")
 
-        if not quote and ticker not in portfolio.stocks:
+        if not lookup and ticker not in portfolio.stocks:
             return Result(False, "You do not own this stock.\n")
 
         return Result(True, "")
