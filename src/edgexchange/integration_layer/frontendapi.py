@@ -126,11 +126,11 @@ class FrontendApi:
 
     # INPUT/OUTPUT/PRECONDITION/POSTCONDITION: see respective Service.quote_stock() fields
     # RAISES:
-    #   -ValidationError; see Validator.ticker_validator() POSTCONDITION (quote=True)
+    #   -ValidationError; see Validator.stock_validator() POSTCONDITION
     def quote_stock(self, ticker : str):
         ticker = self.san.sanitize_ticker(ticker)
 
-        result = self.validator.ticker_validator(ticker, lookup = True)
+        result = self.validator.stock_validator(ticker)
         if not result.valid:
             raise ValidationError(result.reason)
 

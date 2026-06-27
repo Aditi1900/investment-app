@@ -107,34 +107,25 @@ class Validator:
 
     # INPUT:
     #   -ticker(str); stock ticker symbol to validate
-    #   -lookup(bool); True if verifying ticker exists on open market, False if checking ownership
-    #   -portfolio(Portfolio | None); user portfolio, required when lookup is False
     # OUTPUT:
     #   -return(Result); ticker validation result True or False with reason
     # PRECONDITION:
     #   -ticker; non-empty string
-    #   -lookup; is True or False
-    #   -portfolio; is not None when lookup is False
     # POSTCONDITION:
-    #   -Result; True if ticker matches [A-Z]{1,5}, exists on market (lookup), or is owned (not lookup)
+    #   -Result; True if ticker matches [A-Z]{1,5} and exists on open market
     # RAISES: None
     @staticmethod
-    def ticker_validator(ticker, lookup, portfolio = None):
+    def stock_validator(ticker):
         if not re.fullmatch(r"[A-Z]{1,5}", ticker):
            return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
         
         try:
 
-            if lookup and not lcac.does_ticker_exist(ticker):
+            if not lcac.does_ticker_exist(ticker):
                 return Result(False, "This stock does not exist on the open market.\n")
             
         except LiveCacheError as e:
             return Result(False, "Stock choice could not be verified at this time.\n")
-
-        if not lookup and ticker not in portfolio.stocks:
-            return Result(False, "You do not own this stock.\n")
-
-        return Result(True, "")
 
 
     # INPUT:
@@ -158,10 +149,19 @@ class Validator:
 
        
         #Validate ticker
-        result = Validator.ticker_validator(ticker, purchase, portfolio)
+        if not re.fullmatch(r"[A-Z]{1,5}", ticker):
+           return Result(False, "Ticker symbols must be capital and 1-5 characters.\n")
+        
+        try:
 
-        if not result.valid:
-            return result
+            if purchase and not lcac.does_ticker_exist(ticker):
+                return Result(False, "This stock does not exist on the open market.\n")
+            
+        except LiveCacheError as e:
+            return Result(False, "Stock choice could not be verified at this time.\n")
+
+        if not purchase and ticker not in portfolio.stocks:
+            return Result(False, "You do not own this stock.\n")
 
 
         #Validate Quantity
