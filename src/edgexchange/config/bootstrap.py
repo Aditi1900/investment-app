@@ -63,7 +63,7 @@ class App:
         while not (base_dir / 'pyproject.toml').exists():
             base_dir = base_dir.parent
 
-        db_dir = base_dir / "data"
+        db_dir = base_dir / 'data'
 
         db_dir.mkdir(exist_ok = True)
 

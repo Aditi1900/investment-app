@@ -64,6 +64,7 @@ class Database:
         try:
 
             cursor.executescript(create_user_table + create_portfolios_table + create_stocks_table)
+            self.conn.commit()
 
         except SqliteError as e:
             self.conn.rollback()

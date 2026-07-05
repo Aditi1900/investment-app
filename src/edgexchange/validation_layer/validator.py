@@ -127,6 +127,7 @@ class Validator:
         except LiveCacheError as e:
             return Result(False, "Stock choice could not be verified at this time.\n")
 
+        return Result(True, "")
 
     # INPUT:
     #   -portfolio(Portfolio); user portfolio to update
